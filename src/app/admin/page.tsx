@@ -1,5 +1,9 @@
 import { AlertTriangleIcon, BoxesIcon, ClockIcon, PackageXIcon, WalletIcon } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
+import { dateTime, OrderStatusBadge } from "@/components/admin/admin-ui";
+import { getLowStockProducts } from "@/features/admin/catalog";
+import { getRecentOrders } from "@/features/admin/orders";
 import { getDashboardStats } from "@/features/admin/queries";
 import { requireAdmin } from "@/features/auth/session";
 import { formatCOP } from "@/lib/format";
@@ -44,7 +48,11 @@ function StatCard({
 export default async function AdminHomePage() {
   // Defensa en profundidad: la página también exige administrador.
   const admin = await requireAdmin("/admin");
-  const stats = await getDashboardStats();
+  const [stats, recentOrders, lowStock] = await Promise.all([
+    getDashboardStats(),
+    getRecentOrders(6),
+    getLowStockProducts(8),
+  ]);
   const number = new Intl.NumberFormat("es-CO");
 
   return (
@@ -95,6 +103,96 @@ export default async function AdminHomePage() {
           />
         </div>
       </section>
+
+      <div className="grid items-start gap-6 xl:grid-cols-[1fr_24rem]">
+        <section
+          aria-labelledby="recientes"
+          className="flex min-w-0 flex-col gap-4 rounded-xl border bg-card p-5"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <h2 id="recientes" className="text-lg font-bold">
+              Últimos pedidos
+            </h2>
+            <Link
+              href="/admin/pedidos"
+              className="text-sm font-semibold text-primary hover:underline"
+            >
+              Ver todos
+            </Link>
+          </div>
+          {recentOrders.length ? (
+            <ul className="grid divide-y">
+              {recentOrders.map((order) => (
+                <li
+                  key={order.id}
+                  className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+                >
+                  <div className="grid gap-0.5">
+                    <Link
+                      href={`/admin/pedidos/${order.id}`}
+                      className="font-mono font-semibold text-primary hover:underline"
+                    >
+                      #{order.orderNumber}
+                    </Link>
+                    <span className="text-xs text-muted-foreground">
+                      {order.customerName} · {dateTime.format(new Date(order.createdAt))}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-semibold tabular-nums">{formatCOP(order.total)}</span>
+                    <OrderStatusBadge status={order.status} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground">Aún no hay pedidos.</p>
+          )}
+        </section>
+
+        <section
+          aria-labelledby="stock-bajo"
+          className="flex min-w-0 flex-col gap-4 rounded-xl border bg-card p-5"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <h2 id="stock-bajo" className="text-lg font-bold">
+              Reponer pronto
+            </h2>
+            <Link
+              href="/admin/productos?filtro=low"
+              className="text-sm font-semibold text-primary hover:underline"
+            >
+              Ver todos
+            </Link>
+          </div>
+          {lowStock.length ? (
+            <ul className="flex flex-col gap-2 text-sm">
+              {lowStock.map((product) => (
+                <li key={product.id} className="flex items-center justify-between gap-3">
+                  <Link
+                    href={`/admin/productos/${product.id}#inventario`}
+                    className="min-w-0 truncate hover:text-primary hover:underline"
+                  >
+                    {product.name}
+                  </Link>
+                  <span
+                    className={cn(
+                      "shrink-0 font-mono font-semibold",
+                      product.stock === 0 ? "text-destructive" : "text-warning",
+                    )}
+                  >
+                    {product.stock}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Todo el inventario está por encima de su umbral.
+            </p>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

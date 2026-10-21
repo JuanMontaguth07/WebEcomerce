@@ -741,9 +741,17 @@ export type Database = {
       }
       immutable_unaccent: { Args: { value: string }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
+      reorder_product_images: {
+        Args: { p_image_ids: string[]; p_product_id: string }
+        Returns: undefined
+      }
       search_suggestions: {
         Args: { p_limit?: number; p_query: string }
         Returns: Json
+      }
+      set_product_specs: {
+        Args: { p_product_id: string; p_specs: Json }
+        Returns: undefined
       }
       update_order_status: {
         Args: {

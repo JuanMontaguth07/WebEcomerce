@@ -78,6 +78,18 @@ Ficha / tarjeta ──► carrito (localStorage: IDs + cantidades)
           /pedido/[id]?t=<token> ──► get_order_by_token()
 ```
 
+## Panel de administración
+
+| Ruta                  | Qué permite                                                                            |
+| --------------------- | -------------------------------------------------------------------------------------- |
+| `/admin`              | Indicadores, últimos pedidos y productos por reponer                                   |
+| `/admin/pedidos`      | Filtrar por estado, buscar, ver detalle, cambiar estado, contactar por WhatsApp/correo |
+| `/admin/productos`    | Crear, editar, ocultar, eliminar; imágenes, ficha técnica e inventario por producto    |
+| `/admin/inventario`   | Historial de movimientos filtrable por tipo y producto                                 |
+| `/admin/categorias`   | Jerarquía, SEO y definición de especificaciones por categoría                          |
+| `/admin/marcas`       | Crear, editar, eliminar                                                                |
+| `/ingresar/recuperar` | Restablecer contraseña por correo                                                      |
+
 ## Caché
 
 `cacheComponents` está activo. Las consultas del catálogo usan `'use cache'` con `cacheTag`

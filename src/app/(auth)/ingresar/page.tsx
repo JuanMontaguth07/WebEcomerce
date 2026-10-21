@@ -16,6 +16,7 @@ export const metadata: Metadata = {
 
 const NOTICES: Record<string, string> = {
   "sin-permiso": "Tu cuenta no tiene acceso al panel de administración.",
+  "enlace-invalido": "El enlace no es válido o ya venció. Solicita uno nuevo.",
 };
 
 async function LoginContent({ searchParams }: PageProps<"/ingresar">) {
@@ -54,12 +55,14 @@ export default function LoginPage(props: PageProps<"/ingresar">) {
             <LoginContent {...props} />
           </Suspense>
         </div>
-        <Link
-          href="/"
-          className="justify-self-center text-sm text-muted-foreground hover:underline"
-        >
-          Volver a la tienda
-        </Link>
+        <div className="grid justify-items-center gap-2 text-sm text-muted-foreground">
+          <Link href="/ingresar/recuperar" className="font-semibold text-primary hover:underline">
+            ¿Olvidaste tu contraseña?
+          </Link>
+          <Link href="/" className="hover:underline">
+            Volver a la tienda
+          </Link>
+        </div>
       </div>
     </main>
   );

@@ -1,13 +1,10 @@
-import { ExternalLinkIcon, LayoutDashboardIcon, LogOutIcon } from "lucide-react";
-import Link from "next/link";
+import { LogOutIcon } from "lucide-react";
 import { Logo } from "@/components/layout/logo";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/features/auth/actions";
 import type { AdminUser } from "@/features/auth/session";
-
-// Solo se listan secciones ya implementadas (las demás llegan en la Fase 6).
-const NAV = [{ href: "/admin", label: "Resumen", Icon: LayoutDashboardIcon }] as const;
+import { AdminNav } from "./admin-nav";
 
 export function AdminShell({ admin, children }: { admin: AdminUser; children: React.ReactNode }) {
   return (
@@ -20,28 +17,7 @@ export function AdminShell({ admin, children }: { admin: AdminUser; children: Re
               Admin
             </span>
           </div>
-          <nav aria-label="Panel" className="flex gap-1 lg:flex-col">
-            {NAV.map(({ href, label, Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className="flex items-center gap-3 rounded-md bg-secondary px-3 py-2 text-sm font-semibold"
-                aria-current="page"
-              >
-                <Icon className="size-4" aria-hidden />
-                {label}
-              </Link>
-            ))}
-            <Link
-              href="/"
-              target="_blank"
-              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground"
-            >
-              <ExternalLinkIcon className="size-4" aria-hidden />
-              Ver tienda
-              <span className="sr-only">(se abre en otra pestaña)</span>
-            </Link>
-          </nav>
+          <AdminNav />
           <div className="mt-auto hidden gap-3 border-t pt-4 lg:grid">
             <div className="grid min-w-0 gap-0.5">
               <span className="truncate text-sm font-semibold">

@@ -157,3 +157,23 @@ repite en el layout del panel y en cada Server Action.
   fallas de red de Supabase. La creación de pedidos no reintenta para no duplicarlos.
 - **Páginas legales en borrador** (términos, privacidad, garantías, retracto) con la estructura
   de la Ley 1581 de 2012 y la Ley 1480 de 2011, y marcadores para los datos del negocio.
+
+## D14 — Panel de administración (2026-10-21)
+
+- **Secciones**: Resumen, Pedidos, Productos, Inventario, Categorías (con su ficha técnica) y
+  Marcas. Todas las páginas llaman `requireAdmin()` y todas las acciones usan `adminAction()`.
+- **Pedidos**: los botones muestran solo las transiciones válidas (`ORDER_TRANSITIONS`, que una
+  prueba compara con `private.order_transition_allowed`). Cancelar pide confirmación, devuelve
+  el stock en la base y refresca la caché de las fichas afectadas.
+- **Operaciones atómicas** en PostgreSQL: `reorder_product_images` y `set_product_specs`.
+- **Imágenes**: se suben desde el navegador con la sesión del admin directamente a Storage
+  (`products/<id>/<uuid>.<ext>`); la acción del servidor valida que la ruta pertenezca al
+  producto antes de registrarla. Storage limita tamaño (5 MB) y tipos.
+- **Storage necesita SELECT para borrar**: sin la política `catalog_admin_select`, `remove()` no
+  fallaba pero dejaba archivos huérfanos. Los visitantes siguen sin poder listar el bucket.
+- **Borrado seguro**: productos, categorías y marcas con dependencias no se eliminan (la base lo
+  impide con claves foráneas) y la interfaz sugiere desactivarlos.
+- **Recuperación de contraseña**: `resetPasswordForEmail` → `/auth/callback` (canje PKCE del
+  código) → `/ingresar/nueva-clave`. Respuesta genérica para no revelar correos. El SMTP
+  incluido en Supabase solo envía a miembros del equipo y con límites: en producción hay que
+  configurar un SMTP propio.

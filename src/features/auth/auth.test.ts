@@ -38,3 +38,20 @@ describe("signInSchema", () => {
     );
   });
 });
+
+describe("newPasswordSchema", () => {
+  it("exige la política de contraseñas y que coincidan", async () => {
+    const { newPasswordSchema } = await import("./schemas");
+    expect(
+      newPasswordSchema.safeParse({ password: "Segura2026x", confirm: "Segura2026x" }).success,
+    ).toBe(true);
+    for (const password of ["corta1A", "sinmayusculas123", "SINMINUSCULAS123", "SinNumerosAqui"]) {
+      expect(newPasswordSchema.safeParse({ password, confirm: password }).success, password).toBe(
+        false,
+      );
+    }
+    expect(
+      newPasswordSchema.safeParse({ password: "Segura2026x", confirm: "Otra2026xx" }).success,
+    ).toBe(false);
+  });
+});

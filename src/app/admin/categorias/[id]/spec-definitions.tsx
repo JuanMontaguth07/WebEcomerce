@@ -1,0 +1,266 @@
+"use client";
+
+import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { toast } from "sonner";
+import { CheckboxField, SelectField, TextField } from "@/components/admin/form-helpers";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { deleteSpecDefinition, saveSpecDefinition } from "@/features/admin/catalog-actions";
+import type { SpecDefinition } from "@/features/admin/catalog";
+import { slugify } from "@/lib/format";
+
+type Errors = Partial<Record<string, string[]>>;
+type Draft = {
+  id?: string;
+  key: string;
+  label: string;
+  groupLabel: string;
+  unit: string;
+  dataType: "text" | "number" | "boolean";
+  isFilterable: boolean;
+  position: string;
+};
+
+const TYPE_LABELS = { text: "Texto", number: "Número", boolean: "Sí / No" } as const;
+
+const toKey = (label: string) =>
+  slugify(label)
+    .replace(/-/g, "_")
+    .replace(/^[^a-z]+/, "")
+    .slice(0, 50);
+
+/** Especificaciones que se piden en la ficha técnica de los productos de la categoría. */
+export function SpecDefinitions({
+  categoryId,
+  definitions,
+}: {
+  categoryId: string;
+  definitions: SpecDefinition[];
+}) {
+  const router = useRouter();
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const [errors, setErrors] = useState<Errors>({});
+  const [pending, startTransition] = useTransition();
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const startNew = () => {
+    setErrors({});
+    setDraft({
+      key: "",
+      label: "",
+      groupLabel: "",
+      unit: "",
+      dataType: "text",
+      isFilterable: false,
+      position: String(definitions.length + 1),
+    });
+  };
+
+  const startEdit = (definition: SpecDefinition) => {
+    setErrors({});
+    setDraft({
+      id: definition.id,
+      key: definition.key,
+      label: definition.label,
+      groupLabel: definition.group_label ?? "",
+      unit: definition.unit ?? "",
+      dataType: definition.data_type,
+      isFilterable: definition.is_filterable,
+      position: String(definition.position),
+    });
+  };
+
+  function save(event: React.FormEvent) {
+    event.preventDefault();
+    if (!draft) return;
+    startTransition(async () => {
+      const result = await saveSpecDefinition({ ...draft, categoryId });
+      if (!result.ok) {
+        setErrors(result.error.fieldErrors ?? {});
+        toast.error(result.error.message);
+        return;
+      }
+      toast.success("Especificación guardada");
+      setDraft(null);
+      router.refresh();
+    });
+  }
+
+  function remove(id: string) {
+    startTransition(async () => {
+      const result = await deleteSpecDefinition({ id });
+      if (result.ok) {
+        toast.success("Especificación eliminada");
+        router.refresh();
+      } else toast.error(result.error.message);
+      setDeleting(null);
+    });
+  }
+
+  const set = <K extends keyof Draft>(key: K, value: Draft[K]) =>
+    setDraft((current) =>
+      current
+        ? {
+            ...current,
+            [key]: value,
+            ...(key === "label" && !current.id ? { key: toKey(String(value)) } : {}),
+          }
+        : current,
+    );
+
+  return (
+    <div className="grid gap-4">
+      {definitions.length ? (
+        <ul className="grid divide-y rounded-lg border">
+          {definitions.map((definition) => (
+            <li key={definition.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+              <div className="grid min-w-40 flex-1 gap-0.5">
+                <span className="font-medium">
+                  {definition.label}
+                  {definition.unit && (
+                    <span className="text-muted-foreground"> ({definition.unit})</span>
+                  )}
+                </span>
+                <span className="font-mono text-xs text-muted-foreground">
+                  {definition.key} · {definition.group_label ?? "General"}
+                </span>
+              </div>
+              <Badge variant="outline">{TYPE_LABELS[definition.data_type]}</Badge>
+              {definition.is_filterable && <Badge variant="soft">Filtrable</Badge>}
+              {deleting === definition.id ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-destructive">¿Borrar también sus valores?</span>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    isLoading={pending}
+                    onClick={() => remove(definition.id)}
+                  >
+                    Borrar
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setDeleting(null)}>
+                    No
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-1">
+                  <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    onClick={() => startEdit(definition)}
+                    aria-label={`Editar ${definition.label}`}
+                  >
+                    <PencilIcon aria-hidden />
+                  </Button>
+                  <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    onClick={() => setDeleting(definition.id)}
+                    aria-label={`Eliminar ${definition.label}`}
+                  >
+                    <Trash2Icon className="text-destructive" aria-hidden />
+                  </Button>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Aún no hay especificaciones para esta categoría.
+        </p>
+      )}
+
+      {draft ? (
+        <form
+          onSubmit={save}
+          noValidate
+          className="grid gap-4 rounded-lg border bg-secondary/40 p-4"
+        >
+          <p className="font-semibold">
+            {draft.id ? "Editar especificación" : "Nueva especificación"}
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <TextField
+              name="label"
+              label="Etiqueta"
+              errors={errors}
+              value={draft.label}
+              onChange={(e) => set("label", e.target.value)}
+              placeholder="Memoria de video"
+            />
+            <TextField
+              name="key"
+              label="Clave interna"
+              errors={errors}
+              value={draft.key}
+              onChange={(e) => set("key", e.target.value)}
+              hint="Identificador técnico, ej. vram. No la cambies si ya tiene valores."
+              className="[&_input]:font-mono"
+            />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-4">
+            <SelectField
+              name="dataType"
+              label="Tipo"
+              errors={errors}
+              value={draft.dataType}
+              onChange={(e) => set("dataType", e.target.value as Draft["dataType"])}
+              options={Object.entries(TYPE_LABELS).map(([value, label]) => ({ value, label }))}
+            />
+            <TextField
+              name="unit"
+              label="Unidad"
+              optional
+              errors={errors}
+              value={draft.unit}
+              onChange={(e) => set("unit", e.target.value)}
+              placeholder="GB, W, MHz"
+            />
+            <TextField
+              name="groupLabel"
+              label="Grupo"
+              optional
+              errors={errors}
+              value={draft.groupLabel}
+              onChange={(e) => set("groupLabel", e.target.value)}
+              placeholder="Memoria"
+            />
+            <TextField
+              name="position"
+              label="Orden"
+              errors={errors}
+              inputMode="numeric"
+              value={draft.position}
+              onChange={(e) => set("position", e.target.value)}
+            />
+          </div>
+          <CheckboxField
+            name="isFilterable"
+            label="Filtrable"
+            hint="Reservado para filtros por especificación en el catálogo."
+            checked={draft.isFilterable}
+            onCheckedChange={(checked) => set("isFilterable", checked)}
+          />
+          <div className="flex gap-2">
+            <Button type="submit" isLoading={pending}>
+              Guardar
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => setDraft(null)}>
+              Cancelar
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <div>
+          <Button type="button" variant="secondary" onClick={startNew}>
+            <PlusIcon aria-hidden />
+            Agregar especificación
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}

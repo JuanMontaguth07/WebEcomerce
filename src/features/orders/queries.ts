@@ -1,17 +1,9 @@
 import "server-only";
 import { createPublicClient } from "@/lib/supabase/public";
-import type { Database } from "@/lib/supabase/database.types";
 
-export type OrderStatus = Database["public"]["Enums"]["order_status"];
+import type { OrderStatus } from "./transitions";
 
-export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  pending: "Pendiente de confirmación",
-  confirmed: "Confirmado",
-  preparing: "En preparación",
-  shipped: "Enviado",
-  delivered: "Entregado",
-  cancelled: "Cancelado",
-};
+export { ORDER_STATUS_LABELS, type OrderStatus } from "./transitions";
 
 export type PublicOrder = {
   id: string;

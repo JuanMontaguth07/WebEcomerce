@@ -8,5 +8,5 @@ export async function proxy(request: NextRequest) {
 // Solo las rutas con sesión pasan por el proxy: el catálogo público (checkout
 // como invitado) no paga el costo de verificar sesiones.
 export const config = {
-  matcher: ["/admin/:path*", "/ingresar"],
+  matcher: ["/admin/:path*", "/ingresar", "/ingresar/:path*", "/auth/:path*"],
 };

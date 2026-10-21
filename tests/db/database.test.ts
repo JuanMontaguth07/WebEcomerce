@@ -473,6 +473,107 @@ describe("especificaciones", () => {
   });
 });
 
+describe("operaciones del panel", () => {
+  it("reordena imágenes en una sola transacción y valida la lista", async () => {
+    const ids = await asRole(db, "authenticated", ADMIN, async () => {
+      const rows = await db.query<Id>(
+        `insert into public.product_images (product_id, storage_path, alt_text, position)
+         values ($1, 'p/a.webp', 'A', 0), ($1, 'p/b.webp', 'B', 1), ($1, 'p/c.webp', 'C', 2)
+         returning id`,
+        [ramId],
+      );
+      return rows.rows.map((row) => row.id);
+    });
+    const [a, b, c] = ids as [string, string, string];
+    await asRole(db, "authenticated", ADMIN, () =>
+      db.query("select public.reorder_product_images($1, $2)", [ramId, [c, a, b]]),
+    );
+    const order = await db.query<{ storage_path: string }>(
+      "select storage_path from public.product_images where product_id = $1 order by position",
+      [ramId],
+    );
+    expect(order.rows.map((row) => row.storage_path)).toEqual(["p/c.webp", "p/a.webp", "p/b.webp"]);
+
+    await expect(
+      asRole(db, "authenticated", ADMIN, () =>
+        db.query("select public.reorder_product_images($1, $2)", [ramId, [a, b]]),
+      ),
+    ).rejects.toThrow(/VALIDATION/);
+    await expect(
+      asRole(db, "authenticated", CUSTOMER, () =>
+        db.query("select public.reorder_product_images($1, $2)", [ramId, [b, c, a]]),
+      ),
+    ).rejects.toThrow(/FORBIDDEN/);
+  });
+
+  it("reemplaza las especificaciones de un producto de forma atómica", async () => {
+    const spec = await one<Id>(
+      db,
+      `insert into public.spec_definitions (category_id, key, label, unit, data_type)
+       values ($1, 'capacidad_admin', 'Capacidad', 'GB', 'number') returning id`,
+      [categoryId],
+    );
+    const text = await one<Id>(
+      db,
+      `insert into public.spec_definitions (category_id, key, label) values ($1, 'tipo_admin', 'Tipo') returning id`,
+      [categoryId],
+    );
+    await asRole(db, "authenticated", ADMIN, () =>
+      db.query("select public.set_product_specs($1, $2)", [
+        ramId,
+        JSON.stringify([
+          { spec_id: spec.id, value: "32" },
+          { spec_id: text.id, value: "  DDR5 " },
+          { spec_id: text.id + "", value: "" },
+        ]),
+      ]),
+    );
+    const rows = await db.query<{ value_number: string | null; value_text: string | null }>(
+      "select value_number, value_text from public.product_specs where product_id = $1 order by value_text nulls first",
+      [ramId],
+    );
+    expect(rows.rows.map((row) => row.value_number ?? row.value_text)).toEqual(["32", "DDR5"]);
+
+    // Un valor inválido revierte todo: siguen las especificaciones anteriores.
+    await expect(
+      asRole(db, "authenticated", ADMIN, () =>
+        db.query("select public.set_product_specs($1, $2)", [
+          ramId,
+          JSON.stringify([{ spec_id: spec.id, value: "no-es-numero" }]),
+        ]),
+      ),
+    ).rejects.toThrow();
+    const after = await one<Count>(
+      db,
+      "select count(*)::int c from public.product_specs where product_id = $1",
+      [ramId],
+    );
+    expect(after.c).toBe(2);
+  });
+
+  it("las transiciones de estado del código coinciden con la base de datos", async () => {
+    const { ORDER_TRANSITIONS } = await import("@/features/orders/transitions");
+    const statuses = [
+      "pending",
+      "confirmed",
+      "preparing",
+      "shipped",
+      "delivered",
+      "cancelled",
+    ] as const;
+    for (const from of statuses) {
+      for (const to of statuses) {
+        const row = await one<{ ok: boolean }>(
+          db,
+          "select private.order_transition_allowed($1::public.order_status, $2::public.order_status) ok",
+          [from, to],
+        );
+        expect(ORDER_TRANSITIONS[from].includes(to), `${from} -> ${to}`).toBe(row.ok);
+      }
+    }
+  });
+});
+
 describe("storage", () => {
   it("crea el bucket público y solo el admin sube imágenes", async () => {
     const bucket = await one<{ public: boolean }>(
