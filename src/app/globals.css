@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+/* Los design tokens (claro / oscuro) se definen en la Fase 2. */
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  background: light-dark(#f5f6f8, #0a0c10);
+  color: light-dark(#0d1220, #eceff5);
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+}

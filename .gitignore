@@ -1,0 +1,34 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# testing
+/coverage
+/test-results
+/playwright-report
+
+# next.js
+/.next/
+/out/
+/build
+next-env.d.ts
+*.tsbuildinfo
+
+# env files (solo .env.example se versiona)
+.env*
+!.env.example
+
+# supabase
+/supabase/.temp
+/supabase/.branches
+
+# vercel
+.vercel
+
+# misc
+.DS_Store
+Thumbs.db
+*.pem
+npm-debug.log*
+
