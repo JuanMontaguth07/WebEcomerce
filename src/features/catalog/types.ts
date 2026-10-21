@@ -1,0 +1,70 @@
+import type { Database } from "@/lib/supabase/database.types";
+
+export type ProductType = Database["public"]["Enums"]["product_type"];
+export type SpecDataType = Database["public"]["Enums"]["spec_data_type"];
+
+export type CategoryRef = { name: string; slug: string };
+export type BrandRef = { name: string; slug: string };
+export type ImageRef = { path: string; alt: string };
+
+/** Datos mínimos para mostrar un producto en listados y tarjetas. */
+export type ProductSummary = {
+  id: string;
+  name: string;
+  slug: string;
+  sku: string;
+  productType: ProductType;
+  shortDescription: string | null;
+  price: number;
+  compareAtPrice: number | null;
+  stock: number;
+  lowStockThreshold: number;
+  brand: BrandRef | null;
+  category: CategoryRef;
+  image: ImageRef | null;
+};
+
+export type Category = {
+  id: string;
+  parentId: string | null;
+  name: string;
+  slug: string;
+  description: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+};
+
+export type Brand = { id: string; name: string; slug: string; description: string | null };
+
+export type ProductSpec = {
+  key: string;
+  label: string;
+  group: string;
+  value: string;
+};
+
+export type ProductImage = {
+  id: string;
+  path: string;
+  alt: string;
+  width: number | null;
+  height: number | null;
+};
+
+export type ProductDetail = ProductSummary & {
+  description: string | null;
+  warrantyMonths: number | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  updatedAt: string;
+  parentCategory: CategoryRef | null;
+  images: ProductImage[];
+  specs: ProductSpec[];
+};
+
+export type CatalogFacets = {
+  total: number;
+  minPrice: number | null;
+  maxPrice: number | null;
+  brands: { slug: string; name: string; count: number }[];
+};

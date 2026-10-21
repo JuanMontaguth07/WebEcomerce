@@ -6,7 +6,7 @@ Modelo de tienda propia: la empresa administra productos, precios, inventario y 
 **Stack:** Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind CSS 4 ·
 Supabase (PostgreSQL, Auth, Storage) · Vercel.
 
-> Estado: **Fase 2 — Sistema de diseño.** Referencia visual en `/sistema-diseno` (solo en desarrollo). Ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+> Estado: **Fase 3 — Frontend público.** Ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Requisitos
 
@@ -29,6 +29,15 @@ npx supabase login                       # abre el navegador
 npx supabase link --project-ref <ref>    # el ref está en la URL del proyecto
 npx supabase db push                     # aplica supabase/migrations
 ```
+
+### Cargar datos de demostración (solo en `dev`)
+
+```bash
+npx supabase db query --linked -f supabase/seed.sql
+```
+
+Carga 30 productos ficticios (SKU `DEMO-`) solo si la base no tiene productos. **Nunca** lo
+ejecutes contra producción.
 
 ### Crear el primer administrador
 
@@ -65,11 +74,14 @@ Nunca edites una migración ya aplicada en producción: crea una nueva.
 ## Despliegue (Vercel)
 
 1. Sube el repositorio a GitHub e impórtalo en Vercel (framework: Next.js).
-2. Define las variables de `.env.example` para **Production** (proyecto Supabase `prod`) y para
+2. En GitHub → Settings → Secrets and variables → Actions → **Variables**, crea
+   `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` con los valores de `dev`
+   (el CI compila el catálogo con esos datos).
+3. Define las variables de `.env.example` para **Production** (proyecto Supabase `prod`) y para
    **Preview** (proyecto `dev`).
-3. En Supabase `prod` → Authentication → URL Configuration: `Site URL` = dominio final y agrega
+4. En Supabase `prod` → Authentication → URL Configuration: `Site URL` = dominio final y agrega
    `https://<dominio>/**` a Redirect URLs.
-4. Dominio propio: Vercel → Settings → Domains. HTTPS se emite automáticamente.
+5. Dominio propio: Vercel → Settings → Domains. HTTPS se emite automáticamente.
 
 Solo el entorno `production` de Vercel es indexable por buscadores; previews y local envían
 `noindex`.

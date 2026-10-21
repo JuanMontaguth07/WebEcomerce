@@ -642,6 +642,13 @@ export type Database = {
         }
         Returns: number
       }
+      best_selling_products: {
+        Args: { p_limit?: number }
+        Returns: {
+          product_id: string
+          units: number
+        }[]
+      }
       build_product_search_vector: {
         Args: {
           p_brand_name: string
@@ -655,6 +662,68 @@ export type Database = {
       calculate_shipping_cost: {
         Args: { p_city: string; p_department: string; p_subtotal: number }
         Returns: number
+      }
+      catalog_facets: {
+        Args: {
+          p_category?: string
+          p_in_stock?: boolean
+          p_on_sale?: boolean
+          p_product_type?: Database["public"]["Enums"]["product_type"]
+          p_query?: string
+        }
+        Returns: Json
+      }
+      catalog_matches: {
+        Args: {
+          p_brands?: string[]
+          p_category?: string
+          p_in_stock?: boolean
+          p_max_price?: number
+          p_min_price?: number
+          p_on_sale?: boolean
+          p_product_type?: Database["public"]["Enums"]["product_type"]
+          p_query?: string
+        }
+        Returns: {
+          product_id: string
+          rank: number
+        }[]
+      }
+      catalog_search: {
+        Args: {
+          p_brands?: string[]
+          p_category?: string
+          p_in_stock?: boolean
+          p_limit?: number
+          p_max_price?: number
+          p_min_price?: number
+          p_offset?: number
+          p_on_sale?: boolean
+          p_product_type?: Database["public"]["Enums"]["product_type"]
+          p_query?: string
+          p_sort?: string
+        }
+        Returns: {
+          brand_name: string
+          brand_slug: string
+          category_name: string
+          category_slug: string
+          compare_at_price: number
+          created_at: string
+          id: string
+          image_alt: string
+          image_path: string
+          is_featured: boolean
+          low_stock_threshold: number
+          name: string
+          price: number
+          product_type: Database["public"]["Enums"]["product_type"]
+          short_description: string
+          sku: string
+          slug: string
+          stock: number
+          total_count: number
+        }[]
       }
       create_order: {
         Args: { p_customer: Json; p_items: Json }
@@ -671,6 +740,10 @@ export type Database = {
       }
       immutable_unaccent: { Args: { value: string }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
+      search_suggestions: {
+        Args: { p_limit?: number; p_query: string }
+        Returns: Json
+      }
       update_order_status: {
         Args: {
           p_note?: string

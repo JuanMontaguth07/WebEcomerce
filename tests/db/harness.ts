@@ -39,7 +39,7 @@ const SUPABASE_STUB = `
 
 const MIGRATIONS_DIR = join(process.cwd(), "supabase", "migrations");
 
-export async function createTestDatabase() {
+export async function createTestDatabase(options: { seed?: boolean } = {}) {
   const db = new PGlite({ extensions: { pg_trgm, unaccent, pgcrypto } });
   await db.exec(SUPABASE_STUB);
 
@@ -48,6 +48,10 @@ export async function createTestDatabase() {
     .sort();
   for (const file of files) {
     await db.exec(readFileSync(join(MIGRATIONS_DIR, file), "utf8"));
+  }
+
+  if (options.seed) {
+    await db.exec(readFileSync(join(process.cwd(), "supabase", "seed.sql"), "utf8"));
   }
 
   return db;

@@ -91,6 +91,15 @@ profiles (1:1 auth.users) ── orders.user_id (opcional)
 | `inventory_movements`  | Solo inserción; `resulting_stock = previous_stock + quantity`.          |
 | `payments`             | Vacía en el MVP; la llenarán los adaptadores de pasarela.               |
 
+### Funciones del catálogo (RPC, `security invoker`)
+
+| Función                    | Uso                                                                                                                                     |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `catalog_search(...)`      | Listado paginado con texto, categoría (incluye subcategorías), marcas, precio, disponibilidad, ofertas y orden. Devuelve `total_count`. |
+| `catalog_facets(...)`      | Marcas con conteo y rango de precios para los filtros.                                                                                  |
+| `search_suggestions(q)`    | Sugerencias del buscador por prefijo, SKU y similitud; incluye categorías y marcas.                                                     |
+| `best_selling_products(n)` | Más vendidos (90 días). `security definer`: solo expone IDs y unidades.                                                                 |
+
 ### Funciones de negocio (RPC)
 
 | Función                                    | Quién       | Qué hace                                                                                                              |

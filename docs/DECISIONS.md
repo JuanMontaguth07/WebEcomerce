@@ -89,3 +89,28 @@ repite en el layout del panel y en cada Server Action.
 - **Fuentes con `next/font`** (Archivo con eje de ancho, Hanken Grotesk, JetBrains Mono):
   alojadas en el mismo dominio y con métricas de respaldo, sin saltos de diseño.
 - **`/sistema-diseno`**: página interna de referencia visual; responde 404 en producción.
+
+## D11 — Catálogo público (2026-10-21)
+
+- **Búsqueda y filtros en PostgreSQL** (`catalog_matches`, `catalog_search`, `catalog_facets`,
+  `search_suggestions`): una sola consulta resuelve texto, categoría con subcategorías, marcas,
+  precio, disponibilidad, orden y paginación, respetando RLS (`security invoker`).
+- **Estado en la URL** con nombres en español (`?marca=kairos&disponible=1&orden=price_asc`):
+  cualquier vista se puede compartir. Los parámetros se validan con Zod; lo inválido se ignora.
+- **SEO de listados**: la URL canónica es la página limpia; las combinaciones de filtros y la
+  búsqueda llevan `noindex, follow` para evitar contenido duplicado.
+- **Filtros optimistas** (`useOptimistic`): los controles cambian al instante mientras llegan
+  los resultados; si la navegación falla, vuelven al estado de la URL.
+- **Más vendidos** solo con ventas reales (`best_selling_products`); sin pedidos, la sección no
+  se muestra.
+- **Sin fotos de productos reales**: mientras un producto no tenga imágenes se muestra una
+  ilustración técnica de su categoría.
+- **Datos de demostración** en `supabase/seed.sql` (marcas y modelos ficticios, SKU `DEMO-`,
+  etiqueta "Demo" en la interfaz). Solo se cargan en `dev` y únicamente si no hay productos.
+- **`partialPrefetching`**: las fichas no prerenderizadas se sirven al instante con su estructura
+  y quedan en caché completas tras la primera visita.
+- **`AppHref`** (`src/lib/routes.ts`): las rutas tipadas de Next solo validan literales en
+  `<Link>`; este tipo permite pasar enlaces dinámicos como props sin perder la validación de los
+  patrones existentes.
+- **CI con datos reales**: el build lee el proyecto `dev` (valores públicos en variables de
+  GitHub Actions).

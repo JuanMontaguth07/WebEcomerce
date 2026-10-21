@@ -14,6 +14,8 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   // Caché explícita con 'use cache' + cacheTag; el resto es dinámico.
   cacheComponents: true,
+  // Sirve al instante la estructura de rutas no prerenderizadas y las completa en caché.
+  partialPrefetching: true,
   // Enlaces tipados: un <Link> a una ruta inexistente no compila.
   typedRoutes: true,
   poweredByHeader: false,
