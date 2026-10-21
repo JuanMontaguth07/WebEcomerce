@@ -40,6 +40,19 @@ Navegador ──► Server Components (lectura) ──► features/*/queries.ts 
 La aplicación **no usa la secret key (service_role)**. Las operaciones privilegiadas son funciones
 `security definer` que verifican el rol internamente.
 
+## Sistema de diseño
+
+- Tokens: `src/app/globals.css` (`:root` = claro, `.dark` = oscuro). Los componentes solo usan
+  clases semánticas (`bg-card`, `text-muted-foreground`, `border-input`, `text-success`...).
+- Componentes base: `src/components/ui` (shadcn/Radix adaptados). `Field` conecta etiqueta,
+  ayuda y error con `aria-describedby` / `aria-invalid`.
+- Tema: `next-themes` (claro / oscuro / sistema) en `components/providers/providers.tsx`;
+  selector en `components/layout/theme-toggle.tsx`.
+- Movimiento: `m.*` de `motion/react` dentro de `LazyMotion`; `Reveal` para apariciones al
+  hacer scroll (nunca en contenido visible al cargar). Notificaciones con `toast` de `sonner`.
+- Utilidades propias: `container-page` (ancho y márgenes) y `text-eyebrow` (etiquetas técnicas).
+- Referencia visual: `/sistema-diseno` (solo fuera de producción).
+
 ## Caché
 
 `cacheComponents` está activo. Las consultas del catálogo usan `'use cache'` con `cacheTag`

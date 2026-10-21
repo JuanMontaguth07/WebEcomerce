@@ -6,7 +6,7 @@ Modelo de tienda propia: la empresa administra productos, precios, inventario y 
 **Stack:** Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind CSS 4 ·
 Supabase (PostgreSQL, Auth, Storage) · Vercel.
 
-> Estado: **Fase 1 — Arquitectura y base técnica.** Ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+> Estado: **Fase 2 — Sistema de diseño.** Referencia visual en `/sistema-diseno` (solo en desarrollo). Ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Requisitos
 
@@ -79,7 +79,7 @@ Solo el entorno `production` de Vercel es indexable por buscadores; previews y l
 ```
 src/
   app/          Rutas (App Router)
-  components/   UI reutilizable (ui/, layout/, shop/, admin/)
+  components/   UI reutilizable (ui/, layout/, motion/, providers/, shop/, admin/)
   features/     Lógica de negocio por dominio (catalog, cart, checkout, orders, inventory, auth)
   lib/          Infraestructura: env, errores, formato, clientes Supabase
   config/       Datos de la marca

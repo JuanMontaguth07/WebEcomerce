@@ -69,3 +69,23 @@ también en CI. No reemplaza una verificación final en el proyecto `dev`.
 El checkout es como invitado, así que el catálogo no necesita sesión. `proxy.ts` solo corre en
 `/admin/*` e `/ingresar`, lo que evita latencia en las páginas públicas. La autorización real se
 repite en el layout del panel y en cada Server Action.
+
+## D10 — Sistema de diseño (2026-10-21)
+
+- **shadcn/ui sobre Radix** (`radix-ui` 1.7): componentes copiados al repo en
+  `src/components/ui`, con la accesibilidad de Radix (teclado, foco, ARIA). La CLI `shadcn`
+  queda como dependencia de desarrollo: solo aporta `shadcn/tailwind.css` (variantes
+  `data-open`, `data-closed`, etc.) al compilar.
+- **`cn` con `clsx` + `tailwind-merge`** en lugar del paquete `cn` que instala shadcn 4.22:
+  ese paquete tenía un mes de vida y versión 0.x.
+- **Tokens en `globals.css`**: variables CSS semánticas (nombres compatibles con shadcn) en
+  OKLCH, redefinidas por `.dark`. Contrastes verificados: texto ≥ 4.5:1 y bordes de campos
+  ≥ 3:1 en ambos temas.
+- **next-themes** con `attribute="class"`: inyecta el tema antes de pintar (sin parpadeo) y
+  guarda la preferencia en `localStorage` (`theme`).
+- **Motion 13.5** en lugar de 14: la versión 14 tenía menos de tres semanas y varios parches
+  en días. Se carga con `LazyMotion` de forma diferida; los componentes usan `m.*`, no
+  `motion.*` (el modo `strict` lo exige). `MotionConfig reducedMotion="user"`.
+- **Fuentes con `next/font`** (Archivo con eje de ancho, Hanken Grotesk, JetBrains Mono):
+  alojadas en el mismo dominio y con métricas de respaldo, sin saltos de diseño.
+- **`/sistema-diseno`**: página interna de referencia visual; responde 404 en producción.
