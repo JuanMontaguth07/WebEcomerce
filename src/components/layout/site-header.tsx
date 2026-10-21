@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CartButton } from "@/components/cart/cart-button";
 import { getCategories } from "@/features/catalog/queries";
 import { Logo } from "./logo";
 import { MobileNav } from "./mobile-nav";
@@ -17,6 +18,7 @@ export async function SiteHeader() {
         <SearchBox className="hidden flex-1 md:block lg:max-w-xl" />
         <div className="ml-auto flex items-center gap-1">
           <ThemeToggle />
+          <CartButton />
         </div>
       </div>
       <div className="container-page pb-3 md:hidden">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 import { Badge } from "@/components/ui/badge";
 import { isDemoProduct } from "@/features/catalog/availability";
 import type { ProductSummary } from "@/features/catalog/types";
@@ -59,7 +60,15 @@ export function ProductCard({ product, priority = false, className }: ProductCar
         </h3>
         <div className="mt-auto grid gap-2 pt-1">
           <Price price={product.price} compareAtPrice={product.compareAtPrice} />
-          <StockBadge stock={product.stock} lowStockThreshold={product.lowStockThreshold} />
+          <div className="flex items-center justify-between gap-2">
+            <StockBadge stock={product.stock} lowStockThreshold={product.lowStockThreshold} />
+            <AddToCartButton
+              variant="icon"
+              productId={product.id}
+              name={product.name}
+              stock={product.stock}
+            />
+          </div>
         </div>
       </div>
     </article>

@@ -33,5 +33,8 @@ describe("signInSchema", () => {
     expect(signInSchema.safeParse({ email: "admin@tienda.co", password: "x" }).success).toBe(true);
     expect(signInSchema.safeParse({ email: "no-es-correo", password: "x" }).success).toBe(false);
     expect(signInSchema.safeParse({ email: "admin@tienda.co", password: "" }).success).toBe(false);
+    expect(signInSchema.parse({ email: " Admin@Tienda.CO ", password: "x" }).email).toBe(
+      "admin@tienda.co",
+    );
   });
 });

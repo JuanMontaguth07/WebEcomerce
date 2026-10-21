@@ -134,3 +134,26 @@ repite en el layout del panel y en cada Server Action.
 - **Errores**: `logError()` registra en el servidor solo los errores inesperados; el cliente
   recibe mensajes en español sin detalles internos. Límites `error.tsx` en tienda y panel,
   `not-found.tsx` dentro de la tienda y `global-error.tsx` de respaldo.
+
+## D13 — Carrito, checkout y pedidos (2026-10-21)
+
+- **Carrito en `localStorage`** (`features/cart/store.ts`, `useSyncExternalStore`): guarda solo
+  IDs y cantidades, se sincroniza entre pestañas y descarta datos manipulados
+  (`sanitizeCart`). Precios y stock se cotizan siempre en el servidor (`quoteCart`, sin caché).
+- **Checkout como invitado** con validación compartida (`features/checkout/schemas.ts`) en el
+  navegador y en el servidor. Correo y teléfono se normalizan antes de validar.
+- **Pedido**: `placeOrder` solo envía contacto, IDs y cantidades a `create_order`; los totales
+  los calcula la base. Si el stock cambió, el cliente ve qué ajustar sin perder sus datos.
+- **Anti‑abuso**: campo trampa (honeypot) y límite de 5 pedidos por correo cada 15 minutos en la
+  base. Pendiente evaluar Turnstile si aparece spam (un límite por IP en la app no sirve en
+  serverless y `create_order` también es accesible por la API).
+- **Confirmación** en `/pedido/[id]?t=<token>`: token de 256 bits (la base guarda su hash),
+  `noindex` y `referrer: no-referrer`.
+- **Envío "por confirmar"**: `calculate_shipping_cost` devuelve NULL hasta que el negocio defina
+  la política; la interfaz lo explica en carrito, checkout y confirmación.
+- **Caché de stock en "minutes"**: los pedidos vencidos se cancelan en la base (pg_cron) sin poder
+  invalidar la caché de Next; fichas, home y relacionados se refrescan en minutos.
+- **Reintento en lecturas**: `createPublicClient({ retry: true })` reintenta una vez ante 5xx o
+  fallas de red de Supabase. La creación de pedidos no reintenta para no duplicarlos.
+- **Páginas legales en borrador** (términos, privacidad, garantías, retracto) con la estructura
+  de la Ley 1581 de 2012 y la Ley 1480 de 2011, y marcadores para los datos del negocio.

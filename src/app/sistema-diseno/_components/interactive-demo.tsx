@@ -121,17 +121,19 @@ export function FormDemo() {
         </FieldControl>
       </Field>
 
-      <Field className="flex items-start gap-3">
-        <FieldControl>
-          <Checkbox
-            checked={consent}
-            onCheckedChange={(value) => setConsent(value === true)}
-            className="mt-0.5"
-          />
-        </FieldControl>
-        <FieldLabel className="leading-snug font-normal">
-          Autorizo el tratamiento de mis datos personales para gestionar mi pedido.
-        </FieldLabel>
+      <Field>
+        <div className="flex items-start gap-3">
+          <FieldControl>
+            <Checkbox
+              checked={consent}
+              onCheckedChange={(value) => setConsent(value === true)}
+              className="mt-0.5"
+            />
+          </FieldControl>
+          <FieldLabel className="leading-snug font-normal">
+            Autorizo el tratamiento de mis datos personales para gestionar mi pedido.
+          </FieldLabel>
+        </div>
       </Field>
     </form>
   );

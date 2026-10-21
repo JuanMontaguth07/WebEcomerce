@@ -13,7 +13,11 @@ import type {
 } from "./types";
 
 /**
- * Lecturas públicas del catálogo. Todas usan el cliente anónimo (RLS: solo lo
+ * Lecturas públicas del catálogo.
+ * Todo lo que muestra stock usa el perfil "minutes": los pedidos que vencen
+ * se cancelan dentro de la base de datos (pg_cron) y no pueden invalidar la
+ * caché de Next. Categorías y marcas, que no cambian con los pedidos, usan "hours".
+ * Todas usan el cliente anónimo (RLS: solo lo
  * activo) y se cachean con etiquetas que el panel invalida al editar:
  *   products · product:<slug> · categories · brands
  */
@@ -69,7 +73,12 @@ function toSummary(row: SummaryRow): ProductSummary {
 }
 
 function fail(context: string, error: { message: string }): never {
-  throw new Error(`[catalog] ${context}: ${error.message}`);
+  // Si Supabase está caído, la respuesta puede ser una página HTML completa:
+  // se resume para no llenar los registros.
+  const message = error.message.trimStart().startsWith("<")
+    ? "respuesta no válida de Supabase (posible caída temporal)"
+    : error.message.slice(0, 300);
+  throw new Error(`[catalog] ${context}: ${message}`);
 }
 
 // -----------------------------------------------------------------------------
@@ -81,7 +90,7 @@ export async function getCategories(): Promise<Category[]> {
   cacheTag(CATALOG_TAGS.categories);
   cacheLife("hours");
 
-  const { data, error } = await createPublicClient()
+  const { data, error } = await createPublicClient({ retry: true })
     .from("categories")
     .select("id, parent_id, name, slug, description, seo_title, seo_description")
     .eq("is_active", true)
@@ -110,7 +119,7 @@ export async function getBrands(): Promise<Brand[]> {
   cacheTag(CATALOG_TAGS.brands);
   cacheLife("hours");
 
-  const { data, error } = await createPublicClient()
+  const { data, error } = await createPublicClient({ retry: true })
     .from("brands")
     .select("id, name, slug, description")
     .eq("is_active", true)
@@ -139,7 +148,7 @@ export async function searchCatalog(
   cacheLife("minutes");
 
   const brands = scope.brand ? [scope.brand] : filters.brands;
-  const { data, error } = await createPublicClient().rpc("catalog_search", {
+  const { data, error } = await createPublicClient({ retry: true }).rpc("catalog_search", {
     p_query: filters.q ?? undefined,
     p_category: filters.category ?? undefined,
     p_brands: brands.length ? brands : undefined,
@@ -182,7 +191,7 @@ export async function getCatalogFacets(
   cacheTag(CATALOG_TAGS.products, CATALOG_TAGS.brands);
   cacheLife("minutes");
 
-  const { data, error } = await createPublicClient().rpc("catalog_facets", {
+  const { data, error } = await createPublicClient({ retry: true }).rpc("catalog_facets", {
     p_query: filters.q ?? undefined,
     p_category: filters.category ?? undefined,
     p_in_stock: filters.inStock,
@@ -217,9 +226,9 @@ export async function getHomeCollection(
 ): Promise<ProductSummary[]> {
   "use cache";
   cacheTag(CATALOG_TAGS.products);
-  cacheLife("hours");
+  cacheLife("minutes");
 
-  let query = createPublicClient()
+  let query = createPublicClient({ retry: true })
     .from("products")
     .select(SUMMARY_SELECT)
     .eq("is_active", true)
@@ -246,9 +255,9 @@ export async function getHomeCollection(
 export async function getBestSellers(limit = 8): Promise<ProductSummary[]> {
   "use cache";
   cacheTag(CATALOG_TAGS.products);
-  cacheLife("hours");
+  cacheLife("minutes");
 
-  const client = createPublicClient();
+  const client = createPublicClient({ retry: true });
   const { data: ranking, error } = await client.rpc("best_selling_products", { p_limit: limit });
   if (error) fail("getBestSellers", error);
   if (!ranking.length) return [];
@@ -290,9 +299,9 @@ type DetailRow = SummaryRow & {
 export async function getProductBySlug(slug: string): Promise<ProductDetail | null> {
   "use cache";
   cacheTag(CATALOG_TAGS.products, CATALOG_TAGS.product(slug));
-  cacheLife("hours");
+  cacheLife("minutes");
 
-  const { data, error } = await createPublicClient()
+  const { data, error } = await createPublicClient({ retry: true })
     .from("products")
     .select(
       `
@@ -345,9 +354,9 @@ export async function getRelatedProducts(
 ): Promise<ProductSummary[]> {
   "use cache";
   cacheTag(CATALOG_TAGS.products);
-  cacheLife("hours");
+  cacheLife("minutes");
 
-  const { data, error } = await createPublicClient()
+  const { data, error } = await createPublicClient({ retry: true })
     .from("products")
     .select(SUMMARY_SELECT)
     .eq("is_active", true)
@@ -369,7 +378,7 @@ export async function getActiveProductSlugs(): Promise<{ slug: string; updatedAt
   cacheTag(CATALOG_TAGS.products);
   cacheLife("hours");
 
-  const { data, error } = await createPublicClient()
+  const { data, error } = await createPublicClient({ retry: true })
     .from("products")
     .select("slug, updated_at")
     .eq("is_active", true)
@@ -401,7 +410,7 @@ export async function getSearchSuggestions(query: string): Promise<SearchSuggest
   cacheTag(CATALOG_TAGS.products);
   cacheLife("minutes");
 
-  const { data, error } = await createPublicClient().rpc("search_suggestions", {
+  const { data, error } = await createPublicClient({ retry: true }).rpc("search_suggestions", {
     p_query: query,
     p_limit: 6,
   });

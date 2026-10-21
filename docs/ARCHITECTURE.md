@@ -65,6 +65,19 @@ La aplicación **no usa la secret key (service_role)**. Las operaciones privileg
 Las acciones del panel invalidan la caché del catálogo con `revalidateCatalog()`
 (`features/catalog/revalidate.ts`).
 
+## Flujo de compra
+
+```
+Ficha / tarjeta ──► carrito (localStorage: IDs + cantidades)
+                       │
+                       ├─► quoteCart() ──► precios y stock actuales (sin caché)
+                       ▼
+                 /checkout ──► placeOrder() ──► create_order() en PostgreSQL
+                                                 (precios de la base, stock reservado)
+                       ▼
+          /pedido/[id]?t=<token> ──► get_order_by_token()
+```
+
 ## Caché
 
 `cacheComponents` está activo. Las consultas del catálogo usan `'use cache'` con `cacheTag`

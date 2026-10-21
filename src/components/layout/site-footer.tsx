@@ -15,7 +15,7 @@ export async function SiteFooter() {
 
   return (
     <footer className="mt-24 border-t bg-card">
-      <div className="container-page grid gap-10 py-12 md:grid-cols-[1.4fr_1fr_1fr]">
+      <div className="container-page grid gap-10 py-12 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div className="grid max-w-sm content-start gap-4">
           <Logo />
           <p className="text-sm text-muted-foreground">{siteConfig.shortDescription}</p>
@@ -62,6 +62,39 @@ export async function SiteFooter() {
             <li>
               <Link href="/buscar" className="hover:text-primary hover:underline">
                 Buscar productos
+              </Link>
+            </li>
+            <li>
+              <Link href="/carrito" className="hover:text-primary hover:underline">
+                Carrito
+              </Link>
+            </li>
+          </ul>
+        </nav>
+
+        <nav aria-labelledby="footer-legal">
+          <h2 id="footer-legal" className="mb-4 text-eyebrow font-mono text-muted-foreground">
+            Información
+          </h2>
+          <ul className="grid gap-2 text-sm">
+            <li>
+              <Link href="/terminos" className="hover:text-primary hover:underline">
+                Términos y condiciones
+              </Link>
+            </li>
+            <li>
+              <Link href="/privacidad" className="hover:text-primary hover:underline">
+                Tratamiento de datos
+              </Link>
+            </li>
+            <li>
+              <Link href="/garantias" className="hover:text-primary hover:underline">
+                Garantías
+              </Link>
+            </li>
+            <li>
+              <Link href="/retracto" className="hover:text-primary hover:underline">
+                Derecho de retracto
               </Link>
             </li>
           </ul>

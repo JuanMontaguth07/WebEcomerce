@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { SpecTable } from "@/components/product/spec-table";
 import { Breadcrumbs } from "@/components/shop/breadcrumbs";
@@ -104,6 +105,7 @@ function ProductInfo({ product }: { product: ProductDetail }) {
             </span>
           )}
         </div>
+        <AddToCartButton productId={product.id} name={product.name} stock={product.stock} />
       </div>
 
       {product.shortDescription && <p className="text-lg">{product.shortDescription}</p>}

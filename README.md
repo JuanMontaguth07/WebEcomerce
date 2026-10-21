@@ -6,7 +6,7 @@ Modelo de tienda propia: la empresa administra productos, precios, inventario y 
 **Stack:** Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind CSS 4 ·
 Supabase (PostgreSQL, Auth, Storage) · Vercel.
 
-> Estado: **Fase 4 — Backend y autenticación.** Ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+> Estado: **Fase 5 — Carrito, checkout y pedidos.** Ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Requisitos
 

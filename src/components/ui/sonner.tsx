@@ -17,7 +17,8 @@ function Toaster(props: ToasterProps) {
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
-      position="bottom-right"
+      // Arriba: abajo taparía el botón principal del carrito y de las acciones móviles.
+      position="top-center"
       className="toaster group"
       icons={{
         success: <CircleCheckIcon className="size-4 text-success" />,
