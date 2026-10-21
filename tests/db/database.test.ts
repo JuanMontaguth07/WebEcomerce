@@ -370,6 +370,31 @@ describe("pedidos", () => {
   });
 });
 
+describe("estadísticas del panel", () => {
+  it("solo las ve un administrador y reflejan el estado real", async () => {
+    await expect(
+      asRole(db, "authenticated", CUSTOMER, () =>
+        db.query("select public.admin_dashboard_stats()"),
+      ),
+    ).rejects.toThrow(/FORBIDDEN/);
+    await expect(
+      asRole(db, "anon", null, () => db.query("select public.admin_dashboard_stats()")),
+    ).rejects.toThrow(/permission denied/);
+
+    const { s: stats } = await asRole(db, "authenticated", ADMIN, () =>
+      one<{ s: Record<string, number> }>(db, "select public.admin_dashboard_stats() s"),
+    );
+    expect(stats.products_total).toBe(3);
+    expect(stats.products_active).toBe(2);
+    expect(stats.orders_pending).toBe(0);
+    // Los dos pedidos de prueba se cancelaron: no cuentan como ventas.
+    expect(Number(stats.sales_total)).toBe(0);
+    // Tras las pruebas de pedidos: GPU con 5 unidades y RAM con 2 (umbral 3).
+    expect(stats.out_of_stock).toBe(0);
+    expect(stats.low_stock).toBe(1);
+  });
+});
+
 describe("búsqueda", () => {
   const matches = async (where: string, params: unknown[] = []) =>
     (await one<Count>(db, `select count(*)::int c from public.products where ${where}`, params)).c;

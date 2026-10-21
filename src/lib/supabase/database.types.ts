@@ -642,6 +642,7 @@ export type Database = {
         }
         Returns: number
       }
+      admin_dashboard_stats: { Args: never; Returns: Json }
       best_selling_products: {
         Args: { p_limit?: number }
         Returns: {

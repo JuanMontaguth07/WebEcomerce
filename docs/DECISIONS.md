@@ -114,3 +114,23 @@ repite en el layout del panel y en cada Server Action.
   patrones existentes.
 - **CI con datos reales**: el build lee el proyecto `dev` (valores públicos en variables de
   GitHub Actions).
+
+## D12 — Autenticación y protección del panel (2026-10-21)
+
+- **Tres capas**: `proxy.ts` (redirección optimista sin sesión) → `requireAdmin()` en el layout
+  y en cada página del panel → `adminAction()` en cada Server Action. El rol se lee siempre de
+  `profiles` en la base de datos, nunca de datos del cliente.
+- **`getClaims()`** verifica la firma del JWT; `getSession()` no se usa en el servidor.
+- **Registro público desactivado** también en el proyecto remoto (`supabase config push`,
+  solo la sección `auth`) con `[auth] enable_signup = false`. **`[auth.email] enable_signup` debe
+  quedar en `true`**: en la API de Supabase apaga todo el proveedor de correo, incluido el
+  ingreso. Se conservaron la confirmación de correo y el TOTP del remoto, y se
+  exige contraseña de 10+ caracteres con minúsculas, mayúsculas y números.
+- **Errores de login genéricos** ("Correo o contraseña incorrectos") para no revelar qué
+  correos existen; los límites de intentos los aplica Supabase Auth.
+- **Redirección segura** tras el login: `safeNextPath()` solo acepta rutas de `/admin`.
+- **Sin `forbidden()`**: es experimental en Next 16.3; un usuario sin rol se envía a
+  `/ingresar?error=sin-permiso`.
+- **Errores**: `logError()` registra en el servidor solo los errores inesperados; el cliente
+  recibe mensajes en español sin detalles internos. Límites `error.tsx` en tienda y panel,
+  `not-found.tsx` dentro de la tienda y `global-error.tsx` de respaldo.

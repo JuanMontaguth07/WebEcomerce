@@ -53,6 +53,18 @@ La aplicación **no usa la secret key (service_role)**. Las operaciones privileg
 - Utilidades propias: `container-page` (ancho y márgenes) y `text-eyebrow` (etiquetas técnicas).
 - Referencia visual: `/sistema-diseno` (solo fuera de producción).
 
+## Autenticación del panel
+
+| Capa             | Archivo                                       | Qué verifica                                                                |
+| ---------------- | --------------------------------------------- | --------------------------------------------------------------------------- |
+| Proxy            | `src/proxy.ts`                                | Que exista una sesión válida en `/admin/*` (si no, redirige a `/ingresar`). |
+| Layout y páginas | `features/auth/session.ts` → `requireAdmin()` | Sesión verificada (`getClaims`) y rol `admin` en `profiles`.                |
+| Server Actions   | `lib/admin-action.ts` → `adminAction()`       | Rol `admin`, validación Zod, resultado tipado sin detalles internos.        |
+| Base de datos    | RLS + funciones `security definer`            | `is_admin()` en cada política y operación sensible.                         |
+
+Las acciones del panel invalidan la caché del catálogo con `revalidateCatalog()`
+(`features/catalog/revalidate.ts`).
+
 ## Caché
 
 `cacheComponents` está activo. Las consultas del catálogo usan `'use cache'` con `cacheTag`

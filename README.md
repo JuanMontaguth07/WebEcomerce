@@ -6,7 +6,7 @@ Modelo de tienda propia: la empresa administra productos, precios, inventario y 
 **Stack:** Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind CSS 4 ·
 Supabase (PostgreSQL, Auth, Storage) · Vercel.
 
-> Estado: **Fase 3 — Frontend público.** Ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+> Estado: **Fase 4 — Backend y autenticación.** Ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Requisitos
 
@@ -47,6 +47,9 @@ usuario y luego, en **SQL Editor**:
 ```sql
 update public.profiles set role = 'admin' where email = 'tu-correo@dominio.com';
 ```
+
+Luego ingresa en `/ingresar` (o abre `/admin`). La contraseña debe tener al menos 10 caracteres
+con minúsculas, mayúsculas y números.
 
 ## Desarrollo
 

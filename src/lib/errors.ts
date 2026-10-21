@@ -110,6 +110,16 @@ export function toAppError(error: unknown): AppError {
   return new AppError("INTERNAL", { cause: error });
 }
 
+/**
+ * Registra en el servidor solo los errores inesperados (INTERNAL). Los errores
+ * de negocio (stock, permisos, validación) son respuestas normales.
+ */
+export function logError(context: string, error: unknown): void {
+  const appError = toAppError(error);
+  if (appError.code !== "INTERNAL") return;
+  console.error(`[${context}]`, appError.cause ?? error);
+}
+
 function parseDetails(details: string | null | undefined): unknown {
   if (!details) return undefined;
   try {
