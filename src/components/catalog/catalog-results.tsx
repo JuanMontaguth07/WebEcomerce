@@ -96,6 +96,8 @@ export async function CatalogResults({
           <CatalogPendingRegion className="grid gap-10">
             {items.length ? (
               <>
+                {/* Las tarjetas usan h3: este h2 mantiene el orden de títulos. */}
+                <h2 className="sr-only">Productos</h2>
                 <ProductGrid products={items} priorityCount={filters.page === 1 ? 4 : 0} />
                 <Pagination filters={filters} basePath={basePath} pageCount={pageCount} />
               </>

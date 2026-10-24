@@ -124,8 +124,3 @@ export function CheckboxField({
     </Field>
   );
 }
-
-/** Agrupa errores por campo a partir de un ActionResult fallido. */
-export function fieldErrorsOf(result: { ok: false; error: { fieldErrors?: Errors } }): Errors {
-  return result.error.fieldErrors ?? {};
-}

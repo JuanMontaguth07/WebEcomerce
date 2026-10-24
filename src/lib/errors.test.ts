@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { AppError, failure, toAppError } from "./errors";
+import { z } from "zod";
+import { AppError, failure, fieldErrors, toAppError } from "./errors";
 
 describe("toAppError", () => {
   it("traduce códigos lanzados por funciones de PostgreSQL", () => {
@@ -21,6 +22,20 @@ describe("toAppError", () => {
     const error = toAppError(new Error("connection string postgres://secret"));
     expect(error.code).toBe("INTERNAL");
     expect(error.message).not.toContain("secret");
+  });
+});
+
+describe("fieldErrors", () => {
+  it("reporta los campos anidados con el nombre que usa el formulario", () => {
+    const schema = z.object({
+      id: z.uuid(),
+      values: z.object({ price: z.number(), name: z.string().min(2, "Muy corto") }),
+    });
+    const parsed = schema.safeParse({ id: "x", values: { price: "a", name: "A" } });
+    expect(parsed.success).toBe(false);
+    const errors = fieldErrors(parsed.error!);
+    expect(Object.keys(errors).sort()).toEqual(["id", "name", "price"]);
+    expect(errors.name).toEqual(["Muy corto"]);
   });
 });
 

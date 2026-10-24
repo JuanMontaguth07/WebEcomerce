@@ -274,7 +274,39 @@ function toCategoryRow(values: z.output<typeof categorySchema>) {
   };
 }
 
+/**
+ * La tienda maneja dos niveles: el padre debe ser una categoría principal y una
+ * categoría con subcategorías no puede volverse hija (evita niveles ocultos y ciclos).
+ */
+async function assertValidParent(
+  supabase: AdminSupabase,
+  categoryId: string | null,
+  parentId: string | null | undefined,
+) {
+  if (!parentId) return;
+  const invalid = (message: string) =>
+    new AppError("VALIDATION", { details: { parentId: [message] } });
+  if (parentId === categoryId) throw invalid("Una categoría no puede ser su propio padre.");
+
+  const { data: parent } = await supabase
+    .from("categories")
+    .select("parent_id")
+    .eq("id", parentId)
+    .maybeSingle();
+  if (!parent) throw invalid("La categoría padre no existe.");
+  if (parent.parent_id) throw invalid("Elige una categoría principal como padre.");
+
+  if (categoryId) {
+    const { count } = await supabase
+      .from("categories")
+      .select("id", { count: "exact", head: true })
+      .eq("parent_id", categoryId);
+    if (count) throw invalid("Esta categoría tiene subcategorías: no puede depender de otra.");
+  }
+}
+
 export const createCategory = adminAction(categorySchema, async (values, { supabase }) => {
+  await assertValidParent(supabase, null, values.parentId);
   const { data, error } = await supabase
     .from("categories")
     .insert(toCategoryRow(values))
@@ -288,11 +320,7 @@ export const createCategory = adminAction(categorySchema, async (values, { supab
 export const updateCategory = adminAction(
   z.object({ id: z.uuid(), values: categorySchema }),
   async ({ id, values }, { supabase }) => {
-    if (values.parentId === id) {
-      throw new AppError("VALIDATION", {
-        details: { parentId: ["Una categoría no puede ser su propio padre."] },
-      });
-    }
+    await assertValidParent(supabase, id, values.parentId);
     const { error } = await supabase.from("categories").update(toCategoryRow(values)).eq("id", id);
     if (error) translateDbError(error, { uniqueFields: CATEGORY_UNIQUE });
     revalidateCatalog({ categories: true });

@@ -2,7 +2,7 @@ import "server-only";
 import { unstable_rethrow } from "next/navigation";
 import { z } from "zod";
 import { getAdminUser, type AdminUser } from "@/features/auth/session";
-import { AppError, failure, logError, success, type ActionResult } from "@/lib/errors";
+import { AppError, failure, fieldErrors, logError, success, type ActionResult } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/server";
 
 type AdminContext = {
@@ -29,7 +29,7 @@ export function adminAction<Schema extends z.ZodType, Result>(
 
       const parsed = schema.safeParse(input);
       if (!parsed.success) {
-        throw new AppError("VALIDATION", { details: z.flattenError(parsed.error).fieldErrors });
+        throw new AppError("VALIDATION", { details: fieldErrors(parsed.error) });
       }
 
       const supabase = await createClient();

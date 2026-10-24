@@ -81,6 +81,21 @@ export function failure(error: unknown): ActionResult<never> {
   };
 }
 
+/**
+ * Agrupa los errores de Zod por nombre de campo (último segmento de la ruta),
+ * así `{ id, values: { price } }` se reporta como `price`, igual que el formulario.
+ */
+export function fieldErrors(error: {
+  issues: readonly { path: readonly PropertyKey[]; message: string }[];
+}): Record<string, string[]> {
+  const result: Record<string, string[]> = {};
+  for (const issue of error.issues) {
+    const key = issue.path.findLast((segment) => typeof segment === "string");
+    if (typeof key === "string") (result[key] ??= []).push(issue.message);
+  }
+  return result;
+}
+
 function isErrorCode(value: string): value is ErrorCode {
   return (ERROR_CODES as readonly string[]).includes(value);
 }

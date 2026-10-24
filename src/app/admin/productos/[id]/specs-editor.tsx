@@ -66,10 +66,14 @@ export function SpecsEditor({
     startTransition(async () => {
       const result = await saveProductSpecs({
         productId,
-        specs: Object.entries(form).map(([specId, value]) => ({
-          specId,
-          value: value.replace(",", "."),
-        })),
+        specs: definitions.map((definition) => {
+          const value = form[definition.id] ?? "";
+          return {
+            specId: definition.id,
+            // Coma decimal colombiana (1,5) solo en números; el texto se guarda tal cual.
+            value: definition.data_type === "number" ? value.replace(",", ".") : value,
+          };
+        }),
       });
       if (result.ok) {
         toast.success("Ficha técnica guardada");

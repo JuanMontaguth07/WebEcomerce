@@ -52,6 +52,7 @@ export function ImageManager({
   const [uploading, setUploading] = useState(false);
   const [pending, startTransition] = useTransition();
   const [alts, setAlts] = useState<Record<string, string>>({});
+  const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
 
   async function handleFiles(files: FileList | null) {
     if (!files?.length) return;
@@ -59,38 +60,44 @@ export function ImageManager({
     const supabase = createClient();
     let added = 0;
 
-    for (const file of Array.from(files)) {
-      if (!ACCEPTED.includes(file.type)) {
-        toast.error(`${file.name}: usa WebP, JPG, PNG o AVIF.`);
-        continue;
+    try {
+      for (const file of Array.from(files)) {
+        if (!ACCEPTED.includes(file.type)) {
+          toast.error(`${file.name}: usa WebP, JPG, PNG o AVIF.`);
+          continue;
+        }
+        if (file.size > MAX_BYTES) {
+          toast.error(`${file.name}: pesa más de 5 MB. Redúcela antes de subirla.`);
+          continue;
+        }
+        const path = `products/${productId}/${crypto.randomUUID()}.${EXTENSIONS[file.type]}`;
+        const { error: uploadError } = await supabase.storage
+          .from(CATALOG_BUCKET)
+          .upload(path, file, { contentType: file.type, cacheControl: "31536000" });
+        if (uploadError) {
+          toast.error(`${file.name}: no se pudo subir (${uploadError.message}).`);
+          continue;
+        }
+        const result = await addProductImage({
+          productId,
+          path,
+          alt: productName,
+          ...(await readDimensions(file)),
+        });
+        if (result.ok) added++;
+        else {
+          await supabase.storage.from(CATALOG_BUCKET).remove([path]);
+          toast.error(result.error.message);
+        }
       }
-      if (file.size > MAX_BYTES) {
-        toast.error(`${file.name}: pesa más de 5 MB. Redúcela antes de subirla.`);
-        continue;
-      }
-      const path = `products/${productId}/${crypto.randomUUID()}.${EXTENSIONS[file.type]}`;
-      const { error: uploadError } = await supabase.storage
-        .from(CATALOG_BUCKET)
-        .upload(path, file, { contentType: file.type, cacheControl: "31536000" });
-      if (uploadError) {
-        toast.error(`${file.name}: no se pudo subir (${uploadError.message}).`);
-        continue;
-      }
-      const result = await addProductImage({
-        productId,
-        path,
-        alt: productName,
-        ...(await readDimensions(file)),
-      });
-      if (result.ok) added++;
-      else {
-        await supabase.storage.from(CATALOG_BUCKET).remove([path]);
-        toast.error(result.error.message);
-      }
+    } catch {
+      // Caída de red a mitad de la subida: se informa y el botón vuelve a quedar disponible.
+      toast.error("Se perdió la conexión. Revisa las imágenes y vuelve a intentarlo.");
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
     }
 
-    setUploading(false);
-    if (inputRef.current) inputRef.current.value = "";
     if (added) {
       toast.success(added === 1 ? "Imagen agregada" : `${added} imágenes agregadas`);
       router.refresh();
@@ -165,40 +172,68 @@ export function ImageManager({
                   )}
                 </div>
               </div>
-              <div className="flex gap-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  disabled={pending || index === 0}
-                  onClick={() => move(index, -1)}
-                  aria-label="Subir imagen"
-                >
-                  <ArrowUpIcon aria-hidden />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  disabled={pending || index === images.length - 1}
-                  onClick={() => move(index, 1)}
-                  aria-label="Bajar imagen"
-                >
-                  <ArrowDownIcon aria-hidden />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  disabled={pending}
-                  onClick={() =>
-                    run(() => deleteProductImage({ imageId: image.id }), "Imagen eliminada")
-                  }
+              {confirmingDelete === image.id ? (
+                <div
+                  role="alertdialog"
                   aria-label="Eliminar imagen"
+                  className="flex items-center gap-2"
                 >
-                  <Trash2Icon className="text-destructive" aria-hidden />
-                </Button>
-              </div>
+                  <span className="text-sm">¿Eliminar?</span>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    isLoading={pending}
+                    onClick={() =>
+                      run(() => deleteProductImage({ imageId: image.id }), "Imagen eliminada")
+                    }
+                  >
+                    Sí, eliminar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={pending}
+                    onClick={() => setConfirmingDelete(null)}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    disabled={pending || index === 0}
+                    onClick={() => move(index, -1)}
+                    aria-label="Subir imagen"
+                  >
+                    <ArrowUpIcon aria-hidden />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    disabled={pending || index === images.length - 1}
+                    onClick={() => move(index, 1)}
+                    aria-label="Bajar imagen"
+                  >
+                    <ArrowDownIcon aria-hidden />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    disabled={pending}
+                    onClick={() => setConfirmingDelete(image.id)}
+                    aria-label="Eliminar imagen"
+                  >
+                    <Trash2Icon className="text-destructive" aria-hidden />
+                  </Button>
+                </div>
+              )}
             </li>
           ))}
         </ul>

@@ -24,7 +24,7 @@ export async function SiteHeader() {
       <div className="container-page pb-3 md:hidden">
         <SearchBox />
       </div>
-      <nav aria-label="Categorías" className="hidden border-t lg:block">
+      <nav aria-label="Menú principal" className="hidden border-t lg:block">
         <ul className="container-page flex h-11 items-center gap-1 overflow-x-auto text-sm">
           <li>
             <Link

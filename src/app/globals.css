@@ -32,7 +32,7 @@
   --accent-foreground: var(--foreground);
 
   --success: oklch(0.515 0.106 164.1); /* #0F7A57 */
-  --warning: oklch(0.531 0.119 65.1); /* #9A5B00 */
+  --warning: oklch(0.495 0.111 64.9); /* #8C5200: ≥ 4.5:1 también sobre bg-warning/10 */
   --destructive: oklch(0.54 0.182 22.4); /* #C2303A */
 
   --border: oklch(0.908 0.011 256.7); /* #DCE1E8 */
