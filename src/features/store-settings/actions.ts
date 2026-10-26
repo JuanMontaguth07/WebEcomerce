@@ -21,6 +21,9 @@ export const updateStoreSettings = adminAction(
         legal_city: values.legalCity,
         nequi_number: values.nequiNumber,
         nequi_holder: values.nequiHolder,
+        announcement_text: values.announcementText,
+        announcement_href: values.announcementHref,
+        announcement_enabled: values.announcementEnabled,
       })
       .eq("id", true);
     if (error) throw error;

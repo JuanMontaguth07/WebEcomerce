@@ -1,6 +1,14 @@
 "use client";
 
-import { EyeIcon, EyeOffIcon, StarIcon, StarOffIcon, Trash2Icon, XIcon } from "lucide-react";
+import {
+  EyeIcon,
+  EyeOffIcon,
+  GemIcon,
+  StarIcon,
+  StarOffIcon,
+  Trash2Icon,
+  XIcon,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -12,7 +20,12 @@ import { StockBadge } from "@/components/shop/stock-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RarityBadge } from "@/components/shop/rarity-badge";
+import { fieldBase } from "@/components/ui/input";
 import { bulkDeleteProducts, bulkUpdateProducts } from "@/features/admin/catalog-actions";
+import { setProductsRarity } from "@/features/rarities/actions";
+import type { RarityEffect } from "@/features/rarities/types";
+import { cn } from "@/lib/utils";
 import { formatCOP } from "@/lib/format";
 import { storageImageUrl } from "@/lib/images";
 
@@ -28,6 +41,7 @@ export type ProductRow = {
   brand: string | null;
   category: string;
   image: string | null;
+  rarity: { id: string; name: string; color: string; effect: RarityEffect } | null;
 };
 
 type Change = "show" | "hide" | "feature" | "unfeature";
@@ -40,11 +54,18 @@ const CHANGE_DONE: Record<Change, string> = {
 };
 
 /** Tabla de productos con selección para mostrar, ocultar, destacar o eliminar varios a la vez. */
-export function ProductsTable({ products }: { products: ProductRow[] }) {
+export function ProductsTable({
+  products,
+  rarities,
+}: {
+  products: ProductRow[];
+  rarities: { id: string; name: string }[];
+}) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [reason, setReason] = useState("");
+  const [rarityChoice, setRarityChoice] = useState("");
   const [pending, startTransition] = useTransition();
 
   // Si la página cambia (filtro, paginación), se descartan ids que ya no están.
@@ -82,6 +103,27 @@ export function ProductsTable({ products }: { products: ProductRow[] }) {
     });
   }
 
+  function assignRarity() {
+    if (!rarityChoice) return;
+    startTransition(async () => {
+      const rarityId = rarityChoice === "none" ? null : rarityChoice;
+      const result = await setProductsRarity({ ids: chosen, rarityId });
+      if (!result.ok) {
+        toast.error(result.error.message);
+        return;
+      }
+      const name = rarities.find((rarity) => rarity.id === rarityId)?.name;
+      toast.success(
+        name
+          ? `Rareza «${name}» asignada a ${result.data.updated} ${result.data.updated === 1 ? "producto" : "productos"}`
+          : "Rareza quitada",
+      );
+      setRarityChoice("");
+      clear();
+      router.refresh();
+    });
+  }
+
   function remove() {
     startTransition(async () => {
       const result = await bulkDeleteProducts({ ids: chosen, reason: reason || undefined });
@@ -111,7 +153,7 @@ export function ProductsTable({ products }: { products: ProductRow[] }) {
         <div
           role="region"
           aria-label="Acciones para los productos seleccionados"
-          className="sticky top-2 z-20 grid gap-3 rounded-xl border border-primary/40 bg-card p-3 shadow-lg"
+          className="sticky top-20 z-20 grid gap-3 rounded-xl border border-primary/40 bg-card p-3 shadow-lg"
         >
           <div className="flex flex-wrap items-center gap-2">
             <span className="mr-auto text-sm font-semibold">
@@ -143,6 +185,36 @@ export function ProductsTable({ products }: { products: ProductRow[] }) {
               <StarOffIcon aria-hidden />
               Quitar destacado
             </Button>
+            {rarities.length > 0 && (
+              <span className="flex items-center gap-1">
+                <label htmlFor="bulk-rarity" className="sr-only">
+                  Rareza para los seleccionados
+                </label>
+                <select
+                  id="bulk-rarity"
+                  value={rarityChoice}
+                  onChange={(event) => setRarityChoice(event.target.value)}
+                  className={cn(fieldBase, "h-8 w-40 px-2 text-sm")}
+                >
+                  <option value="">Rareza…</option>
+                  {rarities.map((rarity) => (
+                    <option key={rarity.id} value={rarity.id}>
+                      {rarity.name}
+                    </option>
+                  ))}
+                  <option value="none">Quitar rareza</option>
+                </select>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled={pending || !rarityChoice}
+                  onClick={assignRarity}
+                >
+                  <GemIcon aria-hidden />
+                  Aplicar
+                </Button>
+              </span>
+            )}
             <Button
               size="sm"
               variant="destructive"
@@ -245,6 +317,7 @@ export function ProductsTable({ products }: { products: ProductRow[] }) {
                         {product.name}
                       </Link>
                       <span className="font-mono text-xs text-muted-foreground">{product.sku}</span>
+                      {product.rarity && <RarityBadge rarity={product.rarity} className="mt-1" />}
                     </div>
                   </div>
                 </td>

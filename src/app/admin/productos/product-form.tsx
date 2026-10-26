@@ -1,6 +1,7 @@
 "use client";
 
 import type { Route } from "next";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -10,9 +11,11 @@ import {
   TextAreaField,
   TextField,
 } from "@/components/admin/form-helpers";
+import { RarityPreview } from "@/components/admin/rarity-preview";
 import { Button } from "@/components/ui/button";
 import { createProduct, updateProduct } from "@/features/admin/catalog-actions";
 import type { ProductInput } from "@/features/admin/catalog-schemas";
+import type { AdminRarity } from "@/features/rarities/queries";
 import { slugify } from "@/lib/format";
 
 type Option = { id: string; name: string; is_active?: boolean };
@@ -25,6 +28,7 @@ export type ProductFormValues = {
   productType: "component" | "prebuilt" | "peripheral";
   categoryId: string;
   brandId: string;
+  rarityId: string;
   price: string;
   compareAtPrice: string;
   lowStockThreshold: string;
@@ -44,6 +48,7 @@ export const EMPTY_PRODUCT: ProductFormValues = {
   productType: "component",
   categoryId: "",
   brandId: "",
+  rarityId: "",
   price: "",
   compareAtPrice: "",
   lowStockThreshold: "3",
@@ -70,11 +75,13 @@ export function ProductForm({
   initial,
   categories,
   brands,
+  rarities,
 }: {
   productId?: string;
   initial: ProductFormValues;
   categories: Option[];
   brands: Option[];
+  rarities: AdminRarity[];
 }) {
   const router = useRouter();
   const [values, setValues] = useState(initial);
@@ -139,6 +146,8 @@ export function ProductForm({
       label: b.is_active === false ? `${b.name} (oculta)` : b.name,
     })),
   ];
+
+  const selectedRarity = rarities.find((rarity) => rarity.id === values.rarityId);
 
   return (
     <form onSubmit={handleSubmit} noValidate className="grid gap-6">
@@ -270,6 +279,35 @@ export function ProductForm({
           checked={values.isFeatured}
           onCheckedChange={(checked) => update("isFeatured", checked)}
         />
+      </Section>
+
+      <Section title="Rareza">
+        <div className="grid items-start gap-5 sm:grid-cols-[1fr_auto]">
+          <div className="grid gap-3">
+            <SelectField
+              name="rarityId"
+              label="Nivel de rareza"
+              optional
+              errors={errors}
+              options={[
+                { value: "", label: "Sin rareza (producto normal)" },
+                ...rarities.map((rarity) => ({
+                  value: rarity.id,
+                  label: rarity.isActive ? rarity.name : `${rarity.name} (oculta)`,
+                })),
+              ]}
+              hint="Le da a la tarjeta un color y un efecto animado en toda la tienda."
+              {...text("rarityId")}
+            />
+            <Link
+              href="/admin/rarezas"
+              className="w-fit text-sm font-semibold text-primary hover:underline"
+            >
+              Crear o editar rarezas
+            </Link>
+          </div>
+          {selectedRarity && <RarityPreview rarity={selectedRarity} className="max-w-40" />}
+        </div>
       </Section>
 
       <Section title="Buscadores (opcional)">

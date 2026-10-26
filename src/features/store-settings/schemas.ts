@@ -20,39 +20,55 @@ const whatsapp = z
   })
   .transform((digits) => digits || null);
 
-export const storeSettingsSchema = z.object({
-  whatsappNumber: whatsapp,
-  supportEmail: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .pipe(z.union([z.literal(""), z.email("Correo inválido.")]))
-    .transform((value) => value || null),
-  supportHours: optionalText(200),
-  legalName: optionalText(200),
-  legalNit: z
-    .string()
-    .transform((value) => value.replace(/[\s.]/g, ""))
-    .refine((value) => value === "" || /^\d{5,15}$/.test(value), {
-      message: "Solo números, sin el dígito de verificación (ej. 1234567890).",
-    })
-    .transform((value) => value || null),
-  legalDv: z
-    .string()
-    .trim()
-    .refine((value) => value === "" || /^\d$/.test(value), { message: "Un solo dígito (0 a 9)." })
-    .transform((value) => value || null),
-  legalAddress: optionalText(200),
-  legalCity: optionalText(100),
-  // Nequi: celular colombiano de 10 dígitos (se acepta con +57 o espacios).
-  nequiNumber: z
-    .string()
-    .transform((value) => value.replace(/\D/g, "").replace(/^57(?=3\d{9}$)/, ""))
-    .refine((digits) => digits === "" || /^3\d{9}$/.test(digits), {
-      message: "Celular de 10 dígitos que empiece por 3 (ej. 300 123 4567).",
-    })
-    .transform((digits) => digits || null),
-  nequiHolder: optionalText(120),
-});
+export const storeSettingsSchema = z
+  .object({
+    whatsappNumber: whatsapp,
+    supportEmail: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .pipe(z.union([z.literal(""), z.email("Correo inválido.")]))
+      .transform((value) => value || null),
+    supportHours: optionalText(200),
+    legalName: optionalText(200),
+    legalNit: z
+      .string()
+      .transform((value) => value.replace(/[\s.]/g, ""))
+      .refine((value) => value === "" || /^\d{5,15}$/.test(value), {
+        message: "Solo números, sin el dígito de verificación (ej. 1234567890).",
+      })
+      .transform((value) => value || null),
+    legalDv: z
+      .string()
+      .trim()
+      .refine((value) => value === "" || /^\d$/.test(value), { message: "Un solo dígito (0 a 9)." })
+      .transform((value) => value || null),
+    legalAddress: optionalText(200),
+    legalCity: optionalText(100),
+    // Nequi: celular colombiano de 10 dígitos (se acepta con +57 o espacios).
+    nequiNumber: z
+      .string()
+      .transform((value) => value.replace(/\D/g, "").replace(/^57(?=3\d{9}$)/, ""))
+      .refine((digits) => digits === "" || /^3\d{9}$/.test(digits), {
+        message: "Celular de 10 dígitos que empiece por 3 (ej. 300 123 4567).",
+      })
+      .transform((digits) => digits || null),
+    nequiHolder: optionalText(120),
+    announcementText: optionalText(140),
+    // Solo enlaces dentro de la tienda: «/productos?oferta=1», «/rarezas»… «//» o «/\»
+    // llevarían a otro sitio, por eso el segundo carácter no puede ser una barra.
+    announcementHref: z
+      .string()
+      .trim()
+      .refine((value) => value === "" || /^\/([^/\\\s][^\s]{0,198})?$/.test(value), {
+        message: "Escribe una ruta de la tienda que empiece por / (ej. /productos?oferta=1).",
+      })
+      .transform((value) => value || null),
+    announcementEnabled: z.boolean(),
+  })
+  .refine((values) => !values.announcementEnabled || values.announcementText, {
+    path: ["announcementText"],
+    message: "Escribe el texto del anuncio o apágalo.",
+  });
 
 export type StoreSettingsInput = z.input<typeof storeSettingsSchema>;

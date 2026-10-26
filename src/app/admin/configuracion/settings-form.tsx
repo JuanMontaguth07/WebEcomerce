@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { TextField } from "@/components/admin/form-helpers";
+import { SparklesIcon } from "lucide-react";
+import { CheckboxField, TextField } from "@/components/admin/form-helpers";
 import { Button } from "@/components/ui/button";
 import { updateStoreSettings } from "@/features/store-settings/actions";
 import type { StoreSettingsInput } from "@/features/store-settings/schemas";
@@ -34,7 +35,8 @@ export function SettingsForm({ initial }: { initial: StoreSettingsInput }) {
   const [errors, setErrors] = useState<Errors>({});
   const [pending, startTransition] = useTransition();
 
-  const field = (key: keyof StoreSettingsInput) => ({
+  type TextKey = Exclude<keyof StoreSettingsInput, "announcementEnabled">;
+  const field = (key: TextKey) => ({
     name: key,
     errors,
     value: values[key],
@@ -61,6 +63,49 @@ export function SettingsForm({ initial }: { initial: StoreSettingsInput }) {
 
   return (
     <form onSubmit={submit} noValidate className="grid gap-6">
+      <Section
+        title="Anuncio de la tienda"
+        description="Una barra llamativa arriba de todas las páginas: ofertas, envíos, nuevas rarezas…"
+      >
+        <TextField
+          {...field("announcementText")}
+          label="Texto"
+          optional
+          maxLength={140}
+          placeholder="Hasta 20 % de descuento en tarjetas gráficas esta semana"
+          hint={`${values.announcementText.length}/140`}
+        />
+        <TextField
+          {...field("announcementHref")}
+          label="Enlace"
+          optional
+          placeholder="/productos?oferta=1"
+          hint="Ruta de la tienda que abre al tocar la barra: /productos?oferta=1, /rarezas, /categorias/…"
+        />
+        <CheckboxField
+          name="announcementEnabled"
+          label="Mostrar el anuncio"
+          hint="Apágalo cuando termine la promoción; el texto queda guardado."
+          checked={values.announcementEnabled}
+          onCheckedChange={(checked) => {
+            setValues((current) => ({ ...current, announcementEnabled: checked }));
+            setErrors((current) => ({ ...current, announcementText: undefined }));
+          }}
+        />
+        {values.announcementText && (
+          <div className="grid gap-2">
+            <span className="text-sm font-semibold">Vista previa</span>
+            <div
+              aria-hidden
+              className="announcement-shine flex min-h-10 items-center justify-center gap-2 rounded-lg px-4 py-2 text-center text-sm font-semibold text-primary-foreground"
+            >
+              <SparklesIcon className="size-4 shrink-0" />
+              {values.announcementText}
+            </div>
+          </div>
+        )}
+      </Section>
+
       <Section
         title="Contacto"
         description="Se muestran en el botón de WhatsApp, la página de Soporte y el pie de página. Lo que dejes vacío no aparece."

@@ -42,6 +42,7 @@ export const productSchema = z
     productType: z.enum(["component", "prebuilt", "peripheral"]),
     categoryId: z.uuid("Selecciona una categoría."),
     brandId: optionalUuid,
+    rarityId: optionalUuid,
     price: money.refine((value) => value > 0, "El precio debe ser mayor que cero."),
     // En estas uniones el literal "" va primero: z.coerce convertiría "" en 0.
     compareAtPrice: z

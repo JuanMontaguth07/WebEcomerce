@@ -7,12 +7,14 @@ import { Hero } from "@/components/shop/hero";
 import { HomeSection } from "@/components/shop/home-section";
 import { JsonLd } from "@/components/seo/json-ld";
 import { ProductGridSkeleton } from "@/components/shop/product-grid";
+import { RarityShowcase } from "@/components/shop/rarity-showcase";
 import { siteConfig } from "@/config/site";
 import {
   getBestSellers,
   getCategories,
   getHomeCollection,
   getProductBySlug,
+  getRarityProducts,
 } from "@/features/catalog/queries";
 import { siteJsonLd } from "@/features/catalog/structured-data";
 import type { ProductSummary } from "@/features/catalog/types";
@@ -56,12 +58,13 @@ async function HomeCategories() {
 }
 
 async function HomeCollections() {
-  const [featured, deals, prebuilt, newest, bestSellers] = await Promise.all([
+  const [featured, deals, prebuilt, newest, bestSellers, rarities] = await Promise.all([
     getHomeCollection("featured", 8),
     getHomeCollection("deals", 4),
     getHomeCollection("prebuilt", 4),
     getHomeCollection("newest", 4),
     getBestSellers(4),
+    getRarityProducts(true, 8),
   ]);
 
   // Filas completas en escritorio (4 columnas) para no dejar huecos.
@@ -78,6 +81,7 @@ async function HomeCollections() {
         linkLabel="Ver catálogo"
         products={featuredRows}
       />
+      <RarityShowcase products={rarities} />
       <HomeSection
         id="ofertas"
         title="Ofertas"

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { signOut } from "@/features/auth/actions";
 import type { AdminUser } from "@/features/auth/session";
 import { AdminNav } from "./admin-nav";
+import { CommandPalette } from "./command-palette";
 
 export function AdminShell({
   admin,
@@ -38,10 +39,8 @@ export function AdminShell({
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <header className="flex h-16 items-center justify-end gap-2 border-b bg-card px-4 md:px-6">
-          <span className="mr-auto truncate text-sm text-muted-foreground lg:hidden">
-            {admin.email}
-          </span>
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-end gap-2 border-b bg-card/90 px-4 backdrop-blur md:px-6">
+          <CommandPalette />
           <ThemeToggle />
           <form action={signOut}>
             <Button type="submit" variant="ghost" size="sm">

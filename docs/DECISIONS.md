@@ -284,3 +284,18 @@ repite en el layout del panel y en cada Server Action.
 - **Exportaciones CSV** (pedidos, productos, inventario, actividad) con punto y coma y BOM para
   Excel en español; los textos que empiezan con `= + - @` se neutralizan para que no se ejecuten
   como fórmulas.
+
+## D21 — Rarezas, anuncio y paleta de comandos (2026-10-28)
+
+- **Rarezas** (`rarities`): niveles que el admin crea con nombre, color, efecto (sin efecto,
+  resplandor, latido, destello u holográfico), nivel (0–100, mayor = más rara) y si salen en la
+  portada. Cada producto puede tener una; se asigna en el formulario o en lote. Se ven en las
+  tarjetas, en la ficha, en un bloque de la portada y en `/rarezas`.
+- **El color del admin nunca pinta texto**: solo bordes, halos, fondos tenues e íconos, y el texto
+  usa los tokens normales. Así cualquier color elegido se lee en modo claro y oscuro. Los efectos
+  son CSS y se apagan con «movimiento reducido».
+- **Barra de anuncio** en la configuración (texto, enlace y encendido). El enlace solo puede ser
+  una ruta de la tienda: se rechazan rutas que empiezan con dos barras (normales o invertidas),
+  que los navegadores abren como sitios externos.
+- **Panel**: menú agrupado (Ventas, Catálogo, Tienda) y paleta de comandos (Ctrl+K) para ir a
+  cualquier sección o abrir un producto o pedido por nombre, SKU o número.

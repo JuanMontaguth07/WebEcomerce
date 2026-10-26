@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import type { RarityEffect } from "@/features/rarities/types";
 import { ADMIN_PAGE_SIZE, sanitizeSearch } from "./shared";
 
 /** Lecturas del catálogo para el panel (incluyen elementos inactivos; RLS exige admin). */
@@ -9,10 +10,12 @@ export type ProductFilter = "all" | "active" | "inactive" | "out" | "low";
 export async function listAdminProducts({
   q,
   filter = "all",
+  rarityId,
   page = 1,
 }: {
   q?: string;
   filter?: ProductFilter;
+  rarityId?: string;
   page?: number;
 }) {
   const supabase = await createClient();
@@ -22,6 +25,7 @@ export async function listAdminProducts({
     .select(
       `id, name, slug, sku, price, stock, low_stock_threshold, is_active, is_featured, updated_at,
        brand:brands(name), category:categories(name),
+       rarity:rarities(id, name, color, effect),
        images:product_images(storage_path, position)`,
       { count: "exact" },
     )
@@ -33,6 +37,7 @@ export async function listAdminProducts({
   if (filter === "active") query = query.eq("is_active", true);
   if (filter === "inactive") query = query.eq("is_active", false);
   if (filter === "out") query = query.eq("stock", 0);
+  if (rarityId) query = query.eq("rarity_id", rarityId);
   // "Stock bajo" compara dos columnas: se acota en la base y se termina de filtrar aquí.
   if (filter === "low") query = query.gt("stock", 0).lte("stock", 50);
 
@@ -57,6 +62,7 @@ export async function listAdminProducts({
       brand: row.brand?.name ?? null,
       category: row.category?.name ?? "—",
       image: row.images[0]?.storage_path ?? null,
+      rarity: row.rarity ? { ...row.rarity, effect: row.rarity.effect as RarityEffect } : null,
     }));
 
   return {

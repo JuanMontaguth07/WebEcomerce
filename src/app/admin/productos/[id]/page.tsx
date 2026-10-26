@@ -14,6 +14,7 @@ import {
   getSpecDefinitions,
 } from "@/features/admin/catalog";
 import { listActivity } from "@/features/activity/queries";
+import { listAdminRarities } from "@/features/rarities/queries";
 import { requireAdmin } from "@/features/auth/session";
 import { getInventoryMovements } from "@/features/inventory/queries";
 import { MOVEMENT_LABELS } from "@/features/inventory/schemas";
@@ -48,14 +49,16 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
   const product = await getAdminProduct(id);
   if (!product) notFound();
 
-  const [categories, brands, definitions, { movements }, counts, activity] = await Promise.all([
-    getCategoryOptions(),
-    getBrandOptions(),
-    getSpecDefinitions(product.category_id),
-    getInventoryMovements({ productId: id, pageSize: 8 }),
-    getProductHistoryCounts(id),
-    listActivity({ entityId: id, limit: 6 }),
-  ]);
+  const [categories, brands, definitions, { movements }, counts, activity, rarities] =
+    await Promise.all([
+      getCategoryOptions(),
+      getBrandOptions(),
+      getSpecDefinitions(product.category_id),
+      getInventoryMovements({ productId: id, pageSize: 8 }),
+      getProductHistoryCounts(id),
+      listActivity({ entityId: id, limit: 6 }),
+      listAdminRarities(),
+    ]);
 
   const initial: ProductFormValues = {
     name: product.name,
@@ -64,6 +67,7 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
     productType: product.product_type,
     categoryId: product.category_id,
     brandId: product.brand_id ?? "",
+    rarityId: product.rarity_id ?? "",
     price: String(product.price),
     compareAtPrice: product.compare_at_price === null ? "" : String(product.compare_at_price),
     lowStockThreshold: String(product.low_stock_threshold),
@@ -107,6 +111,7 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
             initial={initial}
             categories={categories}
             brands={brands}
+            rarities={rarities}
           />
           <Card title="Imágenes" id="imagenes">
             <ImageManager

@@ -96,9 +96,13 @@ async function resolveContext(
   const references = referencedIds(entries);
   const categoryIds = [...new Set([...idsFor(["category", "spec_definition"]), ...references])];
   const brandIds = [...new Set([...idsFor(["brand"]), ...references])];
+  const rarityIds = references;
   const orderIds = idsFor(["order"]);
 
-  const select = async (table: "products" | "categories" | "brands" | "orders", ids: string[]) => {
+  const select = async (
+    table: "products" | "categories" | "brands" | "orders" | "rarities",
+    ids: string[],
+  ) => {
     if (!ids.length) return [] as { id: string; name?: string }[];
     const columns = table === "orders" ? "id" : "id, name";
     const { data, error } = await supabase.from(table).select(columns).in("id", ids);
@@ -106,16 +110,19 @@ async function resolveContext(
     return data as unknown as { id: string; name?: string }[];
   };
 
-  const [products, categories, brands, orders] = await Promise.all([
+  const [products, categories, brands, orders, rarities] = await Promise.all([
     select("products", productIds),
     select("categories", categoryIds),
     select("brands", brandIds),
     select("orders", orderIds),
+    select("rarities", rarityIds),
   ]);
 
   const existing = new Set([...products, ...categories, ...brands, ...orders].map((row) => row.id));
   const names: ReferenceNames = new Map(
-    [...categories, ...brands].flatMap((row) => (row.name ? [[row.id, row.name] as const] : [])),
+    [...categories, ...brands, ...rarities].flatMap((row) =>
+      row.name ? [[row.id, row.name] as const] : [],
+    ),
   );
   return { existing, names };
 }

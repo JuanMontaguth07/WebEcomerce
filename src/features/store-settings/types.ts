@@ -12,6 +12,11 @@ export type StoreSettings = {
   /** Celular de Nequi (10 dígitos) para pagos por transferencia. */
   nequiNumber: string | null;
   nequiHolder: string | null;
+  /** Barra superior de la tienda (ofertas, envíos, novedades). */
+  announcementText: string | null;
+  /** Ruta interna opcional, p. ej. /productos?oferta=1. */
+  announcementHref: string | null;
+  announcementEnabled: boolean;
 };
 
 export const EMPTY_SETTINGS: StoreSettings = {
@@ -25,6 +30,9 @@ export const EMPTY_SETTINGS: StoreSettings = {
   legalCity: null,
   nequiNumber: null,
   nequiHolder: null,
+  announcementText: null,
+  announcementHref: null,
+  announcementEnabled: false,
 };
 
 /** Enlace a un chat de WhatsApp con un mensaje inicial. */

@@ -15,6 +15,9 @@ const settings = {
   legalCity: "",
   nequiNumber: "",
   nequiHolder: "",
+  announcementText: "",
+  announcementHref: "",
+  announcementEnabled: false,
 };
 
 describe("configuración de la tienda", () => {
@@ -49,7 +52,33 @@ describe("configuración de la tienda", () => {
       legalCity: null,
       nequiNumber: null,
       nequiHolder: null,
+      announcementText: null,
+      announcementHref: null,
+      announcementEnabled: false,
     });
+  });
+
+  it("el anuncio solo enlaza dentro de la tienda y encendido exige texto", () => {
+    const parse = (overrides: Partial<typeof settings>) =>
+      storeSettingsSchema.safeParse({
+        ...settings,
+        announcementText: "Envío gratis",
+        ...overrides,
+      });
+    expect(parse({ announcementHref: "/productos?oferta=1" }).success).toBe(true);
+    expect(parse({ announcementHref: "/" }).success).toBe(true);
+    for (const href of [
+      "https://otro.sitio",
+      "//otro.sitio",
+      "/\\otro.sitio",
+      "productos",
+      "/a b",
+    ]) {
+      expect(parse({ announcementHref: href }).success, href).toBe(false);
+    }
+    expect(storeSettingsSchema.safeParse({ ...settings, announcementEnabled: true }).success).toBe(
+      false,
+    );
   });
 
   it("rechaza NIT con dígito de verificación pegado, DV largo y teléfonos cortos", () => {

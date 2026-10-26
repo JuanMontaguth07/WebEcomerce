@@ -1,3 +1,4 @@
+import type { Rarity } from "@/features/rarities/types";
 import type { Database } from "@/lib/supabase/database.types";
 
 export type ProductType = Database["public"]["Enums"]["product_type"];
@@ -22,6 +23,8 @@ export type ProductSummary = {
   brand: BrandRef | null;
   category: CategoryRef;
   image: ImageRef | null;
+  /** Nivel visual asignado en el panel (null = producto normal). */
+  rarity: Rarity | null;
 };
 
 export type Category = {

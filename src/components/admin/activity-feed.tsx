@@ -2,6 +2,7 @@ import {
   BoxesIcon,
   ClipboardListIcon,
   FolderTreeIcon,
+  GemIcon,
   ImageIcon,
   ListChecksIcon,
   SettingsIcon,
@@ -34,6 +35,7 @@ const ICONS: Record<ActivityEntity, React.ComponentType<{ className?: string }>>
   inventory: WarehouseIcon,
   shipping_rate: TruckIcon,
   store_settings: SettingsIcon,
+  rarity: GemIcon,
 };
 
 const ACTION_TONE = {

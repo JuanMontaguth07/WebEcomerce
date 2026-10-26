@@ -1,5 +1,6 @@
 import { MOVEMENT_LABELS } from "@/features/inventory/schemas";
 import { ORDER_STATUS_LABELS, type OrderStatus } from "@/features/orders/transitions";
+import { RARITY_EFFECTS } from "@/features/rarities/types";
 import { formatCOP } from "@/lib/format";
 
 /**
@@ -18,6 +19,7 @@ export const ACTIVITY_ENTITIES = [
   "inventory",
   "shipping_rate",
   "store_settings",
+  "rarity",
 ] as const;
 
 export type ActivityEntity = (typeof ACTIVITY_ENTITIES)[number];
@@ -41,7 +43,10 @@ export const ACTIVITY_GROUPS = {
   productos: { label: "Productos", entities: ["product", "product_image", "product_specs"] },
   pedidos: { label: "Pedidos", entities: ["order"] },
   inventario: { label: "Inventario", entities: ["inventory"] },
-  catalogo: { label: "Categorías y marcas", entities: ["category", "spec_definition", "brand"] },
+  catalogo: {
+    label: "Categorías, marcas y rarezas",
+    entities: ["category", "spec_definition", "brand", "rarity"],
+  },
   envios: { label: "Envíos", entities: ["shipping_rate"] },
   configuracion: { label: "Configuración", entities: ["store_settings"] },
 } as const satisfies Record<string, { label: string; entities: readonly ActivityEntity[] }>;
@@ -65,6 +70,7 @@ const FIELD_LABELS: Record<string, string> = {
   compare_at_price: "Precio anterior",
   brand_id: "Marca",
   category_id: "Categoría",
+  rarity_id: "Rareza",
   parent_id: "Categoría principal",
   low_stock_threshold: "Aviso de stock bajo",
   warranty_months: "Garantía (meses)",
@@ -83,6 +89,9 @@ const FIELD_LABELS: Record<string, string> = {
   group_label: "Grupo",
   unit: "Unidad",
   data_type: "Tipo de dato",
+  color: "Color",
+  effect: "Efecto",
+  show_on_home: "En la portada",
   department: "Departamento",
   city: "Ciudad",
   min_days: "Días mínimos",
@@ -97,6 +106,9 @@ const FIELD_LABELS: Record<string, string> = {
   legal_city: "Ciudad legal",
   nequi_number: "Número Nequi",
   nequi_holder: "Titular Nequi",
+  announcement_text: "Texto del anuncio",
+  announcement_href: "Enlace del anuncio",
+  announcement_enabled: "Anuncio visible",
   status: "Estado",
   shipping_cost: "Envío",
   total: "Total",
@@ -108,7 +120,7 @@ const FIELD_LABELS: Record<string, string> = {
 };
 
 const MONEY_FIELDS = new Set(["price", "compare_at_price", "shipping_cost", "total"]);
-const REFERENCE_FIELDS = new Set(["brand_id", "category_id", "parent_id"]);
+const REFERENCE_FIELDS = new Set(["brand_id", "category_id", "parent_id", "rarity_id"]);
 const PRODUCT_TYPES: Record<string, string> = {
   component: "Componente",
   prebuilt: "Computador armado",
@@ -195,6 +207,8 @@ export function describeActivity(entry: ActivityEntry): string {
       return `${verb(entry.action)} la tarifa de envío ${label}`;
     case "store_settings":
       return "actualizó la configuración de la tienda";
+    case "rarity":
+      return `${verb(entry.action)} la rareza ${label}`;
   }
 }
 
@@ -218,6 +232,9 @@ export function formatValue(field: string, value: unknown, names?: ReferenceName
   }
   if (field === "product_type") return PRODUCT_TYPES[String(value)] ?? String(value);
   if (field === "data_type") return DATA_TYPES[String(value)] ?? String(value);
+  if (field === "effect") {
+    return RARITY_EFFECTS[value as keyof typeof RARITY_EFFECTS]?.label ?? String(value);
+  }
   const text = typeof value === "object" ? JSON.stringify(value) : String(value);
   return text.length > LONG_TEXT
     ? `${text.slice(0, LONG_TEXT).trimEnd()}… (${text.length} caracteres)`
@@ -258,7 +275,7 @@ function fieldOrder(field: string) {
   return index === -1 ? ORDERED_FIELDS.length : index;
 }
 
-/** Ids de categorías y marcas citados en los cambios, para resolver sus nombres. */
+/** Ids de categorías, marcas y rarezas citados en los cambios, para resolver sus nombres. */
 export function referencedIds(entries: ActivityEntry[]): string[] {
   const ids = new Set<string>();
   for (const entry of entries) {
@@ -275,6 +292,7 @@ export function referencedIds(entries: ActivityEntry[]): string[] {
 export function activityHref(entry: ActivityEntry, existing: Set<string>): string | null {
   if (entry.entity === "store_settings") return "/admin/configuracion";
   if (entry.entity === "shipping_rate") return "/admin/envios";
+  if (entry.entity === "rarity") return "/admin/rarezas";
   const id = entry.entityId;
   if (!id || !existing.has(id)) return null;
   switch (entry.entity) {

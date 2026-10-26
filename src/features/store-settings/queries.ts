@@ -21,7 +21,7 @@ async function fetchStoreSettings(): Promise<StoreSettings> {
 }
 
 const COLUMNS =
-  "whatsapp_number, support_email, support_hours, legal_name, legal_nit, legal_dv, legal_address, legal_city, nequi_number, nequi_holder";
+  "whatsapp_number, support_email, support_hours, legal_name, legal_nit, legal_dv, legal_address, legal_city, nequi_number, nequi_holder, announcement_text, announcement_href, announcement_enabled";
 
 type SettingsRow = {
   whatsapp_number: string | null;
@@ -34,6 +34,9 @@ type SettingsRow = {
   legal_city: string | null;
   nequi_number: string | null;
   nequi_holder: string | null;
+  announcement_text: string | null;
+  announcement_href: string | null;
+  announcement_enabled: boolean;
 };
 
 function toSettings(data: SettingsRow | null): StoreSettings {
@@ -49,6 +52,9 @@ function toSettings(data: SettingsRow | null): StoreSettings {
     legalCity: data.legal_city,
     nequiNumber: data.nequi_number,
     nequiHolder: data.nequi_holder,
+    announcementText: data.announcement_text,
+    announcementHref: data.announcement_href,
+    announcementEnabled: data.announcement_enabled,
   };
 }
 

@@ -14,7 +14,7 @@ export default async function SettingsPage() {
     <div className="grid max-w-3xl gap-6">
       <AdminPageHeader
         title="Configuración de la tienda"
-        description="Contacto y datos legales que ven tus clientes."
+        description="Anuncio, contacto, pagos y datos legales que ven tus clientes."
       />
       <SettingsForm
         initial={{
@@ -28,6 +28,9 @@ export default async function SettingsPage() {
           legalCity: settings.legalCity ?? "",
           nequiNumber: settings.nequiNumber ?? "",
           nequiHolder: settings.nequiHolder ?? "",
+          announcementText: settings.announcementText ?? "",
+          announcementHref: settings.announcementHref ?? "",
+          announcementEnabled: settings.announcementEnabled,
         }}
       />
     </div>

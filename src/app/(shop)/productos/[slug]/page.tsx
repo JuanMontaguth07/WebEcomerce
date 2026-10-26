@@ -10,7 +10,9 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { Breadcrumbs } from "@/components/shop/breadcrumbs";
 import { HomeSection } from "@/components/shop/home-section";
 import { Price } from "@/components/shop/price";
+import { RarityBadge } from "@/components/shop/rarity-badge";
 import { StockBadge } from "@/components/shop/stock-badge";
+import { rarityStyle } from "@/features/rarities/types";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getAvailability, isDemoProduct } from "@/features/catalog/availability";
@@ -108,6 +110,28 @@ function ProductInfo({
           SKU <span className="text-foreground select-all">{product.sku}</span>
         </p>
       </div>
+
+      {product.rarity && (
+        <Link
+          href="/rarezas"
+          data-effect={product.rarity.effect}
+          style={rarityStyle(product.rarity)}
+          className="rarity-card group relative flex items-center gap-4 overflow-hidden rounded-xl border bg-card p-4 transition-transform duration-300 ease-out-soft hover:-translate-y-0.5"
+        >
+          <RarityBadge rarity={product.rarity} size="lg" />
+          <span className="grid min-w-0 gap-0.5 text-sm">
+            <span className="font-semibold">
+              Producto de rareza {product.rarity.name.toLowerCase()}
+            </span>
+            {product.rarity.description && (
+              <span className="text-muted-foreground">{product.rarity.description}</span>
+            )}
+          </span>
+          <span className="ml-auto shrink-0 text-xs font-semibold text-primary group-hover:underline">
+            Ver rarezas
+          </span>
+        </Link>
+      )}
 
       {isDemoProduct(product.sku) && (
         <p className="flex gap-2.5 rounded-lg border border-dashed bg-secondary/60 p-3 text-sm text-muted-foreground">

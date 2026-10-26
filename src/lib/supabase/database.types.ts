@@ -526,6 +526,7 @@ export type Database = {
           name: string
           price: number
           product_type: Database["public"]["Enums"]["product_type"]
+          rarity_id: string | null
           search_vector: unknown
           seo_description: string | null
           seo_title: string | null
@@ -549,6 +550,7 @@ export type Database = {
           name: string
           price: number
           product_type?: Database["public"]["Enums"]["product_type"]
+          rarity_id?: string | null
           search_vector?: unknown
           seo_description?: string | null
           seo_title?: string | null
@@ -572,6 +574,7 @@ export type Database = {
           name?: string
           price?: number
           product_type?: Database["public"]["Enums"]["product_type"]
+          rarity_id?: string | null
           search_vector?: unknown
           seo_description?: string | null
           seo_title?: string | null
@@ -595,6 +598,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_rarity_id_fkey"
+            columns: ["rarity_id"]
+            isOneToOne: false
+            referencedRelation: "rarities"
             referencedColumns: ["id"]
           },
         ]
@@ -622,6 +632,48 @@ export type Database = {
           full_name?: string | null
           id?: string
           role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rarities: {
+        Row: {
+          color: string
+          created_at: string
+          description: string | null
+          effect: string
+          id: string
+          is_active: boolean
+          name: string
+          position: number
+          show_on_home: boolean
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          description?: string | null
+          effect?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          position?: number
+          show_on_home?: boolean
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          effect?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          position?: number
+          show_on_home?: boolean
+          slug?: string
           updated_at?: string
         }
         Relationships: []
@@ -714,6 +766,9 @@ export type Database = {
       }
       store_settings: {
         Row: {
+          announcement_enabled: boolean
+          announcement_href: string | null
+          announcement_text: string | null
           id: boolean
           legal_address: string | null
           legal_city: string | null
@@ -728,6 +783,9 @@ export type Database = {
           whatsapp_number: string | null
         }
         Insert: {
+          announcement_enabled?: boolean
+          announcement_href?: string | null
+          announcement_text?: string | null
           id?: boolean
           legal_address?: string | null
           legal_city?: string | null
@@ -742,6 +800,9 @@ export type Database = {
           whatsapp_number?: string | null
         }
         Update: {
+          announcement_enabled?: boolean
+          announcement_href?: string | null
+          announcement_text?: string | null
           id?: boolean
           legal_address?: string | null
           legal_city?: string | null
@@ -866,6 +927,7 @@ export type Database = {
           name: string
           price: number
           product_type: Database["public"]["Enums"]["product_type"]
+          rarity_id: string
           short_description: string
           sku: string
           slug: string

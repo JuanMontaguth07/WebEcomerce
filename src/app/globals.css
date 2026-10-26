@@ -230,6 +230,129 @@
   }
 }
 
+/* =============================================================================
+   Rarezas: el color llega en línea como --rarity (lo elige el admin) y el
+   efecto en data-effect. El color solo pinta bordes, halos e íconos: el texto
+   sigue usando los tokens de texto, así se lee con cualquier color elegido.
+   ============================================================================= */
+
+@property --rarity-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.rarity-card {
+  border-color: color-mix(in oklab, var(--rarity, var(--primary)) 75%, var(--border));
+}
+
+.rarity-card[data-effect="glow"],
+.rarity-card[data-effect="pulse"],
+.rarity-card[data-effect="shimmer"],
+.rarity-card[data-effect="holo"] {
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--rarity) 50%, transparent),
+    0 0 22px -6px color-mix(in oklab, var(--rarity) 70%, transparent),
+    0 14px 40px -12px color-mix(in oklab, var(--rarity) 85%, transparent);
+}
+
+.rarity-card[data-effect="pulse"] {
+  animation: rarity-pulse 2.8s ease-in-out infinite;
+}
+
+.rarity-card[data-effect="shimmer"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    110deg,
+    transparent 38%,
+    color-mix(in oklab, white 55%, transparent) 48%,
+    color-mix(in oklab, var(--rarity) 40%, transparent) 53%,
+    transparent 62%
+  );
+  background-size: 260% 100%;
+  background-position: 130% 0;
+  animation: rarity-shimmer 4.8s var(--expo-out) infinite;
+}
+
+.rarity-card[data-effect="holo"] {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    conic-gradient(
+        from var(--rarity-angle),
+        var(--rarity),
+        #ff6fb5,
+        #6fd8ff,
+        #b9ff7a,
+        #ffe066,
+        var(--rarity)
+      )
+      border-box;
+  animation: rarity-spin 6s linear infinite;
+}
+
+/* Etiqueta: fondo con un toque del color y texto en el color de texto normal. */
+.rarity-badge {
+  border-color: color-mix(in oklab, var(--rarity) 65%, transparent);
+  background: color-mix(in oklab, var(--rarity) 14%, var(--card));
+}
+
+.rarity-badge[data-effect="holo"],
+.rarity-badge[data-effect="shimmer"] {
+  background:
+    linear-gradient(
+        110deg,
+        transparent 30%,
+        color-mix(in oklab, white 40%, transparent) 50%,
+        transparent 70%
+      )
+      0 0 / 250% 100%,
+    color-mix(in oklab, var(--rarity) 14%, var(--card));
+  animation: rarity-shimmer 3.6s var(--expo-out) infinite;
+}
+
+/* Barra de anuncio: un reflejo cruza el fondo de vez en cuando. */
+.announcement-shine {
+  background:
+    linear-gradient(
+        100deg,
+        transparent 40%,
+        color-mix(in oklab, white 22%, transparent) 50%,
+        transparent 60%
+      )
+      0 0 / 300% 100%,
+    var(--primary);
+  animation: rarity-shimmer 6s var(--expo-out) infinite;
+}
+
+@keyframes rarity-pulse {
+  50% {
+    box-shadow:
+      0 0 0 2px color-mix(in oklab, var(--rarity) 70%, transparent),
+      0 16px 46px -10px color-mix(in oklab, var(--rarity) 95%, transparent);
+  }
+}
+
+@keyframes rarity-shimmer {
+  0%,
+  55% {
+    background-position: 130% 0;
+  }
+  100% {
+    background-position: -30% 0;
+  }
+}
+
+@keyframes rarity-spin {
+  to {
+    --rarity-angle: 360deg;
+  }
+}
+
 /* Respeta la preferencia de movimiento reducido en todo el sitio. */
 @media (prefers-reduced-motion: reduce) {
   *,

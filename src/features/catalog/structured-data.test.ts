@@ -26,6 +26,7 @@ const product: ProductDetail = {
   category: { name: "Tarjetas gráficas", slug: "tarjetas-graficas" },
   parentCategory: null,
   image: null,
+  rarity: null,
   images: [{ id: "i1", path: "products/p1/a.webp", alt: "Frente", width: 800, height: 800 }],
   specs: [],
   warrantyMonths: 12,
