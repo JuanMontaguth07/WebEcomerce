@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { CartLines } from "@/components/cart/cart-lines";
 import { CartSummary } from "@/components/cart/cart-summary";
 import { useCartQuote } from "@/components/cart/use-cart-quote";
+import { useShippingQuote } from "@/components/cart/use-shipping-quote";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldControl, FieldDescription, FieldLabel } from "@/components/ui/field";
@@ -38,6 +39,7 @@ export function CheckoutForm() {
   const { items, clear } = useCart();
   const { quote, error: quoteError, refresh } = useCartQuote(items);
   const [form, setForm] = useState(EMPTY_FORM);
+  const shipping = useShippingQuote(form.department, form.city);
   const [consent, setConsent] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -266,7 +268,7 @@ export function CheckoutForm() {
             {quoteError}
           </p>
         )}
-        <CartSummary quote={quote} />
+        <CartSummary quote={quote} shipping={shipping} />
 
         <Field error={errors.dataConsent}>
           <div className="flex items-start gap-3">

@@ -1,4 +1,4 @@
-import { InfoIcon, ShieldCheckIcon, TagIcon } from "lucide-react";
+import { InfoIcon, MessageCircleIcon, ShieldCheckIcon, TagIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -11,6 +11,7 @@ import { Breadcrumbs } from "@/components/shop/breadcrumbs";
 import { HomeSection } from "@/components/shop/home-section";
 import { Price } from "@/components/shop/price";
 import { StockBadge } from "@/components/shop/stock-badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getAvailability, isDemoProduct } from "@/features/catalog/availability";
 import {
@@ -20,8 +21,10 @@ import {
 } from "@/features/catalog/queries";
 import { productJsonLd } from "@/features/catalog/structured-data";
 import type { ProductDetail } from "@/features/catalog/types";
+import { getStoreSettings } from "@/features/store-settings/queries";
+import { whatsappLink } from "@/features/store-settings/types";
 import { storageImageUrl } from "@/lib/images";
-import { baseOpenGraph } from "@/lib/seo";
+import { absoluteUrl, baseOpenGraph } from "@/lib/seo";
 import { slugParams } from "@/lib/static-params";
 
 // Se prerenderizan los productos más recientes; el resto se genera en la primera visita.
@@ -75,7 +78,13 @@ function warrantyLabel(months: number | null) {
   return `${months} meses de garantía`;
 }
 
-function ProductInfo({ product }: { product: ProductDetail }) {
+function ProductInfo({
+  product,
+  whatsappNumber,
+}: {
+  product: ProductDetail;
+  whatsappNumber: string | null;
+}) {
   const availability = getAvailability(product.stock, product.lowStockThreshold);
   const warranty = warrantyLabel(product.warrantyMonths);
 
@@ -118,6 +127,21 @@ function ProductInfo({ product }: { product: ProductDetail }) {
           )}
         </div>
         <AddToCartButton productId={product.id} name={product.name} stock={product.stock} />
+        {whatsappNumber && (
+          <Button asChild variant="secondary" className="w-fit">
+            <a
+              href={whatsappLink(
+                whatsappNumber,
+                `Hola, me interesa este producto: ${product.name} (SKU ${product.sku}). ${absoluteUrl(`/productos/${product.slug}`)}`,
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <MessageCircleIcon aria-hidden />
+              Preguntar por WhatsApp
+            </a>
+          </Button>
+        )}
       </div>
 
       {product.shortDescription && <p className="text-lg">{product.shortDescription}</p>}
@@ -161,7 +185,7 @@ async function RelatedProducts({ product }: { product: ProductDetail }) {
 
 async function ProductContent({ params }: PageProps<"/productos/[slug]">) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const [product, settings] = await Promise.all([getProductBySlug(slug), getStoreSettings()]);
   if (!product) notFound();
 
   const paragraphs = (product.description ?? "")
@@ -194,7 +218,7 @@ async function ProductContent({ params }: PageProps<"/productos/[slug]">) {
             productName={product.name}
             categorySlug={product.category.slug}
           />
-          <ProductInfo product={product} />
+          <ProductInfo product={product} whatsappNumber={settings.whatsappNumber} />
         </div>
       </div>
 

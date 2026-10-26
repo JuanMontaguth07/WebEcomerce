@@ -35,7 +35,7 @@ test("carrito y validación del checkout (sin crear pedidos)", async ({ page }) 
   await page.goto("/checkout");
   const confirm = page.getByRole("button", { name: "Confirmar pedido" });
   // Se habilita cuando el servidor confirma precios y stock.
-  await expect(confirm).toBeEnabled({ timeout: 15_000 });
+  await expect(confirm).toBeEnabled({ timeout: 30_000 });
   // Formulario vacío: la validación lo detiene antes de llegar al servidor.
   await confirm.click();
   await expect(page.getByText("Escribe tu nombre completo.")).toBeVisible();
@@ -54,4 +54,20 @@ test("página inexistente responde 404", async ({ page }) => {
   const response = await page.goto("/esta-pagina-no-existe");
   expect(response?.status()).toBe(404);
   await expect(page.getByRole("heading", { name: "No encontramos esta página" })).toBeVisible();
+});
+
+test("el checkout pide la ciudad para calcular el envío", async ({ page }) => {
+  const href = await firstProductInStock(page);
+  test.skip(!href, "El catálogo aún no tiene productos disponibles.");
+
+  await page.goto(href!);
+  await page.getByRole("button", { name: "Agregar al carrito" }).click();
+  await expect(page.getByRole("banner").getByRole("button", { name: /^Carrito: 1/ })).toBeVisible();
+  await page.goto("/checkout");
+  const shipping = page.locator("dt:text-is('Envío') + dd").first();
+  await expect(shipping).toHaveText("Elige tu ciudad");
+  await page.getByLabel("Departamento").selectOption({ index: 1 });
+  await page.getByLabel("Ciudad o municipio").fill("Ciudad de prueba");
+  // Con o sin tarifa configurada, deja de pedir la ciudad.
+  await expect(shipping).not.toHaveText(/Elige tu ciudad|Calculando/, { timeout: 10_000 });
 });

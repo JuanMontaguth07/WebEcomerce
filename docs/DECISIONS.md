@@ -240,3 +240,29 @@ repite en el layout del panel y en cada Server Action.
   antes y el después; sin soporte o con movimiento reducido es inmediato.
 - **Sobre nosotros**: sección en la portada (después del hero) y página `/nosotros` con el texto
   del negocio, en un solo módulo de contenido.
+
+## D18 — Envíos, soporte y configuración de la tienda (2026-10-26)
+
+- **Configuración en la base** (`store_settings`, una fila): WhatsApp, correo, horario y datos
+  legales del vendedor (Ley 1480). La edita el admin en `/admin/configuracion`; no se guardan
+  datos personales en el repositorio. Lo que esté vacío no se muestra (sin botones muertos) y los
+  textos legales muestran el marcador entre corchetes hasta completarlo.
+- **Envíos por departamento con excepciones por ciudad** (`shipping_rates`). La ciudad se compara
+  sin tildes ni mayúsculas (`normalize_place`). Sin tarifa el envío queda "por confirmar", como
+  antes. `create_order` sigue calculando el valor en la base; el checkout solo lo muestra.
+- **Sin caché de datos de Next para Supabase** (`cache: "no-store"` en el cliente público): Next
+  guardaba las respuestas HTTP sin etiquetas y con vigencia propia (15 min), de modo que una
+  edición del panel podía tardar en verse aunque `updateTag` invalidara `'use cache'`.
+- **Configuración resiliente**: si la lectura pública falla, la tienda sigue sin esos datos (no se
+  cachea el fallo). El panel lee sin caché y muestra el error en vez de un formulario vacío que
+  borraría los datos al guardar.
+
+## D19 — Pago manual por Nequi (2026-10-26)
+
+- Sin pasarela por ahora: el cliente transfiere a Nequi y el admin confirma el pedido en el panel.
+- El número y el titular se configuran en el panel (`store_settings.nequi_number/holder`). La
+  página del pedido pendiente muestra el valor, el número con botón de copiar, el botón para enviar
+  el comprobante por WhatsApp y el plazo real de la reserva (`expires_at`, 48 horas).
+- Si el envío está "por confirmar", el botón pide primero el valor del envío en lugar de enviar un
+  comprobante por un monto incompleto.
+- Términos y Soporte describen este medio de pago y el plazo solo cuando hay un Nequi configurado.

@@ -38,3 +38,11 @@ test("sugerencias del buscador", async ({ request }) => {
     brands: expect.any(Array),
   });
 });
+
+test("soporte: preguntas frecuentes desplegables", async ({ page }) => {
+  await page.goto("/soporte");
+  await expect(page.getByRole("heading", { level: 1, name: "¿En qué te ayudamos?" })).toBeVisible();
+  const question = page.getByText("¿Cómo pago mi pedido?");
+  await question.click();
+  await expect(page.getByText(/quedan reservados para ti durante 48 horas/)).toBeVisible();
+});

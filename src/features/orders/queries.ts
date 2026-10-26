@@ -19,6 +19,8 @@ export type PublicOrder = {
   shippingCost: number | null;
   total: number;
   createdAt: string;
+  /** Hasta cuándo se mantiene la reserva de un pedido pendiente (null si ya no aplica). */
+  expiresAt: string | null;
   items: {
     productId: string;
     productName: string;
@@ -60,6 +62,7 @@ export async function getOrderByToken(orderId: string, token: string): Promise<P
     shippingCost: raw.shipping_cost === null ? null : Number(raw.shipping_cost),
     total: Number(raw.total),
     createdAt: String(raw.created_at),
+    expiresAt: typeof raw.expires_at === "string" ? raw.expires_at : null,
     items: raw.items.map((item) => ({
       productId: String(item.product_id),
       productName: String(item.product_name),

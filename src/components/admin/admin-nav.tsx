@@ -6,7 +6,9 @@ import {
   ExternalLinkIcon,
   FolderTreeIcon,
   LayoutDashboardIcon,
+  SettingsIcon,
   TagIcon,
+  TruckIcon,
   WarehouseIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -20,6 +22,8 @@ const NAV = [
   { href: "/admin/inventario", label: "Inventario", Icon: WarehouseIcon },
   { href: "/admin/categorias", label: "Categorías", Icon: FolderTreeIcon },
   { href: "/admin/marcas", label: "Marcas", Icon: TagIcon },
+  { href: "/admin/envios", label: "Envíos", Icon: TruckIcon },
+  { href: "/admin/configuracion", label: "Configuración", Icon: SettingsIcon },
 ] as const;
 
 export function AdminNav() {

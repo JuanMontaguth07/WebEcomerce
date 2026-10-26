@@ -2,7 +2,8 @@ import { AlertTriangleIcon } from "lucide-react";
 import { Breadcrumbs } from "@/components/shop/breadcrumbs";
 
 /**
- * Página legal en borrador. Los datos entre corchetes ([RAZÓN SOCIAL], [NIT]...)
+ * Página legal en borrador. Los datos del vendedor salen de Configuración en el panel;
+ * los demás corchetes ([FECHA], medios de pago, IVA...)
  * deben reemplazarse con la información real del negocio, y el texto debe
  * revisarlo un abogado antes de publicar la tienda.
  */

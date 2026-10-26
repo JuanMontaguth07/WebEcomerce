@@ -6,6 +6,7 @@ const STATIC_PAGES = [
   "/",
   "/productos",
   "/nosotros",
+  "/soporte",
   "/terminos",
   "/privacidad",
   "/garantias",

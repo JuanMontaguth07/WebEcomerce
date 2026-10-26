@@ -1,11 +1,14 @@
-import { CheckCircle2Icon, CircleDotIcon } from "lucide-react";
+import { CheckCircle2Icon, CircleDotIcon, MessageCircleIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { PaymentInstructions } from "@/components/support/payment-instructions";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getOrderByToken, ORDER_STATUS_LABELS } from "@/features/orders/queries";
+import { getStoreSettings } from "@/features/store-settings/queries";
+import { whatsappLink } from "@/features/store-settings/types";
 import { formatCOP } from "@/lib/format";
 
 // Información personal: nunca se indexa ni se comparte la URL con terceros.
@@ -24,7 +27,10 @@ const dateFormatter = new Intl.DateTimeFormat("es-CO", {
 async function OrderContent({ params, searchParams }: PageProps<"/pedido/[id]">) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const token = Array.isArray(query.t) ? query.t[0] : query.t;
-  const order = token ? await getOrderByToken(id, token) : null;
+  const [order, settings] = await Promise.all([
+    token ? getOrderByToken(id, token) : null,
+    getStoreSettings(),
+  ]);
   if (!order) notFound();
 
   const isNew = order.status === "pending";
@@ -45,14 +51,19 @@ async function OrderContent({ params, searchParams }: PageProps<"/pedido/[id]">)
         </h1>
         <p className="max-w-2xl text-muted-foreground">
           Pedido <strong className="font-mono text-foreground">#{order.orderNumber}</strong> ·{" "}
-          {dateFormatter.format(new Date(order.createdAt))}.{" "}
+          {/* La hora en es-CO ya termina en "a. m." / "p. m.": no se agrega otro punto. */}
+          {dateFormatter.format(new Date(order.createdAt))}{" "}
           {isNew &&
-            `Reservamos tus productos. Te contactaremos a ${order.customerEmail} o por teléfono para confirmar el pago y el envío.`}
+            (settings.nequiNumber
+              ? `Reservamos tus productos. Sigue los pasos para pagar; te escribiremos a ${order.customerEmail} cuando confirmemos el pago.`
+              : `Reservamos tus productos. Te contactaremos a ${order.customerEmail} o por teléfono para confirmar el pago y el envío.`)}
         </p>
         <p className="text-sm text-muted-foreground">
           Guarda esta página: con su enlace puedes consultar el estado del pedido.
         </p>
       </div>
+
+      <PaymentInstructions order={order} settings={settings} />
 
       <div className="grid items-start gap-6 lg:grid-cols-[1fr_22rem]">
         <section aria-labelledby="productos" className="rounded-xl border bg-card p-5 sm:p-6">
@@ -119,6 +130,21 @@ async function OrderContent({ params, searchParams }: PageProps<"/pedido/[id]">)
         <Button asChild variant="secondary">
           <Link href="/">Ir al inicio</Link>
         </Button>
+        {settings.whatsappNumber && (
+          <Button asChild variant="secondary">
+            <a
+              href={whatsappLink(
+                settings.whatsappNumber,
+                `Hola, tengo una pregunta sobre mi pedido #${order.orderNumber}.`,
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <MessageCircleIcon aria-hidden />
+              Preguntar por mi pedido
+            </a>
+          </Button>
+        )}
       </div>
     </div>
   );

@@ -14,6 +14,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
+  // Pocos navegadores a la vez: el servidor recién iniciado responde más lento con muchos.
+  workers: process.env.CI ? 2 : 3,
   reporter: process.env.CI ? [["github"], ["list"]] : "list",
   use: {
     baseURL: externalUrl ?? `http://localhost:${port}`,

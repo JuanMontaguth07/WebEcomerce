@@ -2,6 +2,8 @@ import { cacheLife } from "next/cache";
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import { getCategories } from "@/features/catalog/queries";
+import { getStoreSettings } from "@/features/store-settings/queries";
+import { formatNit } from "@/features/store-settings/types";
 import { Logo } from "./logo";
 
 async function CopyrightYear() {
@@ -11,7 +13,11 @@ async function CopyrightYear() {
 }
 
 export async function SiteFooter() {
-  const categories = (await getCategories()).filter((category) => !category.parentId);
+  const [allCategories, settings] = await Promise.all([getCategories(), getStoreSettings()]);
+  const categories = allCategories.filter((category) => !category.parentId);
+  const nit = formatNit(settings);
+  // Identificación del vendedor (Ley 1480): solo lo que esté configurado en el panel.
+  const seller = [settings.legalName, nit && `NIT ${nit}`].filter(Boolean).join(" · ");
 
   return (
     <footer className="relative mt-24 overflow-hidden bg-card dark:bg-background">
@@ -91,6 +97,11 @@ export async function SiteFooter() {
           </h2>
           <ul className="grid gap-2 text-sm">
             <li>
+              <Link href="/soporte" className="hover:text-primary hover:underline">
+                Soporte
+              </Link>
+            </li>
+            <li>
               <Link href="/terminos" className="hover:text-primary hover:underline">
                 Términos y condiciones
               </Link>
@@ -115,7 +126,8 @@ export async function SiteFooter() {
       </div>
       <div className="relative border-t">
         <p className="container-page py-5 text-xs text-muted-foreground">
-          © <CopyrightYear /> {siteConfig.name}. Precios en pesos colombianos (COP).
+          © <CopyrightYear /> {siteConfig.name}
+          {seller && ` · ${seller}`}. Precios en pesos colombianos (COP).
         </p>
       </div>
     </footer>

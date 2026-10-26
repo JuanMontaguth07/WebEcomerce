@@ -581,6 +581,45 @@ export type Database = {
         }
         Relationships: []
       }
+      shipping_rates: {
+        Row: {
+          city: string | null
+          city_key: string | null
+          created_at: string
+          department: string
+          id: string
+          is_active: boolean
+          max_days: number | null
+          min_days: number | null
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          city_key?: string | null
+          created_at?: string
+          department: string
+          id?: string
+          is_active?: boolean
+          max_days?: number | null
+          min_days?: number | null
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          city_key?: string | null
+          created_at?: string
+          department?: string
+          id?: string
+          is_active?: boolean
+          max_days?: number | null
+          min_days?: number | null
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       spec_definitions: {
         Row: {
           category_id: string
@@ -627,6 +666,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      store_settings: {
+        Row: {
+          id: boolean
+          legal_address: string | null
+          legal_city: string | null
+          legal_dv: string | null
+          legal_name: string | null
+          legal_nit: string | null
+          nequi_holder: string | null
+          nequi_number: string | null
+          support_email: string | null
+          support_hours: string | null
+          updated_at: string
+          whatsapp_number: string | null
+        }
+        Insert: {
+          id?: boolean
+          legal_address?: string | null
+          legal_city?: string | null
+          legal_dv?: string | null
+          legal_name?: string | null
+          legal_nit?: string | null
+          nequi_holder?: string | null
+          nequi_number?: string | null
+          support_email?: string | null
+          support_hours?: string | null
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Update: {
+          id?: boolean
+          legal_address?: string | null
+          legal_city?: string | null
+          legal_dv?: string | null
+          legal_name?: string | null
+          legal_nit?: string | null
+          nequi_holder?: string | null
+          nequi_number?: string | null
+          support_email?: string | null
+          support_hours?: string | null
+          updated_at?: string
+          whatsapp_number?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
@@ -741,6 +825,7 @@ export type Database = {
       }
       immutable_unaccent: { Args: { value: string }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
+      normalize_place: { Args: { value: string }; Returns: string }
       reorder_product_images: {
         Args: { p_image_ids: string[]; p_product_id: string }
         Returns: undefined
@@ -752,6 +837,14 @@ export type Database = {
       set_product_specs: {
         Args: { p_product_id: string; p_specs: Json }
         Returns: undefined
+      }
+      shipping_quote: {
+        Args: { p_city: string; p_department: string }
+        Returns: {
+          max_days: number
+          min_days: number
+          price: number
+        }[]
       }
       update_order_status: {
         Args: {

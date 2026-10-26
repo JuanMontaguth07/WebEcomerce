@@ -62,6 +62,15 @@ export function MobileNav({ categories }: { categories: CategoryRef[] }) {
                 Sobre nosotros
               </Link>
             </li>
+            <li>
+              <Link
+                href="/soporte"
+                onClick={close}
+                className="block rounded-md px-3 py-2.5 font-semibold hover:bg-secondary"
+              >
+                Soporte
+              </Link>
+            </li>
           </ul>
           {categories.length > 0 && (
             <div className="grid gap-1">

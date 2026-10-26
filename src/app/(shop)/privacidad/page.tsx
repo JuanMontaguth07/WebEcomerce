@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/legal-page";
+import { StoreFact } from "@/components/support/store-fact";
 
 export const metadata: Metadata = {
   title: "Política de tratamiento de datos personales",
@@ -11,10 +12,19 @@ export default function PrivacyPage() {
   return (
     <LegalPage title="Política de tratamiento de datos personales" updated="[FECHA]">
       <p>
-        <strong>[RAZÓN SOCIAL]</strong>, identificada con NIT <strong>[NIT]</strong>, con domicilio
-        en <strong>[DIRECCIÓN, CIUDAD]</strong>, es responsable del tratamiento de los datos
-        personales que recolecta a través de esta tienda, en cumplimiento de la Ley 1581 de 2012 y
-        el Decreto 1377 de 2013.
+        <strong>
+          <StoreFact field="name" />
+        </strong>
+        , identificada con NIT{" "}
+        <strong>
+          <StoreFact field="nit" />
+        </strong>
+        , con domicilio en{" "}
+        <strong>
+          <StoreFact field="address" />
+        </strong>
+        , es responsable del tratamiento de los datos personales que recolecta a través de esta
+        tienda, en cumplimiento de la Ley 1581 de 2012 y el Decreto 1377 de 2013.
       </p>
 
       <h2>Datos que recolectamos</h2>
@@ -43,10 +53,13 @@ export default function PrivacyPage() {
 
       <h2>Cómo ejercer tus derechos</h2>
       <p>
-        Escribe a <strong>[CORREO DE CONTACTO]</strong> indicando tu nombre, el derecho que deseas
-        ejercer y un medio de respuesta. Las consultas se responden en un máximo de diez (10) días
-        hábiles y los reclamos en un máximo de quince (15) días hábiles, en los términos de la Ley
-        1581 de 2012.
+        Escribe a{" "}
+        <strong>
+          <StoreFact field="email" />
+        </strong>{" "}
+        indicando tu nombre, el derecho que deseas ejercer y un medio de respuesta. Las consultas se
+        responden en un máximo de diez (10) días hábiles y los reclamos en un máximo de quince (15)
+        días hábiles, en los términos de la Ley 1581 de 2012.
       </p>
 
       <h2>Seguridad y conservación</h2>

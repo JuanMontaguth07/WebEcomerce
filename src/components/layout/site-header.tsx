@@ -19,9 +19,15 @@ export async function SiteHeader() {
         <div className="ml-auto flex items-center gap-1">
           <Link
             href="/nosotros"
-            className="mr-1 hidden h-10 items-center rounded-lg px-3 text-sm font-semibold transition-colors hover:bg-secondary hover:text-primary lg:inline-flex"
+            className="hidden h-10 items-center rounded-lg px-3 text-sm font-semibold transition-colors hover:bg-secondary hover:text-primary lg:inline-flex"
           >
             Nosotros
+          </Link>
+          <Link
+            href="/soporte"
+            className="mr-1 hidden h-10 items-center rounded-lg px-3 text-sm font-semibold transition-colors hover:bg-secondary hover:text-primary lg:inline-flex"
+          >
+            Soporte
           </Link>
           <ThemeToggle />
           <CartButton />

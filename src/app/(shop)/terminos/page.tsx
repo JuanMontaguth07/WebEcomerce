@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage } from "@/components/legal/legal-page";
+import { StoreFact } from "@/components/support/store-fact";
 
 export const metadata: Metadata = {
   title: "Términos y condiciones",
@@ -13,8 +14,15 @@ export default function TermsPage() {
     <LegalPage title="Términos y condiciones" updated="[FECHA]">
       <p>
         Estos términos regulan las compras realizadas en esta tienda, operada por{" "}
-        <strong>[RAZÓN SOCIAL]</strong> (NIT <strong>[NIT]</strong>). Al confirmar un pedido aceptas
-        estas condiciones, de acuerdo con la Ley 1480 de 2011 (Estatuto del Consumidor).
+        <strong>
+          <StoreFact field="name" />
+        </strong>{" "}
+        (NIT{" "}
+        <strong>
+          <StoreFact field="nit" />
+        </strong>
+        ). Al confirmar un pedido aceptas estas condiciones, de acuerdo con la Ley 1480 de 2011
+        (Estatuto del Consumidor).
       </p>
 
       <h2>Pedidos</h2>
@@ -35,8 +43,10 @@ export default function TermsPage() {
 
       <h2>Pagos</h2>
       <p>
-        <strong>[MEDIOS DE PAGO ACEPTADOS Y PLAZO PARA PAGAR]</strong>. Por ahora la tienda no
-        realiza cobros en línea al confirmar el pedido.
+        <strong>
+          <StoreFact field="payment" />
+        </strong>
+        . Por ahora la tienda no realiza cobros en línea al confirmar el pedido.
       </p>
 
       <h2>Envíos</h2>
@@ -60,8 +70,18 @@ export default function TermsPage() {
 
       <h2>Contacto</h2>
       <p>
-        <strong>[CORREO DE CONTACTO]</strong> · <strong>[TELÉFONO]</strong> ·{" "}
-        <strong>[DIRECCIÓN]</strong>.
+        <strong>
+          <StoreFact field="email" />
+        </strong>{" "}
+        ·{" "}
+        <strong>
+          <StoreFact field="phone" />
+        </strong>{" "}
+        ·{" "}
+        <strong>
+          <StoreFact field="address" />
+        </strong>
+        .
       </p>
     </LegalPage>
   );

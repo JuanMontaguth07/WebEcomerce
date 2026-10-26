@@ -84,15 +84,17 @@ Ficha / tarjeta ──► carrito (localStorage: IDs + cantidades)
 
 ## Panel de administración
 
-| Ruta                  | Qué permite                                                                            |
-| --------------------- | -------------------------------------------------------------------------------------- |
-| `/admin`              | Indicadores, últimos pedidos y productos por reponer                                   |
-| `/admin/pedidos`      | Filtrar por estado, buscar, ver detalle, cambiar estado, contactar por WhatsApp/correo |
-| `/admin/productos`    | Crear, editar, ocultar, eliminar; imágenes, ficha técnica e inventario por producto    |
-| `/admin/inventario`   | Historial de movimientos filtrable por tipo y producto                                 |
-| `/admin/categorias`   | Jerarquía, SEO y definición de especificaciones por categoría                          |
-| `/admin/marcas`       | Crear, editar, eliminar                                                                |
-| `/ingresar/recuperar` | Restablecer contraseña por correo                                                      |
+| Ruta                   | Qué permite                                                                            |
+| ---------------------- | -------------------------------------------------------------------------------------- |
+| `/admin`               | Indicadores, últimos pedidos y productos por reponer                                   |
+| `/admin/pedidos`       | Filtrar por estado, buscar, ver detalle, cambiar estado, contactar por WhatsApp/correo |
+| `/admin/productos`     | Crear, editar, ocultar, eliminar; imágenes, ficha técnica e inventario por producto    |
+| `/admin/inventario`    | Historial de movimientos filtrable por tipo y producto                                 |
+| `/admin/categorias`    | Jerarquía, SEO y definición de especificaciones por categoría                          |
+| `/admin/marcas`        | Crear, editar, eliminar                                                                |
+| `/admin/envios`        | Tarifas por departamento y excepciones por ciudad, con días de entrega                 |
+| `/admin/configuracion` | WhatsApp, correo, horario y datos legales del vendedor                                 |
+| `/ingresar/recuperar`  | Restablecer contraseña por correo                                                      |
 
 ## SEO
 

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/legal-page";
+import { StoreFact } from "@/components/support/store-fact";
 
 export const metadata: Metadata = {
   title: "Derecho de retracto",
@@ -28,8 +29,11 @@ export default function WithdrawalPage() {
 
       <h2>Cómo ejercerlo</h2>
       <p>
-        Escribe a <strong>[CORREO DE CONTACTO]</strong> con tu número de pedido dentro del plazo. Te
-        indicaremos cómo devolver el producto.
+        Escribe a{" "}
+        <strong>
+          <StoreFact field="email" />
+        </strong>{" "}
+        con tu número de pedido dentro del plazo. Te indicaremos cómo devolver el producto.
       </p>
 
       <h2>Reembolso</h2>

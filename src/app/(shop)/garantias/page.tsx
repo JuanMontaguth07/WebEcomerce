@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/legal-page";
+import { StoreFact } from "@/components/support/store-fact";
 
 export const metadata: Metadata = {
   title: "Política de garantías",
@@ -26,8 +27,11 @@ export default function WarrantyPage() {
       <h2>Cómo solicitarla</h2>
       <ul>
         <li>
-          Escribe a <strong>[CORREO DE GARANTÍAS]</strong> con tu número de pedido, el producto y
-          una descripción de la falla.
+          Escribe a{" "}
+          <strong>
+            <StoreFact field="email" />
+          </strong>{" "}
+          con tu número de pedido, el producto y una descripción de la falla.
         </li>
         <li>Conserva el empaque, los accesorios y la factura cuando sea posible.</li>
         <li>

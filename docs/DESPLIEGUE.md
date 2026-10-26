@@ -39,6 +39,9 @@ producción están en `config.toml` → `[remotes.produccion.auth]`.
    where id = (select id from auth.users where email = 'TU_CORREO');
    ```
 
+> **Orden al publicar cambios con migraciones nuevas:** primero `db push` a producción y
+> después `git push`, para que el código nuevo encuentre las tablas.
+
 ## 2. Vercel
 
 1. **Add New → Project** → importar el repositorio de GitHub. Framework: Next.js (automático).
