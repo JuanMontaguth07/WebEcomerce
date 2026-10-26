@@ -1,13 +1,16 @@
 import { ChevronRightIcon } from "lucide-react";
 import Link from "next/link";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbJsonLd } from "@/features/catalog/structured-data";
 import { toRoute, type AppHref } from "@/lib/routes";
 
 export type Crumb = { name: string; href?: AppHref };
 
-/** Migas de pan; el último elemento es la página actual. */
+/** Migas de pan; el último elemento es la página actual. También se publican como JSON-LD. */
 export function Breadcrumbs({ items }: { items: Crumb[] }) {
   return (
     <nav aria-label="Ruta de navegación" className="text-sm text-muted-foreground">
+      <JsonLd data={breadcrumbJsonLd(items)} />
       <ol className="flex flex-wrap items-center gap-1.5">
         {items.map((item, index) => {
           const last = index === items.length - 1;

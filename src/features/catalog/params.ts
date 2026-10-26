@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 export const PAGE_SIZE = 24;
 
 export const SORT_OPTIONS = [
@@ -27,78 +25,48 @@ export type CatalogFilters = {
 
 export type RawSearchParams = Record<string, string | string[] | undefined>;
 
+// Validación a mano (sin zod): este módulo también lo usan los filtros del
+// navegador y así no se envía la librería de validación en cada página.
+
+const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const SORT_VALUES: readonly string[] = SORT_OPTIONS.map((option) => option.value);
+
 const first = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value);
 
-const slugList = z
-  .string()
-  .transform((value) =>
-    value
-      .split(",")
-      .map((item) => item.trim().toLowerCase())
-      .filter((item) => /^[a-z0-9]+(-[a-z0-9]+)*$/.test(item)),
-  )
-  .catch([]);
-
-const price = z.coerce.number().int().min(0).max(1_000_000_000).nullable().catch(null);
-
-const schema = z.object({
-  q: z
-    .string()
-    .trim()
-    .max(80)
-    .transform((value) => value || null)
-    .nullable()
-    .catch(null),
-  categoria: z
-    .string()
-    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/)
-    .nullable()
-    .catch(null),
-  marca: slugList,
-  min: price,
-  max: price,
-  disponible: z
-    .string()
-    .transform((value) => value === "1")
-    .catch(false),
-  oferta: z
-    .string()
-    .transform((value) => value === "1")
-    .catch(false),
-  orden: z.enum(SORT_OPTIONS.map((option) => option.value)).catch("relevance"),
-  pagina: z.coerce.number().int().min(1).max(500).catch(1),
-});
+/** Entero dentro de [min, max] o null; acepta espacios alrededor, no decimales. */
+function integerInRange(value: string | undefined, min: number, max: number): number | null {
+  const text = value?.trim();
+  if (!text) return null;
+  const number = Number(text);
+  return Number.isInteger(number) && number >= min && number <= max ? number : null;
+}
 
 /** Convierte los parámetros de la URL en filtros válidos; lo inválido se ignora. */
 export function parseCatalogParams(params: RawSearchParams): CatalogFilters {
-  const parsed = schema.parse({
-    q: first(params.q) ?? null,
-    categoria: first(params.categoria) ?? null,
-    marca: first(params.marca) ?? "",
-    min: first(params.min) || null,
-    max: first(params.max) || null,
-    disponible: first(params.disponible) ?? "",
-    oferta: first(params.oferta) ?? "",
-    orden: first(params.orden),
-    pagina: first(params.pagina) ?? 1,
-  });
+  const q = first(params.q)?.trim() ?? "";
+  const category = first(params.categoria) ?? "";
+  const brands = (first(params.marca) ?? "")
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .filter((item) => SLUG.test(item));
+  const sort = first(params.orden) ?? "";
 
-  let minPrice = parsed.min;
-  let maxPrice = parsed.max;
+  let minPrice = integerInRange(first(params.min), 0, 1_000_000_000);
+  let maxPrice = integerInRange(first(params.max), 0, 1_000_000_000);
   if (minPrice !== null && maxPrice !== null && minPrice > maxPrice) {
     [minPrice, maxPrice] = [maxPrice, minPrice];
   }
 
   return {
-    q: parsed.q,
-    category: parsed.categoria,
-    brands: [...new Set(parsed.marca)].sort(),
+    q: q && q.length <= 80 ? q : null,
+    category: SLUG.test(category) ? category : null,
+    brands: [...new Set(brands)].sort(),
     minPrice,
     maxPrice,
-    inStock: parsed.disponible,
-    onSale: parsed.oferta,
-    sort: parsed.orden,
-    page: parsed.pagina,
+    inStock: first(params.disponible) === "1",
+    onSale: first(params.oferta) === "1",
+    sort: SORT_VALUES.includes(sort) ? (sort as SortValue) : "relevance",
+    page: integerInRange(first(params.pagina), 1, 500) ?? 1,
   };
 }
 

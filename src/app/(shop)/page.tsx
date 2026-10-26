@@ -4,6 +4,7 @@ import { Benefits } from "@/components/shop/benefits";
 import { CategoryGrid } from "@/components/shop/category-grid";
 import { Hero } from "@/components/shop/hero";
 import { HomeSection } from "@/components/shop/home-section";
+import { JsonLd } from "@/components/seo/json-ld";
 import { ProductGridSkeleton } from "@/components/shop/product-grid";
 import { siteConfig } from "@/config/site";
 import {
@@ -12,12 +13,18 @@ import {
   getHomeCollection,
   getProductBySlug,
 } from "@/features/catalog/queries";
+import { siteJsonLd } from "@/features/catalog/structured-data";
+import { baseOpenGraph } from "@/lib/seo";
+
+const title = `${siteConfig.name} · Componentes de PC y computadores en Colombia`;
+const description =
+  "Tarjetas gráficas, procesadores, memorias RAM, almacenamiento y computadores armados con ficha técnica completa y disponibilidad al momento.";
 
 export const metadata: Metadata = {
-  title: { absolute: `${siteConfig.name} · Componentes de PC y computadores en Colombia` },
-  description:
-    "Tarjetas gráficas, procesadores, memorias RAM, almacenamiento y computadores armados con ficha técnica completa y disponibilidad al momento.",
+  title: { absolute: title },
+  description,
   alternates: { canonical: "/" },
+  openGraph: { ...baseOpenGraph, title, description, url: "/" },
 };
 
 async function HomeHero() {
@@ -98,6 +105,7 @@ async function HomeCollections() {
 export default function HomePage() {
   return (
     <main id="contenido" className="grid gap-16 pb-8 md:gap-20">
+      <JsonLd data={siteJsonLd()} />
       <HomeHero />
       <Benefits />
       <HomeCategories />

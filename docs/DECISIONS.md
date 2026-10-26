@@ -177,3 +177,31 @@ repite en el layout del panel y en cada Server Action.
   código) → `/ingresar/nueva-clave`. Respuesta genérica para no revelar correos. El SMTP
   incluido en Supabase solo envía a miembros del equipo y con límites: en producción hay que
   configurar un SMTP propio.
+
+## D15 — SEO y rendimiento (2026-10-26)
+
+- **Indexación**: solo `VERCEL_ENV=production` se indexa (`allowIndexing` en `src/lib/seo.ts`,
+  compartido por el layout y `robots.ts`). Fuera de producción, `robots.txt` bloquea todo.
+- **robots.txt** excluye panel, sesión, carrito, checkout, pedidos y búsqueda. Los listados con
+  filtros sí se rastrean pero llevan `noindex, follow` y canónica a la página limpia.
+- **sitemap.xml**: páginas fijas, categorías, marcas y productos activos (con `lastModified`).
+  Comparte la caché del catálogo, así que refleja los cambios del panel.
+- **JSON-LD** solo con datos reales: `Product` + `Offer` (precio en COP y disponibilidad desde el
+  stock), `BreadcrumbList` (lo emite el componente de migas) y `Organization`/`WebSite` en el
+  inicio. No se publican calificaciones, condición, envíos ni devoluciones hasta que el negocio
+  los defina. El contenido se escapa (`<` → `\u003c`).
+- **Open Graph**: Next reemplaza `openGraph` completo cuando una página define el suyo; las
+  páginas extienden `baseOpenGraph`, que trae la imagen por defecto generada en el build
+  (`app/opengraph-image.tsx`). Los productos con foto usan la suya.
+- **Metadatos en streaming**: en listados que leen `searchParams`, Next envía descripción y
+  canónica al final del HTML para navegadores y Googlebot (que ejecuta JavaScript). Los bots que
+  no ejecutan JavaScript (Bing, WhatsApp, Facebook, X) las reciben en el `<head>`. Verificado.
+- **404 en rutas dinámicas**: con prerenderizado parcial, un slug inexistente responde 200 con la
+  página "no encontrado" y `noindex` (comportamiento de Next con streaming). Google lo trata
+  como no indexable.
+- **Fuente de titulares con `display: optional`**: Archivo expandida es más ancha que el
+  respaldo; con `swap`, al llegar tarde en móvil ensanchaba el h1 y movía el LCP de ~1 s a
+  ~4,4 s. Con `optional` se usa si llega en ~100 ms (o desde caché en la siguiente visita).
+- **Sin zod en el navegador fuera del checkout**: `lib/env.ts` y `features/catalog/params.ts`
+  validan a mano porque llegan a todas las páginas (~70 KB comprimidos menos). El checkout sí
+  valida en el navegador con el mismo esquema del servidor.

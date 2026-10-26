@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { SpecTable } from "@/components/product/spec-table";
+import { JsonLd } from "@/components/seo/json-ld";
 import { Breadcrumbs } from "@/components/shop/breadcrumbs";
 import { HomeSection } from "@/components/shop/home-section";
 import { Price } from "@/components/shop/price";
@@ -17,8 +18,10 @@ import {
   getProductBySlug,
   getRelatedProducts,
 } from "@/features/catalog/queries";
+import { productJsonLd } from "@/features/catalog/structured-data";
 import type { ProductDetail } from "@/features/catalog/types";
 import { storageImageUrl } from "@/lib/images";
+import { baseOpenGraph } from "@/lib/seo";
 
 // Se prerenderizan los productos más recientes; el resto se genera en la primera visita.
 export async function generateStaticParams() {
@@ -45,11 +48,19 @@ export async function generateMetadata({
     description,
     alternates: { canonical: `/productos/${product.slug}` },
     openGraph: {
-      type: "website",
+      ...baseOpenGraph,
       title,
       description,
       url: `/productos/${product.slug}`,
-      images: image ? [{ url: storageImageUrl(image.path), alt: image.alt }] : undefined,
+      images: image
+        ? [
+            {
+              url: storageImageUrl(image.path),
+              alt: image.alt,
+              ...(image.width && image.height ? { width: image.width, height: image.height } : {}),
+            },
+          ]
+        : baseOpenGraph.images,
     },
   };
 }
@@ -159,6 +170,7 @@ async function ProductContent({ params }: PageProps<"/productos/[slug]">) {
 
   return (
     <>
+      <JsonLd data={productJsonLd(product)} />
       <div className="container-page grid gap-6 pt-8">
         <Breadcrumbs
           items={[

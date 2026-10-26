@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { baseOpenGraph } from "@/lib/seo";
 import { hasActiveFilters, parseCatalogParams, type RawSearchParams } from "./params";
 
 /**
@@ -19,5 +20,11 @@ export function listingMetadata(
     ...base,
     alternates: { canonical },
     robots: filtered ? { index: false, follow: true } : undefined,
+    openGraph: {
+      ...baseOpenGraph,
+      title: typeof base.title === "string" ? base.title : undefined,
+      description: base.description ?? undefined,
+      url: canonical,
+    },
   };
 }

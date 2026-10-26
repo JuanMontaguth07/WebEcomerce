@@ -90,11 +90,21 @@ Ficha / tarjeta ──► carrito (localStorage: IDs + cantidades)
 | `/admin/marcas`       | Crear, editar, eliminar                                                                |
 | `/ingresar/recuperar` | Restablecer contraseña por correo                                                      |
 
+## SEO
+
+| Pieza                    | Dónde                                                                |
+| ------------------------ | -------------------------------------------------------------------- |
+| Indexación por entorno   | `allowIndexing` en `src/lib/seo.ts` (solo producción en Vercel)      |
+| robots.txt / sitemap.xml | `src/app/robots.ts`, `src/app/sitemap.ts`                            |
+| JSON-LD                  | `src/features/catalog/structured-data.ts` + `<JsonLd>`               |
+| Open Graph               | `baseOpenGraph` + `src/app/opengraph-image.tsx` (imagen por defecto) |
+| Canónicas de listados    | `listingMetadata` en `src/features/catalog/seo.ts`                   |
+
 ## Caché
 
 `cacheComponents` está activo. Las consultas del catálogo usan `'use cache'` con `cacheTag`
 (`products`, `product:<slug>`, `categories`, `brands`). Cada Server Action del panel que modifica
-datos llama `revalidateTag` con las etiquetas afectadas. El stock visible en una ficha cacheada
+datos llama `updateTag` con las etiquetas afectadas. El stock visible en una ficha cacheada
 puede tener segundos de retraso; la verificación definitiva ocurre en `create_order`.
 
 ## Modelo de datos

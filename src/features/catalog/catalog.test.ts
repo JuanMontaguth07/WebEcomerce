@@ -50,6 +50,24 @@ describe("parseCatalogParams", () => {
     expect(filters.category).toBeNull();
   });
 
+  it("aplica los límites de texto, precio y página", () => {
+    const filters = parseCatalogParams({
+      q: `  ${"a".repeat(81)}  `,
+      min: "1.5",
+      max: "1000000001",
+      pagina: "501",
+    });
+    expect(filters).toMatchObject({ q: null, minPrice: null, maxPrice: null, page: 1 });
+    expect(
+      parseCatalogParams({ q: "  rtx 4070  ", min: " 100 ", max: "0", pagina: "500" }),
+    ).toMatchObject({ q: "rtx 4070", minPrice: 0, maxPrice: 100, page: 500 });
+    expect(parseCatalogParams({ q: "   ", disponible: "true", oferta: "1" })).toMatchObject({
+      q: null,
+      inStock: false,
+      onSale: true,
+    });
+  });
+
   it("intercambia mínimo y máximo si llegan invertidos", () => {
     const filters = parseCatalogParams({ min: "900", max: "100" });
     expect([filters.minPrice, filters.maxPrice]).toEqual([100, 900]);

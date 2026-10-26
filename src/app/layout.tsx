@@ -1,18 +1,24 @@
 import type { Metadata, Viewport } from "next";
 import { Providers } from "@/components/providers/providers";
 import { siteConfig } from "@/config/site";
+import { allowIndexing, baseOpenGraph } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { archivo, hanken, jetbrains } from "./fonts";
 import "./globals.css";
-
-// Solo producción en Vercel se indexa; previews y local quedan fuera de buscadores.
-const allowIndexing = process.env.VERCEL_ENV === "production";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: { default: siteConfig.name, template: `%s | ${siteConfig.name}` },
   description: siteConfig.shortDescription,
+  applicationName: siteConfig.name,
   robots: allowIndexing ? undefined : { index: false, follow: false },
+  openGraph: {
+    ...baseOpenGraph,
+    title: siteConfig.name,
+    description: siteConfig.shortDescription,
+  },
+  twitter: { card: "summary_large_image" },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
