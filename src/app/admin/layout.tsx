@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Skeleton } from "@/components/ui/skeleton";
+import { siteConfig } from "@/config/site";
 import { getPendingOrderCount } from "@/features/admin/orders";
 import { requireAdmin } from "@/features/auth/session";
 
+// «Admin ·» al inicio del título y el ícono naranja (admin/icon.svg) distinguen la
+// pestaña del panel de la tienda.
 export const metadata: Metadata = {
-  title: { default: "Panel", template: "%s · Panel" },
+  title: { default: `Admin · ${siteConfig.name}`, template: `Admin · %s | ${siteConfig.name}` },
   robots: { index: false, follow: false },
 };
 

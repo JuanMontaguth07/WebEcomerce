@@ -17,6 +17,7 @@ import { ActivityFeed } from "@/components/admin/activity-feed";
 import { dateTime, OrderStatusBadge } from "@/components/admin/admin-ui";
 import { SalesChart } from "@/components/admin/sales-chart";
 import { Button } from "@/components/ui/button";
+import { siteConfig } from "@/config/site";
 import { listActivity } from "@/features/activity/queries";
 import { getLowStockProducts } from "@/features/admin/catalog";
 import { getRecentOrders } from "@/features/admin/orders";
@@ -32,7 +33,8 @@ import type { StoreSettings } from "@/features/store-settings/types";
 import { formatCOP } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Resumen" };
+// La plantilla del layout no aplica a la página de su mismo segmento: se escribe completo.
+export const metadata: Metadata = { title: { absolute: `Admin · Resumen | ${siteConfig.name}` } };
 
 const number = new Intl.NumberFormat("es-CO");
 const today = new Intl.DateTimeFormat("es-CO", {

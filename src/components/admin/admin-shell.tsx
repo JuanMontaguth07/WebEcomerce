@@ -18,11 +18,11 @@ export function AdminShell({
 }) {
   return (
     <div className="grid min-h-full flex-1 lg:grid-cols-[15rem_1fr]">
-      <aside className="border-b bg-sidebar lg:sticky lg:top-0 lg:h-dvh lg:border-r lg:border-b-0">
+      <aside className="border-t-3 border-b border-t-orange-600 bg-sidebar lg:sticky lg:top-0 lg:h-dvh lg:border-r lg:border-b-0">
         <div className="flex h-full flex-col gap-6 p-4">
           <div className="flex items-center justify-between gap-2">
-            <Logo />
-            <span className="rounded bg-primary-soft px-1.5 py-1 text-eyebrow text-primary">
+            <Logo variant="admin" />
+            <span className="rounded bg-orange-100 px-1.5 py-1 text-eyebrow text-orange-800 dark:bg-orange-950 dark:text-orange-300">
               Admin
             </span>
           </div>
