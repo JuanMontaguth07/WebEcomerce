@@ -426,5 +426,5 @@ enabled = true
 project_id = "kqzmpricbxzhlierrdco"
 
 [remotes.produccion.auth]
-site_url = "https://kova-studio.vercel.app"
-additional_redirect_urls = ["https://kova-studio.vercel.app/**"]
+site_url = "https://kovastudio-sigma.vercel.app"
+additional_redirect_urls = ["https://kovastudio-sigma.vercel.app/**"]

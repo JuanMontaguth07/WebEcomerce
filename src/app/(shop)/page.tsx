@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { AboutSection } from "@/components/shop/about-section";
 import { Benefits } from "@/components/shop/benefits";
 import { CategoryGrid } from "@/components/shop/category-grid";
 import { Hero } from "@/components/shop/hero";
@@ -115,6 +116,7 @@ export default function HomePage() {
     <main id="contenido" className="grid gap-16 pb-8 md:gap-20">
       <JsonLd data={siteJsonLd()} />
       <HomeHero />
+      <AboutSection />
       <Benefits />
       <HomeCategories />
       <Suspense fallback={<ProductGridSkeleton className="container-page" />}>

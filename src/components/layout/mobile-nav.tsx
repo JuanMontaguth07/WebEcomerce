@@ -53,23 +53,34 @@ export function MobileNav({ categories }: { categories: CategoryRef[] }) {
                 Ofertas
               </Link>
             </li>
+            <li>
+              <Link
+                href="/nosotros"
+                onClick={close}
+                className="block rounded-md px-3 py-2.5 font-semibold hover:bg-secondary"
+              >
+                Sobre nosotros
+              </Link>
+            </li>
           </ul>
-          <div className="grid gap-1">
-            <p className="px-3 pb-1 text-eyebrow text-muted-foreground">Categorías</p>
-            <ul className="grid gap-0.5">
-              {categories.map((category) => (
-                <li key={category.slug}>
-                  <Link
-                    href={`/categorias/${category.slug}`}
-                    onClick={close}
-                    className="block rounded-md px-3 py-2.5 hover:bg-secondary"
-                  >
-                    {category.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {categories.length > 0 && (
+            <div className="grid gap-1">
+              <p className="px-3 pb-1 text-eyebrow text-muted-foreground">Categorías</p>
+              <ul className="grid gap-0.5">
+                {categories.map((category) => (
+                  <li key={category.slug}>
+                    <Link
+                      href={`/categorias/${category.slug}`}
+                      onClick={close}
+                      className="block rounded-md px-3 py-2.5 hover:bg-secondary"
+                    >
+                      {category.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </nav>
       </SheetContent>
     </Sheet>

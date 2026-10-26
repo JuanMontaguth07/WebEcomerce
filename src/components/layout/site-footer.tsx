@@ -14,8 +14,16 @@ export async function SiteFooter() {
   const categories = (await getCategories()).filter((category) => !category.parentId);
 
   return (
-    <footer className="mt-24 border-t bg-card">
-      <div className="container-page grid gap-10 py-12 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+    <footer className="relative mt-24 overflow-hidden bg-card dark:bg-background">
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary to-transparent"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-40 -right-40 size-96 rounded-full bg-primary/8 blur-3xl dark:bg-primary/15"
+      />
+      <div className="relative container-page grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div className="grid max-w-sm content-start gap-4">
           <Logo />
           <p className="text-sm text-muted-foreground">{siteConfig.shortDescription}</p>
@@ -60,6 +68,11 @@ export async function SiteFooter() {
               </Link>
             </li>
             <li>
+              <Link href="/nosotros" className="hover:text-primary hover:underline">
+                Sobre nosotros
+              </Link>
+            </li>
+            <li>
               <Link href="/buscar" className="hover:text-primary hover:underline">
                 Buscar productos
               </Link>
@@ -100,7 +113,7 @@ export async function SiteFooter() {
           </ul>
         </nav>
       </div>
-      <div className="border-t">
+      <div className="relative border-t">
         <p className="container-page py-5 text-xs text-muted-foreground">
           © <CopyrightYear /> {siteConfig.name}. Precios en pesos colombianos (COP).
         </p>

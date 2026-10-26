@@ -2,6 +2,7 @@
 
 import { MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
 import { useTheme } from "next-themes";
+import { flushSync } from "react-dom";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,9 +20,29 @@ const OPTIONS = [
   { value: "system", label: "Sistema", Icon: MonitorIcon },
 ] as const;
 
+const prefersDark = () => window.matchMedia("(prefers-color-scheme: dark)").matches;
+const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 /** Selector de apariencia. El ícono se decide por CSS para evitar desajustes de hidratación. */
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
+
+  // Cambia el tema con la transición circular de globals.css (View Transitions).
+  // Sin soporte, con movimiento reducido o si el aspecto no cambia, se aplica al instante.
+  function changeTheme(value: string) {
+    const nextResolved = value === "system" ? (prefersDark() ? "dark" : "light") : value;
+    if (
+      nextResolved === resolvedTheme ||
+      typeof document.startViewTransition !== "function" ||
+      prefersReducedMotion()
+    ) {
+      setTheme(value);
+      return;
+    }
+    // La transición captura el antes y el después: el cambio de clase tiene que ocurrir
+    // dentro del callback, por eso se aplica de forma síncrona.
+    document.startViewTransition(() => flushSync(() => setTheme(value)));
+  }
 
   return (
     <DropdownMenu>
@@ -34,7 +55,7 @@ export function ThemeToggle() {
       <DropdownMenuContent align="end" className="min-w-40">
         <DropdownMenuLabel>Apariencia</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuRadioGroup value={theme ?? "system"} onValueChange={setTheme}>
+        <DropdownMenuRadioGroup value={theme ?? "system"} onValueChange={changeTheme}>
           {OPTIONS.map(({ value, label, Icon }) => (
             <DropdownMenuRadioItem key={value} value={value}>
               <Icon aria-hidden />

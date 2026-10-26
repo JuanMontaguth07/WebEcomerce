@@ -38,24 +38,35 @@ export function Hero({
   const load = power && psu ? Math.min(100, Math.round((power / psu) * 100)) : null;
 
   return (
-    <section className="relative overflow-hidden border-b bg-card">
-      {/* Retícula técnica decorativa */}
+    <section className="relative overflow-hidden bg-card dark:bg-background">
+      {/* Resplandor rojo y retícula técnica decorativa */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-48 right-[-15%] size-[42rem] rounded-full bg-primary/15 blur-3xl dark:bg-primary/25"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-40 -left-40 size-96 rounded-full bg-primary/8 blur-3xl dark:bg-primary/10"
+      />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-[linear-gradient(var(--border)_1px,transparent_1px),linear-gradient(90deg,var(--border)_1px,transparent_1px)] mask-[radial-gradient(ellipse_at_70%_40%,black,transparent_70%)] bg-size-[48px_48px] opacity-[0.35]"
       />
       <div className="relative container-page grid items-center gap-10 py-12 md:py-16 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:py-20">
         <div className="grid gap-6">
-          <p className="text-eyebrow text-primary">Componentes · Computadores · Periféricos</p>
+          <p className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-eyebrow text-primary">
+            <span className="size-1.5 rounded-full bg-primary" aria-hidden />
+            Componentes · Computadores · Periféricos
+          </p>
           <h1 className="text-4xl leading-[1.05] font-extrabold font-stretch-125% sm:text-5xl lg:text-6xl">
-            Hardware para PC con ficha técnica completa
+            Hardware para PC con <span className="text-primary">ficha técnica completa</span>
           </h1>
           <p className="max-w-xl text-lg text-muted-foreground">
             Compara especificaciones reales, revisa la disponibilidad al momento y encuentra cada
             pieza por nombre, marca o SKU.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Button asChild size="lg">
+            <Button asChild size="lg" className="shadow-glow">
               <Link href="/productos">
                 Explorar catálogo
                 <ArrowRightIcon aria-hidden />
@@ -72,7 +83,7 @@ export function Hero({
         {product && (
           <article
             aria-labelledby="hero-product"
-            className="relative grid gap-5 rounded-2xl border bg-background/80 p-5 shadow-raised backdrop-blur sm:p-6"
+            className="relative grid gap-5 rounded-2xl border bg-card/80 p-5 shadow-raised backdrop-blur sm:p-6"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="grid gap-1.5">
@@ -130,6 +141,10 @@ export function Hero({
           </article>
         )}
       </div>
+      <div
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 h-px bg-linear-to-r from-transparent via-primary to-transparent"
+      />
     </section>
   );
 }

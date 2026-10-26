@@ -9,12 +9,13 @@ export const size = { width: DEFAULT_OG_IMAGE.width, height: DEFAULT_OG_IMAGE.he
 export const contentType = "image/png";
 
 const COLORS = {
-  background: "#0A0C10",
-  surface: "#12151B",
-  border: "#282E3A",
-  foreground: "#ECEFF5",
-  muted: "#97A0AF",
-  accent: "#6B95FF",
+  background: "#0C0909",
+  surface: "#161112",
+  border: "#2D2425",
+  foreground: "#F5EFEF",
+  muted: "#A39798",
+  accent: "#F0384A",
+  onAccent: "#140A0B",
 };
 
 export default function OpenGraphImage() {
@@ -28,29 +29,22 @@ export default function OpenGraphImage() {
         justifyContent: "space-between",
         padding: 72,
         background: COLORS.background,
-        backgroundImage: `radial-gradient(circle at 85% 20%, rgba(107,149,255,0.22), transparent 55%)`,
+        backgroundImage: `radial-gradient(circle at 85% 20%, rgba(240,56,74,0.32), transparent 55%)`,
         color: COLORS.foreground,
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
         <svg width="72" height="72" viewBox="0 0 32 32">
-          <rect width="32" height="32" rx="7" fill={COLORS.surface} />
-          <rect
-            x="9"
-            y="9"
-            width="14"
-            height="14"
-            rx="2"
-            fill="none"
-            stroke={COLORS.accent}
-            strokeWidth="2"
-          />
+          <rect width="32" height="32" rx="8" fill={COLORS.accent} />
           <path
-            d="M13 5v4M19 5v4M13 23v4M19 23v4M5 13h4M5 19h4M23 13h4M23 19h4"
-            stroke={COLORS.accent}
-            strokeWidth="2"
+            d="M11 8.5v15M21.5 8.5 14 16l7.5 7.5"
+            fill="none"
+            stroke={COLORS.onAccent}
+            strokeWidth="3.2"
             strokeLinecap="round"
+            strokeLinejoin="round"
           />
+          <rect x="22" y="14.4" width="3.2" height="3.2" rx="0.8" fill={COLORS.onAccent} />
         </svg>
         <span style={{ fontSize: 30, color: COLORS.muted, letterSpacing: 2 }}>
           HARDWARE · COLOMBIA

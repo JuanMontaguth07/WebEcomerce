@@ -7,6 +7,9 @@ Dos proyectos de Supabase y uno de Vercel:
 | Desarrollo y previews  | `tienda-dev`  | Previews (ramas y pull requests) |
 | Producción (la tienda) | `tienda-prod` | Production (rama `main`)         |
 
+Tienda publicada: **https://kovastudio-sigma.vercel.app** (dirección de producción de Vercel
+hasta conectar un dominio propio).
+
 El proyecto vinculado con el CLI (`supabase link`) es siempre **desarrollo**. Producción se
 administra con `--project-ref`, para no aplicarle cambios por accidente.
 

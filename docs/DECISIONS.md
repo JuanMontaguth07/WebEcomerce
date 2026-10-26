@@ -224,3 +224,19 @@ repite en el layout del panel y en cada Server Action.
   Corren en CI después del build.
 - **Supabase producción** se administra con `--project-ref` (migraciones y configuración) sin
   cambiar el proyecto vinculado, que sigue siendo desarrollo.
+
+## D17 — Identidad Kova Studio (2026-10-26)
+
+- **Nombre**: Kova Studio (`siteConfig.name`); el logotipo provisional es un monograma "K" en rojo.
+- **Paleta**: carbón cálido y un único acento rojo. Claro: `#D61F2C` con texto blanco (5.1:1).
+  Oscuro: `#F0384A` con texto casi negro (5.0:1), porque en fondo oscuro ningún rojo cumple a la
+  vez con texto blanco encima y como color de texto. `primary-soft` se aclaró/oscureció para que el
+  texto rojo encima pase 4.5:1. Verificado con axe en ambos temas.
+- **Todo sigue el tema**: se probó dejar hero y pie oscuros en ambos temas, pero en modo claro se
+  percibían como errores ("no cambian"). Ahora cada sección cambia con el tema; el rojo de marca
+  se mantiene con resplandores y el recuadro rojo sólido de `/nosotros`.
+- **Transición de tema** con View Transitions (círculo difuminado desde la esquina superior
+  izquierda). El cambio se aplica con `flushSync` dentro del callback para que la API capture el
+  antes y el después; sin soporte o con movimiento reducido es inmediato.
+- **Sobre nosotros**: sección en la portada (después del hero) y página `/nosotros` con el texto
+  del negocio, en un solo módulo de contenido.

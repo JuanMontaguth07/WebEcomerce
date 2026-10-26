@@ -75,9 +75,9 @@ export default function DesignSystemPage() {
 
       <main id="contenido" className="container-page grid gap-16 py-12">
         <div className="grid gap-4">
-          <p className="text-eyebrow text-muted-foreground">Fase 2 · Referencia interna</p>
+          <p className="text-eyebrow text-muted-foreground">Referencia interna</p>
           <h1 className="text-4xl font-extrabold font-stretch-125% md:text-5xl">
-            Grafito, aire y un solo acento cobalto
+            Carbón cálido y un solo acento rojo
           </h1>
           <p className="max-w-prose text-lg text-muted-foreground">
             Todos los componentes consumen tokens semánticos; cambia el tema con el selector de

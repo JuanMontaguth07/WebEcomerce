@@ -1,11 +1,11 @@
 import { publicEnv } from "@/lib/env";
 
 /**
- * Datos de la marca. Los valores marcados como PENDIENTE deben reemplazarse
- * con la información real del negocio antes de publicar.
+ * Datos de la marca. Contacto, redes y logo definitivo siguen pendientes: no se
+ * publican hasta tener la información real del negocio.
  */
 export const siteConfig = {
-  name: "Nombre de la tienda", // PENDIENTE
+  name: "Kova Studio",
   shortDescription: "Componentes de PC, hardware y computadores en Colombia.",
   url: publicEnv.NEXT_PUBLIC_SITE_URL,
   locale: "es-CO",

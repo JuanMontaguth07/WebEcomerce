@@ -51,6 +51,10 @@ La aplicación **no usa la secret key (service_role)**. Las operaciones privileg
 - Movimiento: `m.*` de `motion/react` dentro de `LazyMotion`; `Reveal` para apariciones al
   hacer scroll (nunca en contenido visible al cargar). Notificaciones con `toast` de `sonner`.
 - Utilidades propias: `container-page` (ancho y márgenes) y `text-eyebrow` (etiquetas técnicas).
+- Todo sigue el tema elegido: no hay secciones con colores fijos. El rojo de marca se refuerza
+  con resplandores (`bg-primary/…`) y la sombra `shadow-glow`.
+- Marca: `Logo`/`LogoMark` en `components/layout/logo.tsx` (el nombre sale de `siteConfig`).
+  La historia de `/nosotros` y de la portada vive en `src/content/nosotros.ts`.
 - Referencia visual: `/sistema-diseno` (solo fuera de producción).
 
 ## Autenticación del panel
@@ -214,7 +218,7 @@ como adaptador en `src/features/payments/providers/<proveedor>.ts` con una inter
 
 ## Pendientes del negocio
 
-- Nombre, logo, dominio y datos de contacto (`src/config/site.ts`).
+- Logo definitivo, dominio y datos de contacto (`src/config/site.ts`).
 - Política de envíos (`calculate_shipping_cost`).
 - Textos legales: tratamiento de datos (Ley 1581 de 2012), términos, garantías y derecho de
   retracto (Ley 1480 de 2011).

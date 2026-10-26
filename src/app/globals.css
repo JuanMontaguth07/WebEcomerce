@@ -6,37 +6,38 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* =============================================================================
-   Design tokens
-   Neutros grafito con sesgo azul y un único acento cobalto. Los componentes
-   solo consumen nombres semánticos; cada tema redefine sus valores.
-   Contrastes verificados (WCAG AA): texto ≥ 4.5:1, bordes de campos ≥ 3:1.
+   Design tokens — Kova Studio
+   Carbón cálido (neutros con un leve sesgo hacia el rojo) y un único acento rojo
+   intenso. Los componentes solo consumen nombres semánticos; cada tema redefine
+   sus valores. Contrastes verificados (WCAG AA): texto ≥ 4.5:1, bordes de
+   campos ≥ 3:1. En oscuro el rojo es más luminoso y lleva texto oscuro encima.
    ============================================================================= */
 
 :root {
-  --background: oklch(0.973 0.003 264.5); /* #F5F6F8 */
-  --foreground: oklch(0.185 0.03 268.4); /* #0D1220 */
+  --background: oklch(0.972 0.002 17.2); /* #F7F5F5 */
+  --foreground: oklch(0.182 0.012 27.7); /* #17100F */
   --card: oklch(1 0 0); /* #FFFFFF */
   --card-foreground: var(--foreground);
   --popover: oklch(1 0 0);
   --popover-foreground: var(--foreground);
 
-  --primary: oklch(0.538 0.238 263.6); /* #1D5BF5 */
+  --primary: oklch(0.563 0.213 25); /* #D61F2C · blanco encima 5.1:1, sobre el fondo 4.7:1 */
   --primary-foreground: oklch(1 0 0);
-  --primary-soft: oklch(0.946 0.025 268.8); /* #E6EDFF */
+  --primary-soft: oklch(0.966 0.015 12.4); /* #FEF0F1 · rojo encima 4.6:1 */
 
-  --secondary: oklch(0.954 0.006 255.5); /* #EDF0F4 */
+  --secondary: oklch(0.946 0.004 17.2); /* #F0ECEC */
   --secondary-foreground: var(--foreground);
   --muted: var(--secondary);
-  --muted-foreground: oklch(0.486 0.029 259.8); /* #566070 */
+  --muted-foreground: oklch(0.47 0.013 10.7); /* #625859 */
   --accent: var(--secondary);
   --accent-foreground: var(--foreground);
 
   --success: oklch(0.515 0.106 164.1); /* #0F7A57 */
   --warning: oklch(0.495 0.111 64.9); /* #8C5200: ≥ 4.5:1 también sobre bg-warning/10 */
-  --destructive: oklch(0.54 0.182 22.4); /* #C2303A */
+  --destructive: oklch(0.5 0.182 29.5); /* #B42318 */
 
-  --border: oklch(0.908 0.011 256.7); /* #DCE1E8 */
-  --input: oklch(0.634 0.028 261.1); /* #818B9C */
+  --border: oklch(0.914 0.007 17.3); /* #E7E1E1 */
+  --input: oklch(0.62 0.013 11.2); /* #8E8384 */
   --ring: var(--primary);
 
   --sidebar: var(--card);
@@ -49,36 +50,41 @@
   --sidebar-ring: var(--ring);
 
   --elevation-card:
-    0 1px 2px oklch(0.185 0.03 268.4 / 0.06), 0 8px 24px -12px oklch(0.185 0.03 268.4 / 0.14);
+    0 1px 2px oklch(0.182 0.012 27.7 / 0.06), 0 8px 24px -12px oklch(0.182 0.012 27.7 / 0.14);
   --elevation-raised:
-    0 2px 4px oklch(0.185 0.03 268.4 / 0.06), 0 16px 40px -16px oklch(0.185 0.03 268.4 / 0.22);
+    0 2px 4px oklch(0.182 0.012 27.7 / 0.06), 0 16px 40px -16px oklch(0.182 0.012 27.7 / 0.22);
+  /* Resplandor rojo para estados destacados (hover de tarjetas, CTA del hero). */
+  --elevation-glow:
+    0 0 0 1px oklch(0.563 0.213 25 / 0.35), 0 18px 44px -18px oklch(0.563 0.213 25 / 0.45);
 
   --radius: 0.625rem;
 }
 
 .dark {
-  --background: oklch(0.154 0.009 264.3); /* #0A0C10 */
-  --foreground: oklch(0.952 0.009 264.5); /* #ECEFF5 */
-  --card: oklch(0.195 0.013 264.2); /* #12151B */
-  --popover: oklch(0.235 0.017 264.2); /* #1A1E26 */
+  --background: oklch(0.144 0.005 17.8); /* #0C0909 */
+  --foreground: oklch(0.957 0.006 17.3); /* #F5EFEF */
+  --card: oklch(0.184 0.009 4.4); /* #161112 */
+  --popover: oklch(0.218 0.011 8.4); /* #1F1819 */
 
-  --primary: oklch(0.689 0.163 266); /* #6B95FF */
-  --primary-foreground: oklch(0.152 0.034 263.9); /* #050B1A */
-  --primary-soft: oklch(0.254 0.055 266.3); /* #16213D */
+  --primary: oklch(0.629 0.218 21.4); /* #F0384A · sobre el fondo 5.1:1 */
+  --primary-foreground: oklch(0.16 0.018 12.7); /* #140A0B · sobre el rojo 5.0:1 */
+  --primary-soft: oklch(0.21 0.047 13.1); /* #2A0E12 · rojo encima 4.6:1 */
 
-  --secondary: oklch(0.235 0.017 264.2); /* #1A1E26 */
-  --muted-foreground: oklch(0.703 0.024 260.7); /* #97A0AF */
+  --secondary: oklch(0.218 0.011 8.4); /* #1F1819 */
+  --muted-foreground: oklch(0.687 0.014 11.7); /* #A39798 */
 
   --success: oklch(0.747 0.148 160.6); /* #3CC98D */
   --warning: oklch(0.78 0.146 73.1); /* #EFA73A */
   --destructive: oklch(0.713 0.181 19.3); /* #FF6B74 */
 
-  --border: oklch(0.301 0.023 264.1); /* #282E3A */
-  --input: oklch(0.499 0.031 264.2); /* #5A6375 */
+  --border: oklch(0.271 0.014 10.5); /* #2D2425 */
+  --input: oklch(0.494 0.016 6.3); /* #6A5E60 */
 
   /* En oscuro la profundidad viene de superficies escalonadas y un filo de luz. */
   --elevation-card: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 10px 30px -14px oklch(0 0 0 / 0.7);
   --elevation-raised: 0 1px 0 oklch(1 0 0 / 0.06) inset, 0 20px 48px -18px oklch(0 0 0 / 0.8);
+  --elevation-glow:
+    0 0 0 1px oklch(0.629 0.218 21.4 / 0.45), 0 18px 48px -16px oklch(0.629 0.218 21.4 / 0.4);
 }
 
 @theme inline {
@@ -118,6 +124,7 @@
 
   --shadow-card: var(--elevation-card);
   --shadow-raised: var(--elevation-raised);
+  --shadow-glow: var(--elevation-glow);
 
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -183,6 +190,43 @@
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
+  }
+}
+
+/* =============================================================================
+   Cambio de tema: el tema nuevo se revela con un círculo difuminado que crece
+   desde la esquina superior izquierda (View Transitions API). Lo dispara
+   ThemeToggle; sin soporte o con movimiento reducido el cambio es inmediato.
+   ============================================================================= */
+
+:root {
+  --expo-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+::view-transition-group(root) {
+  animation-timing-function: var(--expo-out);
+}
+
+::view-transition-new(root) {
+  mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><defs><filter id="blur"><feGaussianBlur stdDeviation="2"/></filter></defs><circle cx="0" cy="0" r="18" fill="white" filter="url(%23blur)"/></svg>')
+    top left / 0 no-repeat;
+  mask-origin: content-box;
+  animation: theme-reveal 1s;
+  animation-fill-mode: both;
+  transform-origin: top left;
+}
+
+::view-transition-old(root),
+.dark::view-transition-old(root) {
+  animation: theme-reveal 1s;
+  animation-fill-mode: both;
+  transform-origin: top left;
+  z-index: -1;
+}
+
+@keyframes theme-reveal {
+  to {
+    mask-size: 350vmax;
   }
 }
 

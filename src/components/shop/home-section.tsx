@@ -28,7 +28,8 @@ export function HomeSection({
     <section aria-labelledby={id} className="container-page grid gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="grid gap-1">
-          <h2 id={id} className="text-2xl font-bold md:text-3xl">
+          <h2 id={id} className="flex items-center gap-3 text-2xl font-bold md:text-3xl">
+            <span aria-hidden className="h-7 w-1.5 shrink-0 rounded-full bg-primary" />
             {title}
           </h2>
           {description && <p className="text-muted-foreground">{description}</p>}

@@ -2,7 +2,15 @@ import type { MetadataRoute } from "next";
 import { getActiveProductSlugs, getBrands, getCategories } from "@/features/catalog/queries";
 import { absoluteUrl } from "@/lib/seo";
 
-const STATIC_PAGES = ["/", "/productos", "/terminos", "/privacidad", "/garantias", "/retracto"];
+const STATIC_PAGES = [
+  "/",
+  "/productos",
+  "/nosotros",
+  "/terminos",
+  "/privacidad",
+  "/garantias",
+  "/retracto",
+];
 
 /** Páginas públicas indexables. Las consultas comparten la caché del catálogo. */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
