@@ -55,7 +55,7 @@ export const storeSettingsSchema = z
       .transform((digits) => digits || null),
     nequiHolder: optionalText(120),
     announcementText: optionalText(140),
-    // Solo enlaces dentro de la tienda: «/productos?oferta=1», «/rarezas»… «//» o «/\»
+    // Solo enlaces dentro de la tienda: «/productos?oferta=1», «/categorias/…»… «//» o «/\»
     // llevarían a otro sitio, por eso el segundo carácter no puede ser una barra.
     announcementHref: z
       .string()

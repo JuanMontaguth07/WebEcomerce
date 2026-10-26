@@ -1,6 +1,6 @@
 "use client";
 
-import { HomeIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
@@ -25,7 +25,6 @@ type Draft = {
   effect: RarityEffect;
   description: string;
   position: string;
-  showOnHome: boolean;
   isActive: boolean;
 };
 
@@ -49,7 +48,6 @@ const toDraft = (rarity: AdminRarity): Draft => ({
   effect: rarity.effect,
   description: rarity.description ?? "",
   position: String(rarity.position),
-  showOnHome: rarity.showOnHome,
   isActive: rarity.isActive,
 });
 
@@ -118,8 +116,8 @@ export function RaritiesManager({ rarities }: { rarities: AdminRarity[] }) {
       <section aria-label="Rarezas creadas" className="grid gap-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">
-            Ordenadas de la más rara a la menos rara. Asígnalas en cada producto o en lote desde la
-            lista de productos.
+            Del mejor nivel al más básico. Asígnalas en cada producto o en lote desde la lista de
+            productos.
           </p>
           <Button
             onClick={() =>
@@ -130,7 +128,6 @@ export function RaritiesManager({ rarities }: { rarities: AdminRarity[] }) {
                 effect: "glow",
                 description: "",
                 position: String(nextPosition),
-                showOnHome: true,
                 isActive: true,
               })
             }
@@ -166,12 +163,6 @@ export function RaritiesManager({ rarities }: { rarities: AdminRarity[] }) {
                     )}
                     <div className="flex flex-wrap gap-1">
                       {!rarity.isActive && <Badge variant="outline">Oculta</Badge>}
-                      {rarity.showOnHome && rarity.isActive && (
-                        <Badge variant="soft">
-                          <HomeIcon aria-hidden />
-                          En la portada
-                        </Badge>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -216,7 +207,7 @@ export function RaritiesManager({ rarities }: { rarities: AdminRarity[] }) {
           </ul>
         ) : (
           <AdminEmpty>
-            Aún no hay rarezas. Crea la primera para destacar productos especiales.
+            Aún no hay niveles. Crea el primero para mostrar la calidad de tus productos.
           </AdminEmpty>
         )}
       </section>
@@ -251,7 +242,7 @@ export function RaritiesManager({ rarities }: { rarities: AdminRarity[] }) {
               name="slug"
               label="Slug"
               errors={errors}
-              hint={`/rarezas#${draft.slug || "…"}`}
+              hint="Identificador interno, sin espacios."
               value={draft.slug}
               onChange={(event) => {
                 setSlugTouched(true);
@@ -322,7 +313,7 @@ export function RaritiesManager({ rarities }: { rarities: AdminRarity[] }) {
             errors={errors}
             maxLength={200}
             rows={2}
-            hint="Aparece en la ficha del producto y en la página de rarezas."
+            hint="Aparece en la ficha del producto, junto al nivel."
             value={draft.description}
             onChange={(event) => set("description", event.target.value)}
           />
@@ -331,16 +322,9 @@ export function RaritiesManager({ rarities }: { rarities: AdminRarity[] }) {
             label="Nivel (0 a 100)"
             errors={errors}
             inputMode="numeric"
-            hint="Mayor = más rara. Ordena la página de rarezas y la portada."
+            hint="Mayor = mejor gama. Ordena los niveles en el panel."
             value={draft.position}
             onChange={(event) => set("position", event.target.value.replace(/\D/g, ""))}
-          />
-          <CheckboxField
-            name="showOnHome"
-            label="Mostrar en la portada"
-            hint="Sus productos aparecen en el bloque «Rarezas» de la página de inicio."
-            checked={draft.showOnHome}
-            onCheckedChange={(checked) => set("showOnHome", checked)}
           />
           <CheckboxField
             name="isActive"

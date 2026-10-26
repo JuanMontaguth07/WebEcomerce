@@ -90,10 +90,12 @@ Ficha / tarjeta ──► carrito (localStorage: IDs + cantidades)
 | `/admin/actividad`     | Historial general e inmutable de cambios (filtros por área, tipo y objeto; CSV)       |
 | `/admin/pedidos`       | Estados con conteo, vencimiento de la reserva, fijar envío, mensajes de WhatsApp, CSV |
 | `/admin/productos`     | Crear, duplicar, acciones en lote, eliminar con motivo; imágenes, ficha e inventario  |
-| `/admin/rarezas`       | Niveles de rareza: nombre, color, efecto animado, nivel y si salen en la portada      |
+| `/admin/rarezas`       | Niveles de calidad (Común → Legendario): nombre, color, efecto animado y nivel        |
+| `/admin/etiquetas`     | Banderas de marca o línea con color y logo, en el borde de las tarjetas               |
 | `/admin/inventario`    | Historial de movimientos filtrable por tipo y producto (CSV)                          |
 | `/admin/categorias`    | Jerarquía, SEO y definición de especificaciones por categoría                         |
 | `/admin/marcas`        | Crear, editar, eliminar                                                               |
+| `/admin/portada`       | Anuncios entre las secciones de la portada: texto, botón, imagen o ilustración, orden |
 | `/admin/envios`        | Tarifas por departamento y excepciones por ciudad, con días de entrega                |
 | `/admin/configuracion` | Barra de anuncio, WhatsApp, correo, horario, Nequi y datos legales del vendedor       |
 | `/ingresar/recuperar`  | Restablecer contraseña por correo                                                     |
@@ -131,22 +133,24 @@ categories ─┬─< products >─── brands
 profiles (1:1 auth.users) ── orders.user_id (opcional)
 ```
 
-| Tabla                  | Notas                                                                     |
-| ---------------------- | ------------------------------------------------------------------------- |
-| `profiles`             | Rol `customer`/`admin`. El rol solo cambia por SQL.                       |
-| `categories`           | Jerárquica (`parent_id`), campos SEO propios.                             |
-| `brands`               | Nombre y slug únicos.                                                     |
-| `products`             | `stock` no editable por la API; `search_vector` mantenido por triggers.   |
-| `product_images`       | Posición única por producto (diferible para reordenar).                   |
-| `spec_definitions`     | Especificaciones tipadas por categoría (`text`/`number`/`boolean`).       |
-| `product_specs`        | Valor por producto; un trigger valida categoría y tipo.                   |
-| `orders`               | Snapshot del cliente, totales, token de consulta (hash), vencimiento.     |
-| `order_items`          | Snapshot de nombre, SKU y precio; `product_id` NULL si se eliminó.        |
-| `order_status_history` | Quién cambió qué estado y cuándo.                                         |
-| `inventory_movements`  | Solo inserción; guarda nombre y SKU; `product_id` NULL si se eliminó.     |
-| `rarities`             | Niveles visuales (color, efecto); `products.rarity_id` opcional.          |
-| `audit_log`            | Historial general inmutable (triggers y funciones); solo lo lee el admin. |
-| `payments`             | Vacía en el MVP; la llenarán los adaptadores de pasarela.                 |
+| Tabla                  | Notas                                                                         |
+| ---------------------- | ----------------------------------------------------------------------------- |
+| `profiles`             | Rol `customer`/`admin`. El rol solo cambia por SQL.                           |
+| `categories`           | Jerárquica (`parent_id`), campos SEO propios.                                 |
+| `brands`               | Nombre y slug únicos.                                                         |
+| `products`             | `stock` no editable por la API; `search_vector` mantenido por triggers.       |
+| `product_images`       | Posición única por producto (diferible para reordenar).                       |
+| `spec_definitions`     | Especificaciones tipadas por categoría (`text`/`number`/`boolean`).           |
+| `product_specs`        | Valor por producto; un trigger valida categoría y tipo.                       |
+| `orders`               | Snapshot del cliente, totales, token de consulta (hash), vencimiento.         |
+| `order_items`          | Snapshot de nombre, SKU y precio; `product_id` NULL si se eliminó.            |
+| `order_status_history` | Quién cambió qué estado y cuándo.                                             |
+| `inventory_movements`  | Solo inserción; guarda nombre y SKU; `product_id` NULL si se eliminó.         |
+| `rarities`             | Niveles de calidad (color, efecto); `products.rarity_id` opcional.            |
+| `product_flags`        | Banderas de marca (color, logo en `flags/`); `products.flag_id` opcional.     |
+| `home_banners`         | Anuncios propios de la portada (imagen en `banners/` o ilustración incluida). |
+| `audit_log`            | Historial general inmutable (triggers y funciones); solo lo lee el admin.     |
+| `payments`             | Vacía en el MVP; la llenarán los adaptadores de pasarela.                     |
 
 ### Funciones del catálogo (RPC, `security invoker`)
 

@@ -315,6 +315,64 @@
   animation: rarity-shimmer 3.6s var(--expo-out) infinite;
 }
 
+/* Bandera de marca: cinta pegada al borde izquierdo con una muesca en la punta.
+   --flag es el color de la marca y --flag-text el texto de mayor contraste. */
+.product-flag {
+  color: var(--flag-text);
+  background:
+    linear-gradient(180deg, color-mix(in oklab, white 22%, transparent), transparent 65%),
+    var(--flag);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 0.6rem) 50%, 100% 100%, 0 100%);
+}
+
+/* En la tarjeta asoma desde el borde y sale del todo al pasar el cursor. */
+.product-flag-edge {
+  transform: translateX(-0.25rem);
+  transition: transform 0.35s var(--expo-out);
+}
+
+.group:hover .product-flag-edge,
+.group:focus-within .product-flag-edge {
+  transform: translateX(0);
+}
+
+/* Anuncios de la portada: al entrar en pantalla pasan de desenfocados a nítidos y
+   la imagen se desliza desde su lado. Solo con soporte de animaciones por scroll. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .banner-reveal {
+      animation: banner-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 80%;
+    }
+
+    .banner-reveal .banner-media {
+      animation: banner-media-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 35%;
+    }
+
+    .banner-reveal[data-side="left"] .banner-media {
+      --banner-from: -3rem;
+    }
+  }
+}
+
+@keyframes banner-in {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(1.5rem) scale(0.98);
+  }
+}
+
+@keyframes banner-media-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--banner-from, 3rem));
+  }
+}
+
 /* Barra de anuncio: un reflejo cruza el fondo de vez en cuando. */
 .announcement-shine {
   background:

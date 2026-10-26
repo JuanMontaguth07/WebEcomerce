@@ -9,6 +9,7 @@ import { discountPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Price } from "./price";
 import { ProductImage } from "./product-image";
+import { ProductFlagTag } from "./product-flag";
 import { RarityBadge } from "./rarity-badge";
 import { StockBadge } from "./stock-badge";
 
@@ -49,15 +50,22 @@ export function ProductCard({ product, priority = false, className }: ProductCar
             outOfStock && "opacity-60",
           )}
         />
-        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+        {/* Una sola fila que se parte en dos si la tarjeta es angosta (móvil). */}
+        <div className="absolute inset-x-3 top-3 flex flex-wrap items-start gap-1.5">
           {discount !== null && (
             <Badge className={cn(discount >= HOT_DEAL && "gap-1 shadow-glow")}>
               {discount >= HOT_DEAL && <FlameIcon aria-hidden />}-{discount}%
             </Badge>
           )}
           {isDemoProduct(product.sku) && <Badge variant="outline">Demo</Badge>}
+          {rarity && <RarityBadge rarity={rarity} className="ml-auto shadow-sm" />}
         </div>
-        {rarity && <RarityBadge rarity={rarity} className="absolute top-3 right-3 shadow-sm" />}
+        {product.flag && (
+          <ProductFlagTag
+            flag={product.flag}
+            className="product-flag-edge absolute bottom-3 left-0 z-[1]"
+          />
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-4">

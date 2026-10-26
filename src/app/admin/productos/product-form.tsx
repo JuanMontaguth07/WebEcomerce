@@ -12,9 +12,11 @@ import {
   TextField,
 } from "@/components/admin/form-helpers";
 import { RarityPreview } from "@/components/admin/rarity-preview";
+import { ProductFlagTag } from "@/components/shop/product-flag";
 import { Button } from "@/components/ui/button";
 import { createProduct, updateProduct } from "@/features/admin/catalog-actions";
 import type { ProductInput } from "@/features/admin/catalog-schemas";
+import type { AdminFlag } from "@/features/flags/queries";
 import type { AdminRarity } from "@/features/rarities/queries";
 import { slugify } from "@/lib/format";
 
@@ -29,6 +31,8 @@ export type ProductFormValues = {
   categoryId: string;
   brandId: string;
   rarityId: string;
+  flagId: string;
+  uniqueNote: string;
   price: string;
   compareAtPrice: string;
   lowStockThreshold: string;
@@ -49,6 +53,8 @@ export const EMPTY_PRODUCT: ProductFormValues = {
   categoryId: "",
   brandId: "",
   rarityId: "",
+  flagId: "",
+  uniqueNote: "",
   price: "",
   compareAtPrice: "",
   lowStockThreshold: "3",
@@ -76,12 +82,14 @@ export function ProductForm({
   categories,
   brands,
   rarities,
+  flags,
 }: {
   productId?: string;
   initial: ProductFormValues;
   categories: Option[];
   brands: Option[];
   rarities: AdminRarity[];
+  flags: AdminFlag[];
 }) {
   const router = useRouter();
   const [values, setValues] = useState(initial);
@@ -148,6 +156,7 @@ export function ProductForm({
   ];
 
   const selectedRarity = rarities.find((rarity) => rarity.id === values.rarityId);
+  const selectedFlag = flags.find((flag) => flag.id === values.flagId);
 
   return (
     <form onSubmit={handleSubmit} noValidate className="grid gap-6">
@@ -281,12 +290,41 @@ export function ProductForm({
         />
       </Section>
 
-      <Section title="Rareza">
+      <Section title="Etiqueta de marca">
+        <div className="grid items-start gap-5 sm:grid-cols-[1fr_auto]">
+          <div className="grid gap-3">
+            <SelectField
+              name="flagId"
+              label="Bandera"
+              optional
+              errors={errors}
+              options={[
+                { value: "", label: "Sin etiqueta" },
+                ...flags.map((flag) => ({
+                  value: flag.id,
+                  label: flag.isActive ? flag.name : `${flag.name} (oculta)`,
+                })),
+              ]}
+              hint="Cinta con el color y el logo de la marca en el borde de la tarjeta."
+              {...text("flagId")}
+            />
+            <Link
+              href="/admin/etiquetas"
+              className="w-fit text-sm font-semibold text-primary hover:underline"
+            >
+              Crear o editar etiquetas
+            </Link>
+          </div>
+          {selectedFlag && <ProductFlagTag flag={selectedFlag} size="lg" />}
+        </div>
+      </Section>
+
+      <Section title="Rareza (calidad)">
         <div className="grid items-start gap-5 sm:grid-cols-[1fr_auto]">
           <div className="grid gap-3">
             <SelectField
               name="rarityId"
-              label="Nivel de rareza"
+              label="Nivel de calidad"
               optional
               errors={errors}
               options={[
@@ -296,7 +334,7 @@ export function ProductForm({
                   label: rarity.isActive ? rarity.name : `${rarity.name} (oculta)`,
                 })),
               ]}
-              hint="Le da a la tarjeta un color y un efecto animado en toda la tienda."
+              hint="De Común (económico) a Legendario (tope de gama). Da color y efecto a la tarjeta."
               {...text("rarityId")}
             />
             <Link
@@ -308,6 +346,20 @@ export function ProductForm({
           </div>
           {selectedRarity && <RarityPreview rarity={selectedRarity} className="max-w-40" />}
         </div>
+      </Section>
+
+      <Section title="Pieza única (opcional)">
+        <TextAreaField
+          name="uniqueNote"
+          label="¿Por qué es especial?"
+          optional
+          errors={errors}
+          maxLength={200}
+          rows={2}
+          placeholder="Edición limitada de 500 unidades en el mundo"
+          hint={`${values.uniqueNote.length}/200. Si lo llenas, el producto sale en «Piezas únicas» de la portada con este texto.`}
+          {...text("uniqueNote")}
+        />
       </Section>
 
       <Section title="Buscadores (opcional)">

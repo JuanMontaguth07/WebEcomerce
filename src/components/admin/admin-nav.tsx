@@ -4,10 +4,12 @@ import {
   BoxesIcon,
   ClipboardListIcon,
   ExternalLinkIcon,
+  FlagIcon,
   FolderTreeIcon,
   GemIcon,
   HistoryIcon,
   LayoutDashboardIcon,
+  MegaphoneIcon,
   SettingsIcon,
   TagIcon,
   TruckIcon,
@@ -60,7 +62,13 @@ export const ADMIN_NAV: { title: string | null; items: AdminNavItem[] }[] = [
         href: "/admin/rarezas",
         label: "Rarezas",
         Icon: GemIcon,
-        keywords: "niveles efectos colores",
+        keywords: "calidad niveles efectos colores comun legendario",
+      },
+      {
+        href: "/admin/etiquetas",
+        label: "Etiquetas",
+        Icon: FlagIcon,
+        keywords: "banderas marcas logos nvidia amd intel",
       },
       {
         href: "/admin/inventario",
@@ -75,6 +83,12 @@ export const ADMIN_NAV: { title: string | null; items: AdminNavItem[] }[] = [
   {
     title: "Tienda",
     items: [
+      {
+        href: "/admin/portada",
+        label: "Portada",
+        Icon: MegaphoneIcon,
+        keywords: "anuncios banners inicio publicidad armamos asesoria",
+      },
       { href: "/admin/envios", label: "Envíos", Icon: TruckIcon, keywords: "tarifas ciudades" },
       {
         href: "/admin/configuracion",

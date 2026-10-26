@@ -65,7 +65,7 @@ export function SettingsForm({ initial }: { initial: StoreSettingsInput }) {
     <form onSubmit={submit} noValidate className="grid gap-6">
       <Section
         title="Anuncio de la tienda"
-        description="Una barra llamativa arriba de todas las páginas: ofertas, envíos, nuevas rarezas…"
+        description="Una barra llamativa arriba de todas las páginas: ofertas, envíos, novedades…"
       >
         <TextField
           {...field("announcementText")}
@@ -80,7 +80,7 @@ export function SettingsForm({ initial }: { initial: StoreSettingsInput }) {
           label="Enlace"
           optional
           placeholder="/productos?oferta=1"
-          hint="Ruta de la tienda que abre al tocar la barra: /productos?oferta=1, /rarezas, /categorias/…"
+          hint="Ruta de la tienda que abre al tocar la barra: /productos?oferta=1, /categorias/…"
         />
         <CheckboxField
           name="announcementEnabled"

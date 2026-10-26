@@ -1,10 +1,12 @@
 import {
   BoxesIcon,
   ClipboardListIcon,
+  FlagIcon,
   FolderTreeIcon,
   GemIcon,
   ImageIcon,
   ListChecksIcon,
+  MegaphoneIcon,
   SettingsIcon,
   SlidersHorizontalIcon,
   TagIcon,
@@ -36,6 +38,8 @@ const ICONS: Record<ActivityEntity, React.ComponentType<{ className?: string }>>
   shipping_rate: TruckIcon,
   store_settings: SettingsIcon,
   rarity: GemIcon,
+  product_flag: FlagIcon,
+  home_banner: MegaphoneIcon,
 };
 
 const ACTION_TONE = {

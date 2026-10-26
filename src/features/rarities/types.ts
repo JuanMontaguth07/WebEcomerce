@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-/** Nivel visual de un producto (tabla rarities). position mayor = más rara. */
+/** Nivel de calidad de un producto (tabla rarities). position mayor = mejor gama. */
 export type Rarity = {
   id: string;
   name: string;
@@ -10,7 +10,6 @@ export type Rarity = {
   effect: RarityEffect;
   description: string | null;
   position: number;
-  showOnHome: boolean;
   isActive: boolean;
 };
 

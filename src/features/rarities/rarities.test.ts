@@ -10,7 +10,6 @@ const valid = {
   effect: "holo",
   description: "",
   position: "3",
-  showOnHome: true,
   isActive: true,
 };
 
@@ -23,7 +22,6 @@ describe("raritySchema", () => {
       effect: "holo",
       description: null,
       position: 3,
-      showOnHome: true,
       isActive: true,
     });
   });

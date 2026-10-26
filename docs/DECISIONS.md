@@ -299,3 +299,29 @@ repite en el layout del panel y en cada Server Action.
   que los navegadores abren como sitios externos.
 - **Panel**: menú agrupado (Ventas, Catálogo, Tienda) y paleta de comandos (Ctrl+K) para ir a
   cualquier sección o abrir un producto o pedido por nombre, SKU o número.
+
+## D22 — Rarezas como calidad y etiquetas de marca (2026-10-29)
+
+- **Las rarezas describen calidad y precio**, no escasez: Común (económico), Poco común, Raro
+  (calidad a precio competente), Épico (buenísimo y caro, pero lo vale), Ultra raro (súper bueno y
+  más caro) y Legendario (tope de gama). Se ven solo en las tarjetas y la ficha; se quitaron el
+  bloque de la portada, la página `/rarezas` y el enlace del menú.
+- **Etiquetas de bandera** (`product_flags`): cinta pegada al borde de la tarjeta con el color y
+  el logo de la marca o línea (NVIDIA GeForce, AMD Ryzen, Intel Core…). Se asigna por producto, en
+  el formulario o en lote. El texto es blanco o casi negro según el contraste con el color elegido
+  y el panel avisa si el color deja el nombre poco legible.
+- **Logos de marcas**: el proyecto no incluye logos de terceros; el admin sube los suyos (PNG,
+  WebP, JPG o AVIF de hasta 500 KB, nunca SVG) en `flags/` del bucket del catálogo. Al cambiar o
+  borrar una etiqueta se elimina el archivo anterior.
+
+## D23 — Anuncios de la portada y piezas únicas (2026-10-30)
+
+- **Anuncios propios** (`home_banners`) entre las secciones de la portada para separarlas: uno
+  después de cada dos secciones con productos, alternando el lado de la imagen; los que sobran van
+  al final y, sin catálogo, la portada muestra solo los anuncios. Vienen dos, con los servicios
+  que la tienda ofrece (armado de PC y asesoría), y se editan en `/admin/portada`.
+- La imagen subida se difumina hacia el texto con una máscara; sin imagen se usa una ilustración
+  incluida en línea técnica que sigue el tema. Al entrar en pantalla el anuncio pasa de desenfocado
+  a nítido con animación por scroll (sin JavaScript; se omite con movimiento reducido).
+- **Piezas únicas**: `products.unique_note` dice por qué un producto es especial. Los que la tienen
+  salen en «Piezas únicas» de la portada con ese texto y en un recuadro de su ficha.

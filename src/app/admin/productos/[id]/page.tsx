@@ -14,6 +14,7 @@ import {
   getSpecDefinitions,
 } from "@/features/admin/catalog";
 import { listActivity } from "@/features/activity/queries";
+import { listAdminFlags } from "@/features/flags/queries";
 import { listAdminRarities } from "@/features/rarities/queries";
 import { requireAdmin } from "@/features/auth/session";
 import { getInventoryMovements } from "@/features/inventory/queries";
@@ -49,7 +50,7 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
   const product = await getAdminProduct(id);
   if (!product) notFound();
 
-  const [categories, brands, definitions, { movements }, counts, activity, rarities] =
+  const [categories, brands, definitions, { movements }, counts, activity, rarities, flags] =
     await Promise.all([
       getCategoryOptions(),
       getBrandOptions(),
@@ -58,6 +59,7 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
       getProductHistoryCounts(id),
       listActivity({ entityId: id, limit: 6 }),
       listAdminRarities(),
+      listAdminFlags(),
     ]);
 
   const initial: ProductFormValues = {
@@ -68,6 +70,8 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
     categoryId: product.category_id,
     brandId: product.brand_id ?? "",
     rarityId: product.rarity_id ?? "",
+    flagId: product.flag_id ?? "",
+    uniqueNote: product.unique_note ?? "",
     price: String(product.price),
     compareAtPrice: product.compare_at_price === null ? "" : String(product.compare_at_price),
     lowStockThreshold: String(product.low_stock_threshold),
@@ -112,6 +116,7 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
             categories={categories}
             brands={brands}
             rarities={rarities}
+            flags={flags}
           />
           <Card title="Imágenes" id="imagenes">
             <ImageManager

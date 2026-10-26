@@ -6,7 +6,7 @@ import type { Rarity, RarityEffect } from "./types";
 
 export const RARITIES_TAG = "rarities";
 
-const COLUMNS = "id, name, slug, color, effect, description, position, show_on_home, is_active";
+const COLUMNS = "id, name, slug, color, effect, description, position, is_active";
 
 type RarityRow = {
   id: string;
@@ -16,7 +16,6 @@ type RarityRow = {
   effect: string;
   description: string | null;
   position: number;
-  show_on_home: boolean;
   is_active: boolean;
 };
 
@@ -29,12 +28,11 @@ function toRarity(row: RarityRow): Rarity {
     effect: row.effect as RarityEffect,
     description: row.description,
     position: row.position,
-    showOnHome: row.show_on_home,
     isActive: row.is_active,
   };
 }
 
-/** Rarezas activas para la tienda, de la más rara a la menos rara. */
+/** Niveles activos para la tienda, del mejor al más básico. */
 export async function getRarities(): Promise<Rarity[]> {
   "use cache";
   cacheTag(RARITIES_TAG);

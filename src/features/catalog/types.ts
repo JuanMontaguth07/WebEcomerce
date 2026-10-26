@@ -1,3 +1,4 @@
+import type { ProductFlag } from "@/features/flags/types";
 import type { Rarity } from "@/features/rarities/types";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -25,6 +26,8 @@ export type ProductSummary = {
   image: ImageRef | null;
   /** Nivel visual asignado en el panel (null = producto normal). */
   rarity: Rarity | null;
+  /** Bandera de marca o línea (NVIDIA, AMD Ryzen…), o null. */
+  flag: ProductFlag | null;
 };
 
 export type Category = {
@@ -56,6 +59,8 @@ export type ProductImage = {
 
 export type ProductDetail = ProductSummary & {
   description: string | null;
+  /** Por qué es una pieza única (null = producto normal). */
+  uniqueNote: string | null;
   warrantyMonths: number | null;
   seoTitle: string | null;
   seoDescription: string | null;

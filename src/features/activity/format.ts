@@ -20,6 +20,8 @@ export const ACTIVITY_ENTITIES = [
   "shipping_rate",
   "store_settings",
   "rarity",
+  "product_flag",
+  "home_banner",
 ] as const;
 
 export type ActivityEntity = (typeof ACTIVITY_ENTITIES)[number];
@@ -44,11 +46,11 @@ export const ACTIVITY_GROUPS = {
   pedidos: { label: "Pedidos", entities: ["order"] },
   inventario: { label: "Inventario", entities: ["inventory"] },
   catalogo: {
-    label: "Categorías, marcas y rarezas",
-    entities: ["category", "spec_definition", "brand", "rarity"],
+    label: "Categorías, marcas, rarezas y etiquetas",
+    entities: ["category", "spec_definition", "brand", "rarity", "product_flag"],
   },
   envios: { label: "Envíos", entities: ["shipping_rate"] },
-  configuracion: { label: "Configuración", entities: ["store_settings"] },
+  configuracion: { label: "Portada y configuración", entities: ["store_settings", "home_banner"] },
 } as const satisfies Record<string, { label: string; entities: readonly ActivityEntity[] }>;
 
 export type ActivityGroup = keyof typeof ACTIVITY_GROUPS;
@@ -71,6 +73,7 @@ const FIELD_LABELS: Record<string, string> = {
   brand_id: "Marca",
   category_id: "Categoría",
   rarity_id: "Rareza",
+  flag_id: "Etiqueta",
   parent_id: "Categoría principal",
   low_stock_threshold: "Aviso de stock bajo",
   warranty_months: "Garantía (meses)",
@@ -92,6 +95,14 @@ const FIELD_LABELS: Record<string, string> = {
   color: "Color",
   effect: "Efecto",
   show_on_home: "En la portada",
+  show_name: "Mostrar nombre",
+  unique_note: "Pieza única",
+  eyebrow: "Antetítulo",
+  title: "Título",
+  body: "Texto",
+  cta_label: "Texto del botón",
+  cta_href: "Enlace del botón",
+  illustration: "Ilustración",
   department: "Departamento",
   city: "Ciudad",
   min_days: "Días mínimos",
@@ -120,7 +131,7 @@ const FIELD_LABELS: Record<string, string> = {
 };
 
 const MONEY_FIELDS = new Set(["price", "compare_at_price", "shipping_cost", "total"]);
-const REFERENCE_FIELDS = new Set(["brand_id", "category_id", "parent_id", "rarity_id"]);
+const REFERENCE_FIELDS = new Set(["brand_id", "category_id", "parent_id", "rarity_id", "flag_id"]);
 const PRODUCT_TYPES: Record<string, string> = {
   component: "Componente",
   prebuilt: "Computador armado",
@@ -209,6 +220,10 @@ export function describeActivity(entry: ActivityEntry): string {
       return "actualizó la configuración de la tienda";
     case "rarity":
       return `${verb(entry.action)} la rareza ${label}`;
+    case "product_flag":
+      return `${verb(entry.action)} la etiqueta ${label}`;
+    case "home_banner":
+      return `${verb(entry.action)} el anuncio ${label} de la portada`;
   }
 }
 
@@ -293,6 +308,8 @@ export function activityHref(entry: ActivityEntry, existing: Set<string>): strin
   if (entry.entity === "store_settings") return "/admin/configuracion";
   if (entry.entity === "shipping_rate") return "/admin/envios";
   if (entry.entity === "rarity") return "/admin/rarezas";
+  if (entry.entity === "product_flag") return "/admin/etiquetas";
+  if (entry.entity === "home_banner") return "/admin/portada";
   const id = entry.entityId;
   if (!id || !existing.has(id)) return null;
   switch (entry.entity) {

@@ -1,8 +1,5 @@
-import { ExternalLinkIcon } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/admin-ui";
-import { Button } from "@/components/ui/button";
 import { requireAdmin } from "@/features/auth/session";
 import { listAdminRarities } from "@/features/rarities/queries";
 import { RaritiesManager } from "./rarities-manager";
@@ -17,15 +14,7 @@ export default async function AdminRaritiesPage() {
     <div className="grid gap-6">
       <AdminPageHeader
         title="Rarezas"
-        description="Niveles con color y efecto animado para que tus productos especiales resalten en toda la tienda."
-        actions={
-          <Button asChild variant="secondary">
-            <Link href="/rarezas" target="_blank">
-              <ExternalLinkIcon aria-hidden />
-              Ver en la tienda
-            </Link>
-          </Button>
-        }
+        description="Niveles de calidad, de Común a Legendario. Cada uno tiene color y efecto animado en las tarjetas de producto."
       />
       <RaritiesManager rarities={rarities} />
     </div>

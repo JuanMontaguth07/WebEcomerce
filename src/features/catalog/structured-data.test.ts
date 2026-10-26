@@ -27,6 +27,8 @@ const product: ProductDetail = {
   parentCategory: null,
   image: null,
   rarity: null,
+  uniqueNote: null,
+  flag: null,
   images: [{ id: "i1", path: "products/p1/a.webp", alt: "Frente", width: 800, height: 800 }],
   specs: [],
   warrantyMonths: 12,

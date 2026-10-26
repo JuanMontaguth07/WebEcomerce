@@ -43,6 +43,15 @@ export const productSchema = z
     categoryId: z.uuid("Selecciona una categoría."),
     brandId: optionalUuid,
     rarityId: optionalUuid,
+    flagId: optionalUuid,
+    uniqueNote: z
+      .string()
+      .trim()
+      .max(200, "Máximo 200 caracteres.")
+      .refine((value) => value === "" || value.length >= 3, "Escribe un poco más (mínimo 3).")
+      .transform((value) => value || null)
+      .nullable()
+      .optional(),
     price: money.refine((value) => value > 0, "El precio debe ser mayor que cero."),
     // En estas uniones el literal "" va primero: z.coerce convertiría "" en 0.
     compareAtPrice: z

@@ -34,16 +34,23 @@ beforeAll(async () => {
     ).id;
   });
   legendaryId = (
-    await one<{ id: string }>(db, `select id from public.rarities where slug = 'legendaria'`)
+    await one<{ id: string }>(db, `select id from public.rarities where slug = 'legendario'`)
   ).id;
 }, 60_000);
 
 describe("rarezas", () => {
-  it("vienen tres niveles iniciales ordenados de menor a mayor", async () => {
+  it("vienen seis niveles de calidad ordenados de menor a mayor", async () => {
     const rows = await asRole(db, "anon", null, () =>
       db.query<{ slug: string }>(`select slug from public.rarities order by position`),
     );
-    expect(rows.rows.map((row) => row.slug)).toEqual(["rara", "epica", "legendaria"]);
+    expect(rows.rows.map((row) => row.slug)).toEqual([
+      "comun",
+      "poco-comun",
+      "raro",
+      "epico",
+      "ultra-raro",
+      "legendario",
+    ]);
   });
 
   it("solo el admin las crea; los visitantes no ven las inactivas", async () => {
@@ -112,7 +119,7 @@ describe("rarezas", () => {
       `select entity_label, changes from public.audit_log
        where entity = 'rarity' and action = 'delete'`,
     );
-    expect(entry.entity_label).toBe("Legendaria");
+    expect(entry.entity_label).toBe("Legendario");
     expect(entry.changes).toMatchObject({ color: "#F2A900", effect: "holo" });
   });
 });
@@ -138,5 +145,68 @@ describe("anuncio de la tienda", () => {
         asAdmin(() => db.query(`update public.store_settings set announcement_href = $1`, [href])),
       ).rejects.toThrow(/announcement_href_format/);
     }
+  });
+});
+
+describe("etiquetas de bandera", () => {
+  let flagId: string;
+
+  it("solo el admin las crea y el logo debe estar en flags/", async () => {
+    await expect(
+      asRole(db, "authenticated", CUSTOMER, () =>
+        db.query(`insert into public.product_flags (name, color) values ('NVIDIA', '#76B900')`),
+      ),
+    ).rejects.toThrow(/row-level security/);
+    await expect(
+      asAdmin(() =>
+        db.query(
+          `insert into public.product_flags (name, color, logo_path)
+           values ('NVIDIA', '#76B900', 'products/otro/logo.png')`,
+        ),
+      ),
+    ).rejects.toThrow(/check constraint/);
+
+    flagId = (
+      await asAdmin(() =>
+        one<{ id: string }>(
+          db,
+          `insert into public.product_flags (name, color, logo_path)
+           values ('NVIDIA', '#76B900', 'flags/8a6e0804-2bd0-4672-b79d-d97027f9071a.png') returning id`,
+        ),
+      )
+    ).id;
+  });
+
+  it("se asigna al producto, catalog_search la devuelve y queda en el historial", async () => {
+    await asAdmin(() =>
+      db.query(`update public.products set flag_id = $1 where id = $2`, [flagId, productId]),
+    );
+    const row = await asRole(db, "anon", null, () =>
+      one<{ flag_id: string }>(db, `select flag_id from public.catalog_search()`),
+    );
+    expect(row.flag_id).toBe(flagId);
+    const created = await one<{ entity_label: string }>(
+      db,
+      `select entity_label from public.audit_log where entity = 'product_flag' and action = 'create'`,
+    );
+    expect(created.entity_label).toBe("NVIDIA");
+  });
+
+  it("los visitantes no ven etiquetas inactivas y borrarla libera el producto", async () => {
+    await asAdmin(() =>
+      db.query(`update public.product_flags set is_active = false where id = $1`, [flagId]),
+    );
+    const hidden = await asRole(db, "anon", null, () =>
+      db.query(`select 1 from public.product_flags`),
+    );
+    expect(hidden.rows).toHaveLength(0);
+
+    await asAdmin(() => db.query(`delete from public.product_flags where id = $1`, [flagId]));
+    const product = await one<{ flag_id: string | null }>(
+      db,
+      `select flag_id from public.products where id = $1`,
+      [productId],
+    );
+    expect(product.flag_id).toBeNull();
   });
 });

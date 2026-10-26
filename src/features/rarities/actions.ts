@@ -27,7 +27,6 @@ export const saveRarity = adminAction(raritySchema, async (values, { supabase })
     effect: values.effect,
     description: values.description,
     position: values.position,
-    show_on_home: values.showOnHome,
     is_active: values.isActive,
   };
   const { data, error } = values.id

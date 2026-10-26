@@ -100,7 +100,7 @@ async function resolveContext(
   const orderIds = idsFor(["order"]);
 
   const select = async (
-    table: "products" | "categories" | "brands" | "orders" | "rarities",
+    table: "products" | "categories" | "brands" | "orders" | "rarities" | "product_flags",
     ids: string[],
   ) => {
     if (!ids.length) return [] as { id: string; name?: string }[];
@@ -110,17 +110,18 @@ async function resolveContext(
     return data as unknown as { id: string; name?: string }[];
   };
 
-  const [products, categories, brands, orders, rarities] = await Promise.all([
+  const [products, categories, brands, orders, rarities, flags] = await Promise.all([
     select("products", productIds),
     select("categories", categoryIds),
     select("brands", brandIds),
     select("orders", orderIds),
     select("rarities", rarityIds),
+    select("product_flags", references),
   ]);
 
   const existing = new Set([...products, ...categories, ...brands, ...orders].map((row) => row.id));
   const names: ReferenceNames = new Map(
-    [...categories, ...brands, ...rarities].flatMap((row) =>
+    [...categories, ...brands, ...rarities, ...flags].flatMap((row) =>
       row.name ? [[row.id, row.name] as const] : [],
     ),
   );

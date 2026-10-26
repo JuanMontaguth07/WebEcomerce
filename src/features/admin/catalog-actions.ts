@@ -32,6 +32,8 @@ function toProductRow(values: ProductValues) {
     category_id: values.categoryId,
     brand_id: values.brandId ?? null,
     rarity_id: values.rarityId ?? null,
+    flag_id: values.flagId ?? null,
+    unique_note: values.uniqueNote ?? null,
     price: values.price,
     compare_at_price: values.compareAtPrice ?? null,
     low_stock_threshold: values.lowStockThreshold,

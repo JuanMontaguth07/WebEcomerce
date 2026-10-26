@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { listAdminProducts, type ProductFilter } from "@/features/admin/catalog";
 import { requireAdmin } from "@/features/auth/session";
+import { listAdminFlags } from "@/features/flags/queries";
 import { listAdminRarities } from "@/features/rarities/queries";
 import { ProductsTable } from "./products-table";
 
@@ -28,10 +29,17 @@ const FILTERS: { value: ProductFilter; label: string }[] = [
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function href(params: { filtro?: string; rareza?: string; q?: string; pagina?: number }) {
+function href(params: {
+  filtro?: string;
+  rareza?: string;
+  etiqueta?: string;
+  q?: string;
+  pagina?: number;
+}) {
   const search = new URLSearchParams();
   if (params.filtro && params.filtro !== "all") search.set("filtro", params.filtro);
   if (params.rareza) search.set("rareza", params.rareza);
+  if (params.etiqueta) search.set("etiqueta", params.etiqueta);
   if (params.q) search.set("q", params.q);
   if (params.pagina && params.pagina > 1) search.set("pagina", String(params.pagina));
   const query = search.toString();
@@ -47,11 +55,14 @@ export default async function AdminProductsPage({ searchParams }: PageProps<"/ad
   const page = pageParam(params.pagina);
   const rawRarity = param(params.rareza);
   const rarityId = rawRarity && UUID.test(rawRarity) ? rawRarity : undefined;
-  const [{ products, total, pageCount }, rarities] = await Promise.all([
-    listAdminProducts({ q, filter, rarityId, page }),
+  const rawFlag = param(params.etiqueta);
+  const flagId = rawFlag && UUID.test(rawFlag) ? rawFlag : undefined;
+  const [{ products, total, pageCount }, rarities, flags] = await Promise.all([
+    listAdminProducts({ q, filter, rarityId, flagId, page }),
     listAdminRarities(),
+    listAdminFlags(),
   ]);
-  const current = { filtro: filter, rareza: rarityId, q };
+  const current = { filtro: filter, rareza: rarityId, etiqueta: flagId, q };
 
   return (
     <div className="grid gap-6">
@@ -90,9 +101,34 @@ export default async function AdminProductsPage({ searchParams }: PageProps<"/ad
           action="/admin/productos"
           defaultValue={q}
           placeholder="Nombre o SKU"
-          hidden={{ filtro: filter === "all" ? undefined : filter, rareza: rarityId }}
+          hidden={{
+            filtro: filter === "all" ? undefined : filter,
+            rareza: rarityId,
+            etiqueta: flagId,
+          }}
         />
       </div>
+      {flags.length > 0 && (
+        <FilterChips
+          label="Filtrar por etiqueta"
+          size="sm"
+          items={[
+            {
+              key: "all",
+              label: "Todas las etiquetas",
+              href: href({ ...current, etiqueta: undefined }),
+              active: !flagId,
+            },
+            ...flags.map((flag) => ({
+              key: flag.id,
+              label: flag.name,
+              href: href({ ...current, etiqueta: flag.id }),
+              active: flag.id === flagId,
+              count: flag.productCount,
+            })),
+          ]}
+        />
+      )}
       {rarities.length > 0 && (
         <FilterChips
           label="Filtrar por rareza"
@@ -119,10 +155,11 @@ export default async function AdminProductsPage({ searchParams }: PageProps<"/ad
         <ProductsTable
           products={products}
           rarities={rarities.map(({ id, name }) => ({ id, name }))}
+          flags={flags.map(({ id, name }) => ({ id, name }))}
         />
       ) : (
         <AdminEmpty>
-          {q || filter !== "all" || rarityId
+          {q || filter !== "all" || rarityId || flagId
             ? "Ningún producto coincide con el filtro."
             : "Aún no hay productos."}
         </AdminEmpty>

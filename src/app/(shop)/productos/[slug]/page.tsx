@@ -1,4 +1,4 @@
-import { InfoIcon, MessageCircleIcon, ShieldCheckIcon, TagIcon } from "lucide-react";
+import { InfoIcon, MessageCircleIcon, ShieldCheckIcon, SparklesIcon, TagIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -10,6 +10,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { Breadcrumbs } from "@/components/shop/breadcrumbs";
 import { HomeSection } from "@/components/shop/home-section";
 import { Price } from "@/components/shop/price";
+import { ProductFlagTag } from "@/components/shop/product-flag";
 import { RarityBadge } from "@/components/shop/rarity-badge";
 import { StockBadge } from "@/components/shop/stock-badge";
 import { rarityStyle } from "@/features/rarities/types";
@@ -93,16 +94,21 @@ function ProductInfo({
   return (
     <div className="grid content-start gap-6">
       <div className="grid gap-3">
-        {product.brand ? (
-          <Link
-            href={`/marcas/${product.brand.slug}`}
-            className="w-fit text-eyebrow text-primary hover:underline"
-          >
-            {product.brand.name}
-          </Link>
-        ) : (
-          <span className="text-eyebrow text-muted-foreground">{product.category.name}</span>
-        )}
+        <div className="flex flex-wrap items-center gap-3">
+          {product.flag && (
+            <ProductFlagTag flag={product.flag} size="lg" className="rounded-l-md" />
+          )}
+          {product.brand ? (
+            <Link
+              href={`/marcas/${product.brand.slug}`}
+              className="w-fit text-eyebrow text-primary hover:underline"
+            >
+              {product.brand.name}
+            </Link>
+          ) : (
+            <span className="text-eyebrow text-muted-foreground">{product.category.name}</span>
+          )}
+        </div>
         <h1 className="text-3xl leading-tight font-extrabold font-stretch-112% md:text-4xl">
           {product.name}
         </h1>
@@ -112,25 +118,29 @@ function ProductInfo({
       </div>
 
       {product.rarity && (
-        <Link
-          href="/rarezas"
+        <div
           data-effect={product.rarity.effect}
           style={rarityStyle(product.rarity)}
-          className="rarity-card group relative flex items-center gap-4 overflow-hidden rounded-xl border bg-card p-4 transition-transform duration-300 ease-out-soft hover:-translate-y-0.5"
+          className="rarity-card relative flex items-center gap-4 overflow-hidden rounded-xl border bg-card p-4"
         >
           <RarityBadge rarity={product.rarity} size="lg" />
-          <span className="grid min-w-0 gap-0.5 text-sm">
-            <span className="font-semibold">
-              Producto de rareza {product.rarity.name.toLowerCase()}
-            </span>
+          <p className="grid min-w-0 gap-0.5 text-sm">
+            <span className="font-semibold">Calidad {product.rarity.name.toLowerCase()}</span>
             {product.rarity.description && (
               <span className="text-muted-foreground">{product.rarity.description}</span>
             )}
+          </p>
+        </div>
+      )}
+
+      {product.uniqueNote && (
+        <p className="flex gap-3 rounded-xl border border-primary/30 bg-primary-soft p-4 text-sm">
+          <SparklesIcon className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
+          <span className="grid gap-0.5">
+            <span className="font-semibold">Pieza única</span>
+            <span>{product.uniqueNote}</span>
           </span>
-          <span className="ml-auto shrink-0 text-xs font-semibold text-primary group-hover:underline">
-            Ver rarezas
-          </span>
-        </Link>
+        </p>
       )}
 
       {isDemoProduct(product.sku) && (

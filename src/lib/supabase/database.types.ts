@@ -139,6 +139,51 @@ export type Database = {
           },
         ]
       }
+      home_banners: {
+        Row: {
+          body: string | null
+          created_at: string
+          cta_href: string | null
+          cta_label: string | null
+          eyebrow: string | null
+          id: string
+          illustration: string
+          image_path: string | null
+          is_active: boolean
+          position: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          cta_href?: string | null
+          cta_label?: string | null
+          eyebrow?: string | null
+          id?: string
+          illustration?: string
+          image_path?: string | null
+          is_active?: boolean
+          position?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          cta_href?: string | null
+          cta_label?: string | null
+          eyebrow?: string | null
+          id?: string
+          illustration?: string
+          image_path?: string | null
+          is_active?: boolean
+          position?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       inventory_movements: {
         Row: {
           created_at: string
@@ -432,6 +477,39 @@ export type Database = {
           },
         ]
       }
+      product_flags: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          is_active: boolean
+          logo_path: string | null
+          name: string
+          show_name: boolean
+          updated_at: string
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          logo_path?: string | null
+          name: string
+          show_name?: boolean
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          logo_path?: string | null
+          name?: string
+          show_name?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_images: {
         Row: {
           alt_text: string
@@ -519,6 +597,7 @@ export type Database = {
           compare_at_price: number | null
           created_at: string
           description: string | null
+          flag_id: string | null
           id: string
           is_active: boolean
           is_featured: boolean
@@ -534,6 +613,7 @@ export type Database = {
           sku: string
           slug: string
           stock: number
+          unique_note: string | null
           updated_at: string
           warranty_months: number | null
         }
@@ -543,6 +623,7 @@ export type Database = {
           compare_at_price?: number | null
           created_at?: string
           description?: string | null
+          flag_id?: string | null
           id?: string
           is_active?: boolean
           is_featured?: boolean
@@ -558,6 +639,7 @@ export type Database = {
           sku: string
           slug: string
           stock?: number
+          unique_note?: string | null
           updated_at?: string
           warranty_months?: number | null
         }
@@ -567,6 +649,7 @@ export type Database = {
           compare_at_price?: number | null
           created_at?: string
           description?: string | null
+          flag_id?: string | null
           id?: string
           is_active?: boolean
           is_featured?: boolean
@@ -582,6 +665,7 @@ export type Database = {
           sku?: string
           slug?: string
           stock?: number
+          unique_note?: string | null
           updated_at?: string
           warranty_months?: number | null
         }
@@ -598,6 +682,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_flag_id_fkey"
+            columns: ["flag_id"]
+            isOneToOne: false
+            referencedRelation: "product_flags"
             referencedColumns: ["id"]
           },
           {
@@ -646,7 +737,6 @@ export type Database = {
           is_active: boolean
           name: string
           position: number
-          show_on_home: boolean
           slug: string
           updated_at: string
         }
@@ -659,7 +749,6 @@ export type Database = {
           is_active?: boolean
           name: string
           position?: number
-          show_on_home?: boolean
           slug: string
           updated_at?: string
         }
@@ -672,7 +761,6 @@ export type Database = {
           is_active?: boolean
           name?: string
           position?: number
-          show_on_home?: boolean
           slug?: string
           updated_at?: string
         }
@@ -919,6 +1007,7 @@ export type Database = {
           category_slug: string
           compare_at_price: number
           created_at: string
+          flag_id: string
           id: string
           image_alt: string
           image_path: string

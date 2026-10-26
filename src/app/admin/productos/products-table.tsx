@@ -3,6 +3,7 @@
 import {
   EyeIcon,
   EyeOffIcon,
+  FlagIcon,
   GemIcon,
   StarIcon,
   StarOffIcon,
@@ -20,9 +21,12 @@ import { StockBadge } from "@/components/shop/stock-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ProductFlagTag } from "@/components/shop/product-flag";
 import { RarityBadge } from "@/components/shop/rarity-badge";
 import { fieldBase } from "@/components/ui/input";
 import { bulkDeleteProducts, bulkUpdateProducts } from "@/features/admin/catalog-actions";
+import { setProductsFlag } from "@/features/flags/actions";
+import type { ProductFlag } from "@/features/flags/types";
 import { setProductsRarity } from "@/features/rarities/actions";
 import type { RarityEffect } from "@/features/rarities/types";
 import { cn } from "@/lib/utils";
@@ -42,7 +46,64 @@ export type ProductRow = {
   category: string;
   image: string | null;
   rarity: { id: string; name: string; color: string; effect: RarityEffect } | null;
+  flag: Pick<ProductFlag, "name" | "color" | "logoPath" | "showName"> | null;
 };
+
+type Option = { id: string; name: string };
+
+/** Selector + botón para asignar (o quitar) un valor a todos los seleccionados. */
+function BulkAssign({
+  id,
+  label,
+  placeholder,
+  clearLabel,
+  options,
+  disabled,
+  Icon,
+  onApply,
+}: {
+  id: string;
+  label: string;
+  placeholder: string;
+  clearLabel: string;
+  options: Option[];
+  disabled: boolean;
+  Icon: React.ComponentType<{ className?: string }>;
+  onApply: (choice: string) => void;
+}) {
+  const [choice, setChoice] = useState("");
+  if (!options.length) return null;
+  return (
+    <span className="flex items-center gap-1">
+      <label htmlFor={id} className="sr-only">
+        {label}
+      </label>
+      <select
+        id={id}
+        value={choice}
+        onChange={(event) => setChoice(event.target.value)}
+        className={cn(fieldBase, "h-8 w-36 px-2 text-sm")}
+      >
+        <option value="">{placeholder}</option>
+        {options.map((option) => (
+          <option key={option.id} value={option.id}>
+            {option.name}
+          </option>
+        ))}
+        <option value="none">{clearLabel}</option>
+      </select>
+      <Button
+        size="sm"
+        variant="secondary"
+        disabled={disabled || !choice}
+        onClick={() => onApply(choice)}
+      >
+        <Icon aria-hidden />
+        Aplicar
+      </Button>
+    </span>
+  );
+}
 
 type Change = "show" | "hide" | "feature" | "unfeature";
 
@@ -57,15 +118,16 @@ const CHANGE_DONE: Record<Change, string> = {
 export function ProductsTable({
   products,
   rarities,
+  flags,
 }: {
   products: ProductRow[];
-  rarities: { id: string; name: string }[];
+  rarities: Option[];
+  flags: Option[];
 }) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [reason, setReason] = useState("");
-  const [rarityChoice, setRarityChoice] = useState("");
   const [pending, startTransition] = useTransition();
 
   // Si la página cambia (filtro, paginación), se descartan ids que ya no están.
@@ -103,22 +165,23 @@ export function ProductsTable({
     });
   }
 
-  function assignRarity() {
-    if (!rarityChoice) return;
+  function assign(kind: "rarity" | "flag", choice: string) {
     startTransition(async () => {
-      const rarityId = rarityChoice === "none" ? null : rarityChoice;
-      const result = await setProductsRarity({ ids: chosen, rarityId });
+      const value = choice === "none" ? null : choice;
+      const result =
+        kind === "rarity"
+          ? await setProductsRarity({ ids: chosen, rarityId: value })
+          : await setProductsFlag({ ids: chosen, flagId: value });
       if (!result.ok) {
         toast.error(result.error.message);
         return;
       }
-      const name = rarities.find((rarity) => rarity.id === rarityId)?.name;
+      const label = kind === "rarity" ? "Rareza" : "Etiqueta";
+      const name = (kind === "rarity" ? rarities : flags).find((item) => item.id === value)?.name;
+      const count = `${result.data.updated} ${result.data.updated === 1 ? "producto" : "productos"}`;
       toast.success(
-        name
-          ? `Rareza «${name}» asignada a ${result.data.updated} ${result.data.updated === 1 ? "producto" : "productos"}`
-          : "Rareza quitada",
+        name ? `${label} «${name}» asignada a ${count}` : `${label} quitada de ${count}`,
       );
-      setRarityChoice("");
       clear();
       router.refresh();
     });
@@ -185,36 +248,26 @@ export function ProductsTable({
               <StarOffIcon aria-hidden />
               Quitar destacado
             </Button>
-            {rarities.length > 0 && (
-              <span className="flex items-center gap-1">
-                <label htmlFor="bulk-rarity" className="sr-only">
-                  Rareza para los seleccionados
-                </label>
-                <select
-                  id="bulk-rarity"
-                  value={rarityChoice}
-                  onChange={(event) => setRarityChoice(event.target.value)}
-                  className={cn(fieldBase, "h-8 w-40 px-2 text-sm")}
-                >
-                  <option value="">Rareza…</option>
-                  {rarities.map((rarity) => (
-                    <option key={rarity.id} value={rarity.id}>
-                      {rarity.name}
-                    </option>
-                  ))}
-                  <option value="none">Quitar rareza</option>
-                </select>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  disabled={pending || !rarityChoice}
-                  onClick={assignRarity}
-                >
-                  <GemIcon aria-hidden />
-                  Aplicar
-                </Button>
-              </span>
-            )}
+            <BulkAssign
+              id="bulk-rarity"
+              label="Rareza para los seleccionados"
+              placeholder="Rareza…"
+              clearLabel="Quitar rareza"
+              options={rarities}
+              disabled={pending}
+              Icon={GemIcon}
+              onApply={(choice) => assign("rarity", choice)}
+            />
+            <BulkAssign
+              id="bulk-flag"
+              label="Etiqueta para los seleccionados"
+              placeholder="Etiqueta…"
+              clearLabel="Quitar etiqueta"
+              options={flags}
+              disabled={pending}
+              Icon={FlagIcon}
+              onApply={(choice) => assign("flag", choice)}
+            />
             <Button
               size="sm"
               variant="destructive"
@@ -317,7 +370,14 @@ export function ProductsTable({
                         {product.name}
                       </Link>
                       <span className="font-mono text-xs text-muted-foreground">{product.sku}</span>
-                      {product.rarity && <RarityBadge rarity={product.rarity} className="mt-1" />}
+                      {(product.rarity || product.flag) && (
+                        <span className="mt-1 flex flex-wrap items-center gap-1.5">
+                          {product.flag && (
+                            <ProductFlagTag flag={product.flag} className="rounded-l-sm" />
+                          )}
+                          {product.rarity && <RarityBadge rarity={product.rarity} />}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </td>

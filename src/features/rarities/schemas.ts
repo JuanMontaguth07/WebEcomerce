@@ -26,7 +26,6 @@ export const raritySchema = z.object({
     .int("Sin decimales.")
     .min(0, "De 0 a 100.")
     .max(100, "De 0 a 100."),
-  showOnHome: z.boolean(),
   isActive: z.boolean(),
 });
 

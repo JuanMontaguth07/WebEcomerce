@@ -1,5 +1,7 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
+import { getFlagMap } from "@/features/flags/queries";
+import type { ProductFlag } from "@/features/flags/types";
 import { getRarityMap } from "@/features/rarities/queries";
 import type { Rarity } from "@/features/rarities/types";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -33,7 +35,7 @@ export const CATALOG_TAGS = {
 
 const SUMMARY_SELECT = `
   id, name, slug, sku, product_type, short_description, price, compare_at_price,
-  stock, low_stock_threshold, rarity_id,
+  stock, low_stock_threshold, rarity_id, flag_id,
   brand:brands(name, slug),
   category:categories!inner(name, slug),
   images:product_images(storage_path, alt_text, position)
@@ -51,14 +53,31 @@ type SummaryRow = {
   stock: number;
   low_stock_threshold: number;
   rarity_id: string | null;
+  flag_id: string | null;
   brand: { name: string; slug: string } | null;
   category: { name: string; slug: string };
   images: { storage_path: string; alt_text: string; position: number }[];
 };
 
-type RarityMap = Map<string, Rarity>;
+/** Rarezas y banderas activas (cacheadas) para completar las tarjetas. */
+type Lookups = { rarities: Map<string, Rarity>; flags: Map<string, ProductFlag> };
 
-function toSummary(row: SummaryRow, rarities: RarityMap): ProductSummary {
+async function getLookups(): Promise<Lookups> {
+  const [rarities, flags] = await Promise.all([getRarityMap(), getFlagMap()]);
+  return { rarities, flags };
+}
+
+function decorate(
+  row: { rarity_id: string | null; flag_id: string | null },
+  { rarities, flags }: Lookups,
+) {
+  return {
+    rarity: (row.rarity_id && rarities.get(row.rarity_id)) || null,
+    flag: (row.flag_id && flags.get(row.flag_id)) || null,
+  };
+}
+
+function toSummary(row: SummaryRow, lookups: Lookups): ProductSummary {
   const image = [...row.images].sort((a, b) => a.position - b.position)[0];
   return {
     id: row.id,
@@ -74,7 +93,7 @@ function toSummary(row: SummaryRow, rarities: RarityMap): ProductSummary {
     brand: row.brand,
     category: row.category,
     image: image ? { path: image.storage_path, alt: image.alt_text } : null,
-    rarity: (row.rarity_id && rarities.get(row.rarity_id)) || null,
+    ...decorate(row, lookups),
   };
 }
 
@@ -169,7 +188,7 @@ export async function searchCatalog(
   });
   if (error) fail("searchCatalog", error);
 
-  const rarities = await getRarityMap();
+  const lookups = await getLookups();
   const total = Number(data[0]?.total_count ?? 0);
   const items = data.map((row): ProductSummary => ({
     id: row.id,
@@ -185,7 +204,7 @@ export async function searchCatalog(
     brand: row.brand_slug ? { name: row.brand_name, slug: row.brand_slug } : null,
     category: { name: row.category_name, slug: row.category_slug },
     image: row.image_path ? { path: row.image_path, alt: row.image_alt } : null,
-    rarity: (row.rarity_id && rarities.get(row.rarity_id)) || null,
+    ...decorate(row, lookups),
   }));
 
   return { items, total, pageCount: Math.max(1, Math.ceil(total / PAGE_SIZE)) };
@@ -255,46 +274,33 @@ export async function getHomeCollection(
   if (error) fail(`getHomeCollection(${collection})`, error);
 
   // Los agotados van al final, pero siguen visibles.
-  const rarities = await getRarityMap();
-  const items = data.map((row) => toSummary(row, rarities));
+  const lookups = await getLookups();
+  const items = data.map((row) => toSummary(row, lookups));
   return [...items.filter((p) => p.stock > 0), ...items.filter((p) => p.stock <= 0)];
 }
 
-/**
- * Productos con rareza activa, de la más rara a la menos rara (disponibles
- * primero dentro de cada nivel). `homeOnly` deja los niveles marcados para la portada.
- */
-export async function getRarityProducts(homeOnly: boolean, limit = 60): Promise<ProductSummary[]> {
+export type UniqueProduct = { product: ProductSummary; note: string };
+
+/** Piezas únicas: productos con la nota de por qué son especiales, más recientes primero. */
+export async function getUniqueProducts(limit = 4): Promise<UniqueProduct[]> {
   "use cache";
   cacheTag(CATALOG_TAGS.products);
   cacheLife("minutes");
 
-  const rarities = await getRarityMap();
-  const ids = [...rarities.values()]
-    .filter((rarity) => !homeOnly || rarity.showOnHome)
-    .map((rarity) => rarity.id);
-  if (!ids.length) return [];
-
   const { data, error } = await createPublicClient({ retry: true })
     .from("products")
-    .select(SUMMARY_SELECT)
+    .select(`${SUMMARY_SELECT}, unique_note`)
     .eq("is_active", true)
-    .in("rarity_id", ids)
+    .not("unique_note", "is", null)
     .order("position", { referencedTable: "product_images" })
     .limit(1, { referencedTable: "product_images" })
     .order("created_at", { ascending: false })
-    .limit(200)
-    .overrideTypes<SummaryRow[], { merge: false }>();
-  if (error) fail("getRarityProducts", error);
+    .limit(limit)
+    .overrideTypes<(SummaryRow & { unique_note: string })[], { merge: false }>();
+  if (error) fail("getUniqueProducts", error);
 
-  return data
-    .map((row) => toSummary(row, rarities))
-    .sort(
-      (a, b) =>
-        (b.rarity?.position ?? 0) - (a.rarity?.position ?? 0) ||
-        Number(b.stock > 0) - Number(a.stock > 0),
-    )
-    .slice(0, limit);
+  const lookups = await getLookups();
+  return data.map((row) => ({ product: toSummary(row, lookups), note: row.unique_note }));
 }
 
 /** Más vendidos según pedidos reales. Sin ventas devuelve una lista vacía. */
@@ -316,8 +322,8 @@ export async function getBestSellers(limit = 8): Promise<ProductSummary[]> {
     .overrideTypes<SummaryRow[], { merge: false }>();
   if (productsError) fail("getBestSellers", productsError);
 
-  const rarities = await getRarityMap();
-  const byId = new Map(data.map((row) => [row.id, toSummary(row, rarities)]));
+  const lookups = await getLookups();
+  const byId = new Map(data.map((row) => [row.id, toSummary(row, lookups)]));
   return ids.flatMap((id) => byId.get(id) ?? []);
 }
 
@@ -327,6 +333,7 @@ export async function getBestSellers(limit = 8): Promise<ProductSummary[]> {
 
 type DetailRow = SummaryRow & {
   description: string | null;
+  unique_note: string | null;
   warranty_months: number | null;
   seo_title: string | null;
   seo_description: string | null;
@@ -353,7 +360,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
     .select(
       `
       id, name, slug, sku, product_type, short_description, description, price, compare_at_price,
-      stock, low_stock_threshold, rarity_id, warranty_months, seo_title, seo_description, updated_at,
+      stock, low_stock_threshold, rarity_id, flag_id, unique_note, warranty_months, seo_title, seo_description, updated_at,
       brand:brands(name, slug),
       category:categories!inner(id, name, slug, parent_id),
       images:product_images(id, storage_path, alt_text, position, width, height),
@@ -378,8 +385,9 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
     ? (await getCategories()).find((category) => category.id === data.category.parent_id)
     : undefined;
   return {
-    ...toSummary(data, await getRarityMap()),
+    ...toSummary(data, await getLookups()),
     description: data.description,
+    uniqueNote: data.unique_note,
     warrantyMonths: data.warranty_months,
     seoTitle: data.seo_title,
     seoDescription: data.seo_description,
@@ -424,8 +432,8 @@ export async function getRelatedProducts(
     .limit(limit)
     .overrideTypes<SummaryRow[], { merge: false }>();
   if (error) fail("getRelatedProducts", error);
-  const rarities = await getRarityMap();
-  return data.map((row) => toSummary(row, rarities));
+  const lookups = await getLookups();
+  return data.map((row) => toSummary(row, lookups));
 }
 
 export async function getActiveProductSlugs(): Promise<{ slug: string; updatedAt: string }[]> {

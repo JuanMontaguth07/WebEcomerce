@@ -1,6 +1,6 @@
 "use client";
 
-import { GemIcon, MenuIcon } from "lucide-react";
+import { MenuIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -15,13 +15,7 @@ import {
 import type { CategoryRef } from "@/features/catalog/types";
 
 /** Menú lateral para móvil con las categorías y accesos principales. */
-export function MobileNav({
-  categories,
-  showRarities = false,
-}: {
-  categories: CategoryRef[];
-  showRarities?: boolean;
-}) {
+export function MobileNav({ categories }: { categories: CategoryRef[] }) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
 
@@ -59,18 +53,6 @@ export function MobileNav({
                 Ofertas
               </Link>
             </li>
-            {showRarities && (
-              <li>
-                <Link
-                  href="/rarezas"
-                  onClick={close}
-                  className="flex items-center gap-2 rounded-md px-3 py-2.5 font-semibold hover:bg-secondary"
-                >
-                  <GemIcon className="size-4 text-primary" aria-hidden />
-                  Rarezas
-                </Link>
-              </li>
-            )}
             <li>
               <Link
                 href="/nosotros"
