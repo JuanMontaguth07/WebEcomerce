@@ -21,23 +21,28 @@ export async function SiteFooter() {
           <p className="text-sm text-muted-foreground">{siteConfig.shortDescription}</p>
         </div>
 
-        <nav aria-labelledby="footer-categorias">
-          <h2 id="footer-categorias" className="mb-4 text-eyebrow font-mono text-muted-foreground">
-            Categorías
-          </h2>
-          <ul className="grid gap-2 text-sm">
-            {categories.map((category) => (
-              <li key={category.slug}>
-                <Link
-                  href={`/categorias/${category.slug}`}
-                  className="hover:text-primary hover:underline"
-                >
-                  {category.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        {categories.length > 0 && (
+          <nav aria-labelledby="footer-categorias">
+            <h2
+              id="footer-categorias"
+              className="mb-4 text-eyebrow font-mono text-muted-foreground"
+            >
+              Categorías
+            </h2>
+            <ul className="grid gap-2 text-sm">
+              {categories.map((category) => (
+                <li key={category.slug}>
+                  <Link
+                    href={`/categorias/${category.slug}`}
+                    className="hover:text-primary hover:underline"
+                  >
+                    {category.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
 
         <nav aria-labelledby="footer-tienda">
           <h2 id="footer-tienda" className="mb-4 text-eyebrow font-mono text-muted-foreground">

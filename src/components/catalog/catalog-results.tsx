@@ -30,15 +30,21 @@ type CatalogResultsProps = {
 
 function EmptyState({ filters, basePath }: { filters: Filters; basePath: string }) {
   const filtered = hasActiveFilters(filters);
+  // Sin búsqueda ni filtros: la sección todavía no tiene productos publicados.
+  const nothingYet = !filtered && !filters.q;
   return (
     <div className="grid justify-items-center gap-4 rounded-xl border border-dashed bg-card px-6 py-16 text-center">
       <PackageSearchIcon className="size-10 text-muted-foreground" aria-hidden />
       <div className="grid gap-1">
-        <h2 className="text-lg font-semibold">No encontramos productos</h2>
+        <h2 className="text-lg font-semibold">
+          {nothingYet ? "Aún no hay productos aquí" : "No encontramos productos"}
+        </h2>
         <p className="max-w-md text-sm text-muted-foreground">
           {filters.q
             ? `No hay resultados para «${filters.q}» con los filtros actuales. Revisa la ortografía o prueba con el SKU.`
-            : "Ningún producto coincide con los filtros seleccionados."}
+            : nothingYet
+              ? "Estamos preparando el catálogo. Vuelve pronto."
+              : "Ningún producto coincide con los filtros seleccionados."}
         </p>
       </div>
       <div className="flex flex-wrap justify-center gap-2">
@@ -53,9 +59,16 @@ function EmptyState({ filters, basePath }: { filters: Filters; basePath: string 
             </Link>
           </Button>
         )}
-        <Button asChild>
-          <Link href="/productos">Ver todo el catálogo</Link>
-        </Button>
+        {/* En /productos sin filtros este enlace llevaría a la misma página. */}
+        {basePath === "/productos" && nothingYet ? (
+          <Button asChild>
+            <Link href="/">Ir al inicio</Link>
+          </Button>
+        ) : (
+          <Button asChild>
+            <Link href="/productos">Ver todo el catálogo</Link>
+          </Button>
+        )}
       </div>
     </div>
   );
