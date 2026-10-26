@@ -19,16 +19,24 @@ function isHttpUrl(value: string | undefined): value is string {
   }
 }
 
-const invalid = [
-  !isHttpUrl(raw.NEXT_PUBLIC_SITE_URL) && "NEXT_PUBLIC_SITE_URL",
-  !isHttpUrl(raw.NEXT_PUBLIC_SUPABASE_URL) && "NEXT_PUBLIC_SUPABASE_URL",
+/** Describe el problema sin revelar la clave (las URLs son públicas y se muestran). */
+function urlProblem(name: string, value: string | undefined) {
+  if (isHttpUrl(value)) return null;
+  return value
+    ? `${name} = "${value}" no es una URL completa (debe empezar por https://)`
+    : `${name} no está definida`;
+}
+
+const problems = [
+  urlProblem("NEXT_PUBLIC_SITE_URL", raw.NEXT_PUBLIC_SITE_URL),
+  urlProblem("NEXT_PUBLIC_SUPABASE_URL", raw.NEXT_PUBLIC_SUPABASE_URL),
   (raw.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.length ?? 0) < 20 &&
-    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY falta o está incompleta",
 ].filter(Boolean);
 
-if (invalid.length) {
+if (problems.length) {
   throw new Error(
-    `Variables de entorno inválidas o faltantes: ${invalid.join(", ")}. Copia .env.example a .env.local y complétalas.`,
+    `Variables de entorno inválidas: ${problems.join("; ")}. En local, copia .env.example a .env.local; en Vercel, revisa Settings → Environment Variables.`,
   );
 }
 
