@@ -4,8 +4,14 @@
  * de forma literal, por eso se listan una a una. Se validan sin zod porque este
  * módulo llega al navegador en todas las páginas.
  */
+// En Vercel, si no se definió la URL del sitio, se usa el dominio de producción
+// del proyecto (variable de sistema que Vercel expone por defecto).
+const vercelProductionHost = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL;
+
 const raw = {
-  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+  NEXT_PUBLIC_SITE_URL:
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (vercelProductionHost ? `https://${vercelProductionHost}` : undefined),
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 };

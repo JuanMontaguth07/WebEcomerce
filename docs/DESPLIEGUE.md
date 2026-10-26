@@ -48,6 +48,9 @@ producción están en `config.toml` → `[remotes.produccion.auth]`.
    | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | publishable key de `tienda-prod`  | la de `tienda-dev`         |
 
    Nunca agregues la `secret key` / `service_role`: la aplicación no la usa.
+   Si `NEXT_PUBLIC_SITE_URL` no está definida, en Vercel se usa el dominio de producción del
+   proyecto (`NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL`). Si está definida, debe empezar por
+   `https://`.
 
 3. Deploy. Solo producción se indexa en buscadores (`VERCEL_ENV=production`).
 
