@@ -84,17 +84,18 @@ Ficha / tarjeta ──► carrito (localStorage: IDs + cantidades)
 
 ## Panel de administración
 
-| Ruta                   | Qué permite                                                                            |
-| ---------------------- | -------------------------------------------------------------------------------------- |
-| `/admin`               | Indicadores, últimos pedidos y productos por reponer                                   |
-| `/admin/pedidos`       | Filtrar por estado, buscar, ver detalle, cambiar estado, contactar por WhatsApp/correo |
-| `/admin/productos`     | Crear, editar, ocultar, eliminar; imágenes, ficha técnica e inventario por producto    |
-| `/admin/inventario`    | Historial de movimientos filtrable por tipo y producto                                 |
-| `/admin/categorias`    | Jerarquía, SEO y definición de especificaciones por categoría                          |
-| `/admin/marcas`        | Crear, editar, eliminar                                                                |
-| `/admin/envios`        | Tarifas por departamento y excepciones por ciudad, con días de entrega                 |
-| `/admin/configuracion` | WhatsApp, correo, horario y datos legales del vendedor                                 |
-| `/ingresar/recuperar`  | Restablecer contraseña por correo                                                      |
+| Ruta                   | Qué permite                                                                           |
+| ---------------------- | ------------------------------------------------------------------------------------- |
+| `/admin`               | Pendientes por atender, primeros pasos, ventas por día, más vendidos y actividad      |
+| `/admin/actividad`     | Historial general e inmutable de cambios (filtros por área, tipo y objeto; CSV)       |
+| `/admin/pedidos`       | Estados con conteo, vencimiento de la reserva, fijar envío, mensajes de WhatsApp, CSV |
+| `/admin/productos`     | Crear, duplicar, acciones en lote, eliminar con motivo; imágenes, ficha e inventario  |
+| `/admin/inventario`    | Historial de movimientos filtrable por tipo y producto (CSV)                          |
+| `/admin/categorias`    | Jerarquía, SEO y definición de especificaciones por categoría                         |
+| `/admin/marcas`        | Crear, editar, eliminar                                                               |
+| `/admin/envios`        | Tarifas por departamento y excepciones por ciudad, con días de entrega                |
+| `/admin/configuracion` | WhatsApp, correo, horario y datos legales del vendedor                                |
+| `/ingresar/recuperar`  | Restablecer contraseña por correo                                                     |
 
 ## SEO
 
@@ -129,20 +130,21 @@ categories ─┬─< products >─── brands
 profiles (1:1 auth.users) ── orders.user_id (opcional)
 ```
 
-| Tabla                  | Notas                                                                   |
-| ---------------------- | ----------------------------------------------------------------------- |
-| `profiles`             | Rol `customer`/`admin`. El rol solo cambia por SQL.                     |
-| `categories`           | Jerárquica (`parent_id`), campos SEO propios.                           |
-| `brands`               | Nombre y slug únicos.                                                   |
-| `products`             | `stock` no editable por la API; `search_vector` mantenido por triggers. |
-| `product_images`       | Posición única por producto (diferible para reordenar).                 |
-| `spec_definitions`     | Especificaciones tipadas por categoría (`text`/`number`/`boolean`).     |
-| `product_specs`        | Valor por producto; un trigger valida categoría y tipo.                 |
-| `orders`               | Snapshot del cliente, totales, token de consulta (hash), vencimiento.   |
-| `order_items`          | Snapshot de nombre, SKU y precio unitario.                              |
-| `order_status_history` | Quién cambió qué estado y cuándo.                                       |
-| `inventory_movements`  | Solo inserción; `resulting_stock = previous_stock + quantity`.          |
-| `payments`             | Vacía en el MVP; la llenarán los adaptadores de pasarela.               |
+| Tabla                  | Notas                                                                     |
+| ---------------------- | ------------------------------------------------------------------------- |
+| `profiles`             | Rol `customer`/`admin`. El rol solo cambia por SQL.                       |
+| `categories`           | Jerárquica (`parent_id`), campos SEO propios.                             |
+| `brands`               | Nombre y slug únicos.                                                     |
+| `products`             | `stock` no editable por la API; `search_vector` mantenido por triggers.   |
+| `product_images`       | Posición única por producto (diferible para reordenar).                   |
+| `spec_definitions`     | Especificaciones tipadas por categoría (`text`/`number`/`boolean`).       |
+| `product_specs`        | Valor por producto; un trigger valida categoría y tipo.                   |
+| `orders`               | Snapshot del cliente, totales, token de consulta (hash), vencimiento.     |
+| `order_items`          | Snapshot de nombre, SKU y precio; `product_id` NULL si se eliminó.        |
+| `order_status_history` | Quién cambió qué estado y cuándo.                                         |
+| `inventory_movements`  | Solo inserción; guarda nombre y SKU; `product_id` NULL si se eliminó.     |
+| `audit_log`            | Historial general inmutable (triggers y funciones); solo lo lee el admin. |
+| `payments`             | Vacía en el MVP; la llenarán los adaptadores de pasarela.                 |
 
 ### Funciones del catálogo (RPC, `security invoker`)
 
@@ -162,6 +164,9 @@ profiles (1:1 auth.users) ── orders.user_id (opcional)
 | `calculate_shipping_cost(...)`             | anon / auth | Política de envío (hoy: `NULL` = por confirmar).                                                                      |
 | `adjust_stock(product, qty, type, reason)` | admin       | Ajuste manual con movimiento trazable.                                                                                |
 | `update_order_status(order, status, note)` | admin       | Máquina de estados; cancelar devuelve stock.                                                                          |
+| `set_order_shipping(order, cost, note)`    | admin       | Fija el envío (pedidos sin despachar) y recalcula el total.                                                           |
+| `delete_product(product, reason)`          | admin       | Elimina con historial: deja el stock en cero con un movimiento; rechaza productos en pedidos sin cerrar.              |
+| `duplicate_product(product)`               | admin       | Copia como borrador oculto con su ficha (sin imágenes ni stock).                                                      |
 | `expire_pending_orders()`                  | pg_cron     | Cancela pendientes vencidos (48 h) cada 15 min.                                                                       |
 
 Estados del pedido:

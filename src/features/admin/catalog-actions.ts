@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { revalidateCatalog } from "@/features/catalog/revalidate";
 import { adminAction } from "@/lib/admin-action";
-import { AppError } from "@/lib/errors";
+import { AppError, toAppError } from "@/lib/errors";
 import { CATALOG_BUCKET } from "@/lib/images";
 import {
   brandSchema,
@@ -73,30 +73,92 @@ export const updateProduct = adminAction(
   },
 );
 
-export const deleteProduct = adminAction(
-  z.object({ id: z.uuid() }),
-  async ({ id }, { supabase }) => {
-    const { data: product } = await supabase
-      .from("products")
-      .select("slug, images:product_images(storage_path)")
-      .eq("id", id)
-      .maybeSingle();
-    if (!product) throw new AppError("NOT_FOUND");
+const reasonSchema = z.string().trim().max(500, "Máximo 500 caracteres.").optional();
 
-    const { error } = await supabase.from("products").delete().eq("id", id);
-    if (error) {
-      translateDbError(error, {
-        inUse:
-          "Este producto tiene pedidos o movimientos de inventario. Desactívalo para ocultarlo de la tienda.",
+/**
+ * Elimina con la función delete_product: pedidos y movimientos conservan nombre
+ * y SKU, el borrado queda en el historial con su motivo y el stock sale con un
+ * movimiento. Rechaza productos en pedidos sin cerrar.
+ */
+async function removeProduct(supabase: AdminSupabase, id: string, reason?: string) {
+  const { data, error } = await supabase.rpc("delete_product", {
+    p_product_id: id,
+    p_reason: reason || undefined,
+  });
+  if (error) {
+    if (error.message === "PRODUCT_IN_OPEN_ORDERS") {
+      throw new AppError("PRODUCT_IN_OPEN_ORDERS", {
+        message: `Está en pedidos sin cerrar (${error.details}). Entrégalos o cancélalos antes de eliminarlo.`,
       });
     }
+    throw error;
+  }
+  const result = data as { slug: string; images: string[] };
+  await removeFiles(supabase, result.images);
+  return result.slug;
+}
 
-    await removeFiles(
-      supabase,
-      product.images.map((image) => image.storage_path),
-    );
-    revalidateCatalog({ productSlugs: [product.slug] });
+export const deleteProduct = adminAction(
+  z.object({ id: z.uuid(), reason: reasonSchema }),
+  async ({ id, reason }, { supabase }) => {
+    const slug = await removeProduct(supabase, id, reason);
+    revalidateCatalog({ productSlugs: [slug] });
     return { id };
+  },
+);
+
+export const duplicateProduct = adminAction(
+  z.object({ id: z.uuid() }),
+  async ({ id }, { supabase }) => {
+    const { data, error } = await supabase.rpc("duplicate_product", { p_product_id: id });
+    if (error) throw error;
+    // La copia nace oculta: la tienda no cambia, pero el listado del panel sí.
+    revalidateCatalog();
+    return { id: data };
+  },
+);
+
+const bulkIds = z.array(z.uuid()).min(1, "Selecciona al menos un producto.").max(100);
+
+export const bulkUpdateProducts = adminAction(
+  z.object({
+    ids: bulkIds,
+    change: z.enum(["show", "hide", "feature", "unfeature"]),
+  }),
+  async ({ ids, change }, { supabase }) => {
+    const values = {
+      show: { is_active: true },
+      hide: { is_active: false },
+      feature: { is_featured: true },
+      unfeature: { is_featured: false },
+    }[change];
+    const { data, error } = await supabase
+      .from("products")
+      .update(values)
+      .in("id", ids)
+      .select("slug");
+    if (error) throw error;
+    revalidateCatalog({ productSlugs: data.map((row) => row.slug) });
+    return { updated: data.length };
+  },
+);
+
+export const bulkDeleteProducts = adminAction(
+  z.object({ ids: bulkIds, reason: reasonSchema }),
+  async ({ ids, reason }, { supabase }) => {
+    const slugs: string[] = [];
+    const failed: string[] = [];
+    // Uno por uno: un producto en pedidos sin cerrar no impide borrar los demás.
+    for (const id of ids) {
+      try {
+        slugs.push(await removeProduct(supabase, id, reason));
+      } catch (error) {
+        if (toAppError(error).code === "INTERNAL") throw error;
+        failed.push(id);
+      }
+    }
+    revalidateCatalog({ productSlugs: slugs });
+    return { deleted: slugs.length, failed };
   },
 );
 

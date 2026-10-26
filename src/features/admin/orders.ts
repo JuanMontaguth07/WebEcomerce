@@ -12,7 +12,11 @@ export type AdminOrderRow = {
   city: string;
   department: string;
   total: number;
+  shippingCost: number | null;
   status: OrderStatus;
+  expiresAt: string | null;
+  /** Minutos que le quedan a la reserva de un pedido pendiente. */
+  expiresInMinutes: number | null;
   itemCount: number;
 };
 
@@ -30,7 +34,7 @@ export async function listOrders({
   let query = supabase
     .from("orders")
     .select(
-      "id, order_number, created_at, customer_name, customer_email, city, department, total, status, items:order_items(count)",
+      "id, order_number, created_at, customer_name, customer_email, city, department, total, shipping_cost, status, expires_at, items:order_items(count)",
       { count: "exact" },
     )
     .order("created_at", { ascending: false })
@@ -58,7 +62,12 @@ export async function listOrders({
     city: row.city,
     department: row.department,
     total: Number(row.total),
+    shippingCost: row.shipping_cost === null ? null : Number(row.shipping_cost),
     status: row.status,
+    expiresAt: row.expires_at,
+    expiresInMinutes: row.expires_at
+      ? Math.max(0, Math.round((Date.parse(row.expires_at) - Date.now()) / 60_000))
+      : null,
     itemCount: row.items[0]?.count ?? 0,
   }));
   return {
@@ -94,8 +103,97 @@ export async function getAdminOrder(id: string) {
 
 export type AdminOrder = NonNullable<Awaited<ReturnType<typeof getAdminOrder>>>;
 
+/** Pedidos pendientes de pago (contador del menú del panel). */
+export async function getPendingOrderCount(): Promise<number> {
+  const supabase = await createClient();
+  const { count, error } = await supabase
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "pending");
+  if (error) throw error;
+  return count ?? 0;
+}
+
 /** Últimos pedidos para el resumen del panel. */
 export async function getRecentOrders(limit = 6) {
   const { orders } = await listOrders({ page: 1 });
   return orders.slice(0, limit);
+}
+
+export type ExportOrder = {
+  orderNumber: number;
+  createdAt: string;
+  status: OrderStatus;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  customerDocument: string | null;
+  department: string;
+  city: string;
+  address: string;
+  items: string;
+  subtotal: number;
+  shippingCost: number | null;
+  total: number;
+};
+
+/** Todos los pedidos que coinciden con el filtro, con datos de contacto y productos (CSV). */
+export async function listOrdersForExport({
+  status,
+  q,
+  maxRows = 20_000,
+}: {
+  status?: OrderStatus;
+  q?: string;
+  maxRows?: number;
+}): Promise<ExportOrder[]> {
+  const supabase = await createClient();
+  const pageSize = 1000;
+  const rows: ExportOrder[] = [];
+
+  for (let from = 0; from < maxRows; from += pageSize) {
+    let query = supabase
+      .from("orders")
+      .select(
+        `order_number, created_at, status, customer_name, customer_email, customer_phone,
+         customer_document, department, city, address, subtotal, shipping_cost, total,
+         items:order_items(product_name, sku, quantity)`,
+      )
+      .order("created_at", { ascending: false })
+      .range(from, from + pageSize - 1);
+    if (status) query = query.eq("status", status);
+    const search = sanitizeSearch(q);
+    if (search) {
+      const number = Number(search.replace(/^#/, ""));
+      query =
+        Number.isInteger(number) && number > 0
+          ? query.eq("order_number", number)
+          : query.or(`customer_email.ilike.%${search}%,customer_name.ilike.%${search}%`);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    for (const row of data) {
+      rows.push({
+        orderNumber: Number(row.order_number),
+        createdAt: row.created_at,
+        status: row.status,
+        customerName: row.customer_name,
+        customerEmail: row.customer_email,
+        customerPhone: row.customer_phone,
+        customerDocument: row.customer_document,
+        department: row.department,
+        city: row.city,
+        address: row.address,
+        items: row.items
+          .map((item) => `${item.quantity} × ${item.product_name} (${item.sku})`)
+          .join(" | "),
+        subtotal: Number(row.subtotal),
+        shippingCost: row.shipping_cost === null ? null : Number(row.shipping_cost),
+        total: Number(row.total),
+      });
+    }
+    if (data.length < pageSize) break;
+  }
+  return rows;
 }

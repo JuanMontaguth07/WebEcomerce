@@ -185,3 +185,46 @@ export async function getLowStockProducts(limit = 8) {
   if (error) throw error;
   return data.filter((row) => row.stock <= row.low_stock_threshold).slice(0, limit);
 }
+
+/** Cuántos pedidos y movimientos de inventario tiene un producto (aviso antes de eliminar). */
+export async function getProductHistoryCounts(productId: string) {
+  const supabase = await createClient();
+  const [orders, movements] = await Promise.all([
+    supabase
+      .from("order_items")
+      .select("id", { count: "exact", head: true })
+      .eq("product_id", productId),
+    supabase
+      .from("inventory_movements")
+      .select("id", { count: "exact", head: true })
+      .eq("product_id", productId),
+  ]);
+  if (orders.error) throw orders.error;
+  if (movements.error) throw movements.error;
+  return { orders: orders.count ?? 0, movements: movements.count ?? 0 };
+}
+
+/** Catálogo completo para exportar (incluye ocultos). */
+export async function listProductsForExport(maxRows = 20_000) {
+  const supabase = await createClient();
+  const pageSize = 1000;
+  const query = (from: number) =>
+    supabase
+      .from("products")
+      .select(
+        `name, sku, slug, price, compare_at_price, stock, low_stock_threshold, warranty_months,
+         is_active, is_featured, updated_at, brand:brands(name), category:categories(name)`,
+      )
+      .order("name")
+      .order("id")
+      .range(from, from + pageSize - 1);
+
+  const rows: NonNullable<Awaited<ReturnType<typeof query>>["data"]> = [];
+  for (let from = 0; from < maxRows; from += pageSize) {
+    const { data, error } = await query(from);
+    if (error) throw error;
+    rows.push(...data);
+    if (data.length < pageSize) break;
+  }
+  return rows;
+}

@@ -19,6 +19,8 @@ export const ERROR_CODES = [
   "INVALID_TRANSITION",
   "REASON_REQUIRED",
   "RATE_LIMITED",
+  "PRODUCT_IN_OPEN_ORDERS",
+  "ORDER_LOCKED",
   "CONFLICT",
   "INTERNAL",
 ] as const;
@@ -40,6 +42,9 @@ const USER_MESSAGES: Record<ErrorCode, string> = {
   INVALID_TRANSITION: "El pedido no puede pasar a ese estado.",
   REASON_REQUIRED: "Indica el motivo del ajuste.",
   RATE_LIMITED: "Has hecho varios intentos seguidos. Espera unos minutos.",
+  PRODUCT_IN_OPEN_ORDERS:
+    "El producto está en pedidos sin cerrar. Entrégalos o cancélalos antes de eliminarlo.",
+  ORDER_LOCKED: "El pedido ya salió o está cerrado: su valor no se puede cambiar.",
   CONFLICT: "Ya existe un registro con esos datos.",
   INTERNAL: "Ocurrió un error inesperado. Inténtalo de nuevo.",
 };

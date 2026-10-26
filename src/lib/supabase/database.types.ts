@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_label: string | null
+          changes: Json | null
+          entity: string
+          entity_id: string | null
+          entity_label: string | null
+          id: number
+          occurred_at: string
+          reason: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_label?: string | null
+          changes?: Json | null
+          entity: string
+          entity_id?: string | null
+          entity_label?: string | null
+          id?: never
+          occurred_at?: string
+          reason?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_label?: string | null
+          changes?: Json | null
+          entity?: string
+          entity_id?: string | null
+          entity_label?: string | null
+          id?: never
+          occurred_at?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
       brands: {
         Row: {
           created_at: string
@@ -108,7 +147,9 @@ export type Database = {
           movement_type: Database["public"]["Enums"]["inventory_movement_type"]
           order_id: string | null
           previous_stock: number
-          product_id: string
+          product_id: string | null
+          product_name: string
+          product_sku: string
           quantity: number
           reason: string | null
           resulting_stock: number
@@ -120,7 +161,9 @@ export type Database = {
           movement_type: Database["public"]["Enums"]["inventory_movement_type"]
           order_id?: string | null
           previous_stock: number
-          product_id: string
+          product_id?: string | null
+          product_name: string
+          product_sku: string
           quantity: number
           reason?: string | null
           resulting_stock: number
@@ -132,7 +175,9 @@ export type Database = {
           movement_type?: Database["public"]["Enums"]["inventory_movement_type"]
           order_id?: string | null
           previous_stock?: number
-          product_id?: string
+          product_id?: string | null
+          product_name?: string
+          product_sku?: string
           quantity?: number
           reason?: string | null
           resulting_stock?: number
@@ -166,7 +211,7 @@ export type Database = {
           created_at: string
           id: string
           order_id: string
-          product_id: string
+          product_id: string | null
           product_name: string
           quantity: number
           sku: string
@@ -177,7 +222,7 @@ export type Database = {
           created_at?: string
           id?: string
           order_id: string
-          product_id: string
+          product_id?: string | null
           product_name: string
           quantity: number
           sku: string
@@ -188,7 +233,7 @@ export type Database = {
           created_at?: string
           id?: string
           order_id?: string
-          product_id?: string
+          product_id?: string | null
           product_name?: string
           quantity?: number
           sku?: string
@@ -727,6 +772,24 @@ export type Database = {
         Returns: number
       }
       admin_dashboard_stats: { Args: never; Returns: Json }
+      admin_sales_series: {
+        Args: { p_days?: number }
+        Returns: {
+          day: string
+          orders: number
+          revenue: number
+        }[]
+      }
+      admin_top_products: {
+        Args: { p_days?: number; p_limit?: number }
+        Returns: {
+          product_id: string
+          product_name: string
+          revenue: number
+          sku: string
+          units: number
+        }[]
+      }
       best_selling_products: {
         Args: { p_limit?: number }
         Returns: {
@@ -818,6 +881,11 @@ export type Database = {
           order_number: number
         }[]
       }
+      delete_product: {
+        Args: { p_product_id: string; p_reason?: string }
+        Returns: Json
+      }
+      duplicate_product: { Args: { p_product_id: string }; Returns: string }
       expire_pending_orders: { Args: never; Returns: number }
       get_order_by_token: {
         Args: { p_order_id: string; p_token: string }
@@ -833,6 +901,10 @@ export type Database = {
       search_suggestions: {
         Args: { p_limit?: number; p_query: string }
         Returns: Json
+      }
+      set_order_shipping: {
+        Args: { p_note?: string; p_order_id: string; p_shipping_cost: number }
+        Returns: number
       }
       set_product_specs: {
         Args: { p_product_id: string; p_specs: Json }

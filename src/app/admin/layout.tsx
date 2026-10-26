@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getPendingOrderCount } from "@/features/admin/orders";
 import { requireAdmin } from "@/features/auth/session";
 
 export const metadata: Metadata = {
@@ -12,7 +13,12 @@ export const metadata: Metadata = {
 /** Verifica en el servidor que el usuario sea administrador antes de mostrar el panel. */
 async function AdminGate({ children }: { children: React.ReactNode }) {
   const admin = await requireAdmin();
-  return <AdminShell admin={admin}>{children}</AdminShell>;
+  const pendingOrders = await getPendingOrderCount();
+  return (
+    <AdminShell admin={admin} pendingOrders={pendingOrders}>
+      {children}
+    </AdminShell>
+  );
 }
 
 function AdminSkeleton() {

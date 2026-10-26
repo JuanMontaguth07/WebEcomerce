@@ -2,7 +2,7 @@ import { ExternalLinkIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { DeleteButton } from "@/components/admin/delete-button";
+import { ActivityFeed } from "@/components/admin/activity-feed";
 import { AdminPageHeader, dateTime } from "@/components/admin/admin-ui";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,14 +10,16 @@ import {
   getAdminProduct,
   getBrandOptions,
   getCategoryOptions,
+  getProductHistoryCounts,
   getSpecDefinitions,
 } from "@/features/admin/catalog";
-import { deleteProduct } from "@/features/admin/catalog-actions";
+import { listActivity } from "@/features/activity/queries";
 import { requireAdmin } from "@/features/auth/session";
 import { getInventoryMovements } from "@/features/inventory/queries";
 import { MOVEMENT_LABELS } from "@/features/inventory/schemas";
 import { ProductForm, type ProductFormValues } from "../product-form";
 import { ImageManager } from "./image-manager";
+import { DeleteProductPanel, DuplicateProductButton } from "./product-actions";
 import { SpecsEditor } from "./specs-editor";
 import { StockPanel } from "./stock-panel";
 
@@ -46,11 +48,13 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
   const product = await getAdminProduct(id);
   if (!product) notFound();
 
-  const [categories, brands, definitions, { movements }] = await Promise.all([
+  const [categories, brands, definitions, { movements }, counts, activity] = await Promise.all([
     getCategoryOptions(),
     getBrandOptions(),
     getSpecDefinitions(product.category_id),
-    getInventoryMovements({ productId: id }),
+    getInventoryMovements({ productId: id, pageSize: 8 }),
+    getProductHistoryCounts(id),
+    listActivity({ entityId: id, limit: 6 }),
   ]);
 
   const initial: ProductFormValues = {
@@ -83,6 +87,7 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
             <Badge variant={product.is_active ? "success" : "outline"}>
               {product.is_active ? "Visible" : "Oculto"}
             </Badge>
+            <DuplicateProductButton productId={product.id} />
             {product.is_active && (
               <Button asChild variant="secondary" size="sm">
                 <Link href={`/productos/${product.slug}`} target="_blank">
@@ -121,14 +126,14 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
           </Card>
         </div>
 
-        <div className="grid gap-6 xl:sticky xl:top-6">
+        <div className="grid gap-6">
           <Card title="Inventario" id="inventario">
             <StockPanel productId={product.id} stock={product.stock} />
           </Card>
           <Card title="Últimos movimientos">
             {movements.length ? (
               <ul className="flex flex-col gap-2 text-sm">
-                {movements.slice(0, 8).map((movement) => (
+                {movements.map((movement) => (
                   <li
                     key={movement.id}
                     className="flex items-start justify-between gap-3 border-b pb-2 last:border-b-0"
@@ -160,19 +165,34 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
               href={`/admin/inventario?producto=${product.id}`}
               className="text-sm font-semibold text-primary hover:underline"
             >
-              Ver historial completo
+              Ver todos los movimientos
+            </Link>
+          </Card>
+          <Card title="Historial de cambios">
+            {activity.entries.length ? (
+              <ActivityFeed
+                entries={activity.entries}
+                existing={activity.existing}
+                names={activity.names}
+                compact
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">Sin cambios registrados todavía.</p>
+            )}
+            <Link
+              href={`/admin/actividad?id=${product.id}`}
+              className="text-sm font-semibold text-primary hover:underline"
+            >
+              Ver todo el historial
             </Link>
           </Card>
           <Card title="Eliminar">
-            <p className="text-sm text-muted-foreground">
-              Solo se pueden eliminar productos sin pedidos ni movimientos de inventario. Para
-              retirarlo de la tienda, desmarca «Visible en la tienda».
-            </p>
-            <DeleteButton
-              label="Eliminar producto"
-              confirmText={`¿Eliminar «${product.name}» y sus imágenes? No se puede deshacer.`}
-              action={deleteProduct.bind(null, { id: product.id })}
-              redirectTo="/admin/productos"
+            <DeleteProductPanel
+              productId={product.id}
+              productName={product.name}
+              stock={product.stock}
+              orderCount={counts.orders}
+              movementCount={counts.movements}
             />
           </Card>
         </div>

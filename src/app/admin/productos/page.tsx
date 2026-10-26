@@ -1,25 +1,19 @@
-import { PlusIcon } from "lucide-react";
+import { DownloadIcon, PlusIcon } from "lucide-react";
 import type { Metadata, Route } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import {
   AdminEmpty,
   AdminPageHeader,
   AdminPagination,
   AdminSearch,
-  AdminTable,
-  AdminTh,
+  FilterChips,
   pageParam,
   param,
 } from "@/components/admin/admin-ui";
-import { StockBadge } from "@/components/shop/stock-badge";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { listAdminProducts, type ProductFilter } from "@/features/admin/catalog";
 import { requireAdmin } from "@/features/auth/session";
-import { formatCOP } from "@/lib/format";
-import { storageImageUrl } from "@/lib/images";
-import { cn } from "@/lib/utils";
+import { ProductsTable } from "./products-table";
 
 export const metadata: Metadata = { title: "Productos" };
 
@@ -55,33 +49,33 @@ export default async function AdminProductsPage({ searchParams }: PageProps<"/ad
         title="Productos"
         description={`${total} ${total === 1 ? "producto" : "productos"}`}
         actions={
-          <Button asChild>
-            <Link href="/admin/productos/nuevo">
-              <PlusIcon aria-hidden />
-              Nuevo producto
-            </Link>
-          </Button>
+          <>
+            <Button asChild variant="secondary">
+              <Link href="/admin/productos/exportar" prefetch={false}>
+                <DownloadIcon aria-hidden />
+                Exportar CSV
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link href="/admin/productos/nuevo">
+                <PlusIcon aria-hidden />
+                Nuevo producto
+              </Link>
+            </Button>
+          </>
         }
       />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <nav aria-label="Filtrar productos" className="flex flex-wrap gap-1">
-          {FILTERS.map((item) => (
-            <Link
-              key={item.value}
-              href={href({ filtro: item.value, q })}
-              aria-current={item.value === filter ? "page" : undefined}
-              className={cn(
-                "rounded-full border px-3 py-1.5 text-sm transition-colors",
-                item.value === filter
-                  ? "border-primary bg-primary-soft font-semibold text-primary"
-                  : "bg-card hover:border-input",
-              )}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <FilterChips
+          label="Filtrar productos"
+          items={FILTERS.map((item) => ({
+            key: item.value,
+            label: item.label,
+            href: href({ filtro: item.value, q }),
+            active: item.value === filter,
+          }))}
+        />
         <AdminSearch
           action="/admin/productos"
           defaultValue={q}
@@ -91,65 +85,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps<"/ad
       </div>
 
       {products.length ? (
-        <AdminTable caption="Productos">
-          <thead>
-            <tr>
-              <AdminTh>Producto</AdminTh>
-              <AdminTh>Categoría</AdminTh>
-              <AdminTh className="text-right">Precio</AdminTh>
-              <AdminTh>Stock</AdminTh>
-              <AdminTh>Estado</AdminTh>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((product) => (
-              <tr key={product.id}>
-                <td>
-                  <div className="flex items-center gap-3">
-                    <span className="relative size-11 shrink-0 overflow-hidden rounded-md border bg-secondary">
-                      {product.image && (
-                        <Image
-                          src={storageImageUrl(product.image)}
-                          alt=""
-                          fill
-                          sizes="44px"
-                          className="object-contain p-1"
-                        />
-                      )}
-                    </span>
-                    <div className="grid min-w-0">
-                      <Link
-                        href={`/admin/productos/${product.id}`}
-                        className="truncate font-semibold hover:text-primary hover:underline"
-                      >
-                        {product.name}
-                      </Link>
-                      <span className="font-mono text-xs text-muted-foreground">{product.sku}</span>
-                    </div>
-                  </div>
-                </td>
-                <td className="text-muted-foreground">
-                  {product.category}
-                  {product.brand && <div className="text-xs">{product.brand}</div>}
-                </td>
-                <td className="text-right font-semibold whitespace-nowrap tabular-nums">
-                  {formatCOP(product.price)}
-                </td>
-                <td>
-                  <StockBadge stock={product.stock} lowStockThreshold={product.lowStockThreshold} />
-                </td>
-                <td>
-                  <div className="flex flex-wrap gap-1">
-                    <Badge variant={product.isActive ? "success" : "outline"}>
-                      {product.isActive ? "Visible" : "Oculto"}
-                    </Badge>
-                    {product.isFeatured && <Badge variant="soft">Destacado</Badge>}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </AdminTable>
+        <ProductsTable products={products} />
       ) : (
         <AdminEmpty>
           {q || filter !== "all"

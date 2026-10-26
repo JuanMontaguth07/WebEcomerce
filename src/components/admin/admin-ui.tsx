@@ -92,6 +92,48 @@ export function OrderStatusBadge({ status }: { status: OrderStatus }) {
   return <Badge variant={STATUS_VARIANT[status]}>{ORDER_STATUS_LABELS[status]}</Badge>;
 }
 
+/** Filtros como enlaces (funcionan sin JavaScript). `count` muestra cuántos hay en cada uno. */
+export function FilterChips({
+  label,
+  items,
+  size = "md",
+}: {
+  label: string;
+  items: { key: string; label: string; href: Route; active: boolean; count?: number }[];
+  size?: "sm" | "md";
+}) {
+  return (
+    <nav aria-label={label} className="flex flex-wrap gap-1">
+      {items.map((item) => (
+        <Link
+          key={item.key}
+          href={item.href}
+          aria-current={item.active ? "page" : undefined}
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full border transition-colors",
+            size === "sm" ? "px-2.5 py-1 text-xs" : "px-3 py-1.5 text-sm",
+            item.active
+              ? "border-primary bg-primary-soft font-semibold text-primary"
+              : "bg-card hover:border-input",
+          )}
+        >
+          {item.label}
+          {item.count !== undefined && (
+            <span
+              className={cn(
+                "min-w-5 rounded-full px-1.5 text-center font-mono text-[0.7rem] leading-5 tabular-nums",
+                item.active ? "bg-primary text-primary-foreground" : "bg-secondary",
+              )}
+            >
+              {item.count}
+            </span>
+          )}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
 /** Búsqueda por GET: funciona sin JavaScript y deja la URL compartible. */
 export function AdminSearch({
   action,

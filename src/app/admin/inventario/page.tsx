@@ -1,3 +1,4 @@
+import { DownloadIcon } from "lucide-react";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import {
@@ -7,9 +8,11 @@ import {
   AdminTable,
   AdminTh,
   dateTime,
+  FilterChips,
   pageParam,
   param,
 } from "@/components/admin/admin-ui";
+import { Button } from "@/components/ui/button";
 import { requireAdmin } from "@/features/auth/session";
 import { getInventoryMovements, type MovementType } from "@/features/inventory/queries";
 import { MOVEMENT_LABELS } from "@/features/inventory/schemas";
@@ -20,13 +23,16 @@ export const metadata: Metadata = { title: "Inventario" };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const TYPES = Object.keys(MOVEMENT_LABELS) as MovementType[];
 
-function href(params: { tipo?: string; producto?: string; pagina?: number }) {
+function href(
+  params: { tipo?: string; producto?: string; pagina?: number },
+  base = "/admin/inventario",
+) {
   const search = new URLSearchParams();
   if (params.tipo) search.set("tipo", params.tipo);
   if (params.producto) search.set("producto", params.producto);
   if (params.pagina && params.pagina > 1) search.set("pagina", String(params.pagina));
   const query = search.toString();
-  return `/admin/inventario${query ? `?${query}` : ""}` as Route;
+  return `${base}${query ? `?${query}` : ""}` as Route;
 }
 
 export default async function InventoryPage({ searchParams }: PageProps<"/admin/inventario">) {
@@ -38,7 +44,7 @@ export default async function InventoryPage({ searchParams }: PageProps<"/admin/
   const productId = rawProduct && UUID.test(rawProduct) ? rawProduct : undefined;
   const page = pageParam(params.pagina);
   const { movements, total, pageCount } = await getInventoryMovements({ productId, type, page });
-  const productName = productId ? movements[0]?.product?.name : undefined;
+  const productName = productId ? movements[0]?.productName : undefined;
 
   return (
     <div className="grid gap-6">
@@ -54,25 +60,28 @@ export default async function InventoryPage({ searchParams }: PageProps<"/admin/
             ? { href: `/admin/productos/${productId}` as Route, label: "Volver al producto" }
             : undefined
         }
+        actions={
+          <Button asChild variant="secondary">
+            <Link
+              href={href({ tipo: type, producto: productId }, "/admin/inventario/exportar")}
+              prefetch={false}
+            >
+              <DownloadIcon aria-hidden />
+              Exportar CSV
+            </Link>
+          </Button>
+        }
       />
 
-      <nav aria-label="Filtrar por tipo" className="flex flex-wrap gap-1">
-        {[undefined, ...TYPES].map((value) => (
-          <Link
-            key={value ?? "all"}
-            href={href({ tipo: value, producto: productId })}
-            aria-current={value === type ? "page" : undefined}
-            className={cn(
-              "rounded-full border px-3 py-1.5 text-sm transition-colors",
-              value === type
-                ? "border-primary bg-primary-soft font-semibold text-primary"
-                : "bg-card hover:border-input",
-            )}
-          >
-            {value ? MOVEMENT_LABELS[value] : "Todos"}
-          </Link>
-        ))}
-      </nav>
+      <FilterChips
+        label="Filtrar por tipo"
+        items={[undefined, ...TYPES].map((value) => ({
+          key: value ?? "all",
+          label: value ? MOVEMENT_LABELS[value] : "Todos",
+          href: href({ tipo: value, producto: productId }),
+          active: value === type,
+        }))}
+      />
 
       {movements.length ? (
         <AdminTable caption="Movimientos de inventario">
@@ -101,10 +110,13 @@ export default async function InventoryPage({ searchParams }: PageProps<"/admin/
                       {movement.product.name}
                     </Link>
                   ) : (
-                    "—"
+                    <span className="font-medium">
+                      {movement.productName}{" "}
+                      <span className="text-xs font-normal text-muted-foreground">(eliminado)</span>
+                    </span>
                   )}
                   <div className="font-mono text-xs text-muted-foreground">
-                    {movement.product?.sku}
+                    {movement.product?.sku ?? movement.productSku}
                   </div>
                 </td>
                 <td>{MOVEMENT_LABELS[movement.type]}</td>
@@ -127,7 +139,7 @@ export default async function InventoryPage({ searchParams }: PageProps<"/admin/
                       href={`/admin/pedidos/${movement.orderId}`}
                       className="text-primary hover:underline"
                     >
-                      Ver pedido
+                      Pedido #{movement.orderNumber}
                     </Link>
                   )}
                   {movement.reason && <div className="text-xs">{movement.reason}</div>}

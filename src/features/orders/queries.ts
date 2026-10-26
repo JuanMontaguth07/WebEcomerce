@@ -22,7 +22,8 @@ export type PublicOrder = {
   /** Hasta cuándo se mantiene la reserva de un pedido pendiente (null si ya no aplica). */
   expiresAt: string | null;
   items: {
-    productId: string;
+    /** null si el producto se eliminó después de la compra. */
+    productId: string | null;
     productName: string;
     sku: string;
     unitPrice: number;
@@ -64,7 +65,7 @@ export async function getOrderByToken(orderId: string, token: string): Promise<P
     createdAt: String(raw.created_at),
     expiresAt: typeof raw.expires_at === "string" ? raw.expires_at : null,
     items: raw.items.map((item) => ({
-      productId: String(item.product_id),
+      productId: typeof item.product_id === "string" ? item.product_id : null,
       productName: String(item.product_name),
       sku: String(item.sku),
       unitPrice: Number(item.unit_price),

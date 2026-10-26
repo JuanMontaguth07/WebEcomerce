@@ -31,3 +31,31 @@ export const changeOrderStatus = adminAction(changeStatusSchema, async (input, {
   }
   return { status: input.status };
 });
+
+const shippingSchema = z.object({
+  orderId: z.uuid(),
+  // Texto del formulario sin puntos de miles: vacío no se interpreta como envío gratis.
+  shippingCost: z
+    .string()
+    .transform((value) => value.replace(/[\s.$]/g, ""))
+    .pipe(
+      z
+        .string()
+        .min(1, "Escribe el valor del envío (0 si es gratis).")
+        .regex(/^\d+$/, "Usa solo números, sin decimales.")
+        .transform(Number)
+        .pipe(z.number().max(100_000_000, "Revisa el valor.")),
+    ),
+  note: z.string().trim().max(500).optional(),
+});
+
+/** Fija el envío de un pedido (p. ej. «por confirmar») y recalcula el total que ve el cliente. */
+export const setOrderShipping = adminAction(shippingSchema, async (input, { supabase }) => {
+  const { data, error } = await supabase.rpc("set_order_shipping", {
+    p_order_id: input.orderId,
+    p_shipping_cost: input.shippingCost,
+    p_note: input.note || undefined,
+  });
+  if (error) throw error;
+  return { total: Number(data) };
+});

@@ -5,6 +5,7 @@ import {
   ClipboardListIcon,
   ExternalLinkIcon,
   FolderTreeIcon,
+  HistoryIcon,
   LayoutDashboardIcon,
   SettingsIcon,
   TagIcon,
@@ -24,9 +25,10 @@ const NAV = [
   { href: "/admin/marcas", label: "Marcas", Icon: TagIcon },
   { href: "/admin/envios", label: "Envíos", Icon: TruckIcon },
   { href: "/admin/configuracion", label: "Configuración", Icon: SettingsIcon },
+  { href: "/admin/actividad", label: "Actividad", Icon: HistoryIcon },
 ] as const;
 
-export function AdminNav() {
+export function AdminNav({ pendingOrders }: { pendingOrders: number }) {
   const pathname = usePathname();
 
   return (
@@ -53,6 +55,12 @@ export function AdminNav() {
           >
             <Icon className="size-4" aria-hidden />
             {label}
+            {href === "/admin/pedidos" && pendingOrders > 0 && (
+              <span className="ml-auto min-w-5 rounded-full bg-primary px-1.5 text-center font-mono text-[0.7rem] leading-5 font-bold text-primary-foreground tabular-nums">
+                {pendingOrders}
+                <span className="sr-only"> pendientes</span>
+              </span>
+            )}
           </Link>
         );
       })}

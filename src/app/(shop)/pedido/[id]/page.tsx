@@ -73,7 +73,7 @@ async function OrderContent({ params, searchParams }: PageProps<"/pedido/[id]">)
           <ul className="grid divide-y">
             {order.items.map((item) => (
               <li
-                key={item.productId}
+                key={item.productId ?? item.sku}
                 className="flex justify-between gap-4 py-3 first:pt-0 last:pb-0"
               >
                 <div className="grid min-w-0 gap-0.5">

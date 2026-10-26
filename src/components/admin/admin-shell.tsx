@@ -6,7 +6,15 @@ import { signOut } from "@/features/auth/actions";
 import type { AdminUser } from "@/features/auth/session";
 import { AdminNav } from "./admin-nav";
 
-export function AdminShell({ admin, children }: { admin: AdminUser; children: React.ReactNode }) {
+export function AdminShell({
+  admin,
+  pendingOrders,
+  children,
+}: {
+  admin: AdminUser;
+  pendingOrders: number;
+  children: React.ReactNode;
+}) {
   return (
     <div className="grid min-h-full flex-1 lg:grid-cols-[15rem_1fr]">
       <aside className="border-b bg-sidebar lg:sticky lg:top-0 lg:h-dvh lg:border-r lg:border-b-0">
@@ -17,7 +25,7 @@ export function AdminShell({ admin, children }: { admin: AdminUser; children: Re
               Admin
             </span>
           </div>
-          <AdminNav />
+          <AdminNav pendingOrders={pendingOrders} />
           <div className="mt-auto hidden gap-3 border-t pt-4 lg:grid">
             <div className="grid min-w-0 gap-0.5">
               <span className="truncate text-sm font-semibold">

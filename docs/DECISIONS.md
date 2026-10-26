@@ -266,3 +266,21 @@ repite en el layout del panel y en cada Server Action.
 - Si el envío está "por confirmar", el botón pide primero el valor del envío en lugar de enviar un
   comprobante por un monto incompleto.
 - Términos y Soporte describen este medio de pago y el plazo solo cuando hay un Nequi configurado.
+
+## D20 — Historial general y productos eliminables (2026-10-27)
+
+- **`audit_log` inmutable**: triggers en catálogo, envíos y configuración, más el historial de
+  estados de pedidos y los movimientos manuales de inventario, escriben quién hizo qué, cuándo, los
+  campos que cambiaron (antes → después) y el motivo. Nadie lo edita ni lo borra (ni el admin); se
+  ve en `/admin/actividad` y en cada producto y pedido. Las columnas técnicas (fechas, vector de
+  búsqueda, stock, posición) no generan entradas: el stock ya tiene su propio historial.
+- **Los productos con historial se pueden eliminar** (antes solo se ocultaban). Las líneas de
+  pedido y los movimientos guardan nombre y SKU y quedan con `product_id` NULL; el borrado deja el
+  stock en cero con un movimiento y queda en el historial con una copia de los datos y el motivo.
+  Se rechaza si el producto está en un pedido sin cerrar (pendiente, confirmado, en preparación o
+  enviado), porque ese pedido todavía puede devolver unidades.
+- **Envío por confirmar**: el admin fija el valor en el pedido (`set_order_shipping`) y el
+  cliente ve el total nuevo en la página de su pedido antes de pagar.
+- **Exportaciones CSV** (pedidos, productos, inventario, actividad) con punto y coma y BOM para
+  Excel en español; los textos que empiezan con `= + - @` se neutralizan para que no se ejecuten
+  como fórmulas.
