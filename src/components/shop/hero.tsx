@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import type { ProductDetail } from "@/features/catalog/types";
 import { formatCOP } from "@/lib/format";
+import { toRoute, type AppHref } from "@/lib/routes";
 import { CategoryIllustration } from "./category-illustration";
 
 const READOUT_KEYS = ["cpu", "gpu", "ram", "storage", "psu"] as const;
@@ -19,8 +20,18 @@ function parseWatts(value: string | undefined): number | null {
   return match?.[1] ? Number(match[1].replace(/\./g, "")) : null;
 }
 
-/** Hero tipo hoja técnica: presenta un equipo armado con sus componentes y consumo. */
-export function Hero({ product }: { product: ProductDetail | null }) {
+/**
+ * Hero tipo hoja técnica: presenta un equipo armado con sus componentes y consumo.
+ * `prebuiltHref` sale de los datos (categoría de los equipos armados) para no
+ * enlazar a una categoría que quizá no exista.
+ */
+export function Hero({
+  product,
+  prebuiltHref,
+}: {
+  product: ProductDetail | null;
+  prebuiltHref: AppHref | null;
+}) {
   const specs = new Map(product?.specs.map((spec) => [spec.key, spec.value]));
   const power = parseWatts(specs.get("estimated_power"));
   const psu = parseWatts(specs.get("psu"));
@@ -31,7 +42,7 @@ export function Hero({ product }: { product: ProductDetail | null }) {
       {/* Retícula técnica decorativa */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 [background-image:linear-gradient(var(--border)_1px,transparent_1px),linear-gradient(90deg,var(--border)_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_at_70%_40%,black,transparent_70%)] [background-size:48px_48px] opacity-[0.35]"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(var(--border)_1px,transparent_1px),linear-gradient(90deg,var(--border)_1px,transparent_1px)] mask-[radial-gradient(ellipse_at_70%_40%,black,transparent_70%)] bg-size-[48px_48px] opacity-[0.35]"
       />
       <div className="relative container-page grid items-center gap-10 py-12 md:py-16 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:py-20">
         <div className="grid gap-6">
@@ -50,9 +61,11 @@ export function Hero({ product }: { product: ProductDetail | null }) {
                 <ArrowRightIcon aria-hidden />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="secondary">
-              <Link href="/categorias/computadores">Ver computadores</Link>
-            </Button>
+            {prebuiltHref && (
+              <Button asChild size="lg" variant="secondary">
+                <Link href={toRoute(prebuiltHref)}>Ver computadores</Link>
+              </Button>
+            )}
           </div>
         </div>
 

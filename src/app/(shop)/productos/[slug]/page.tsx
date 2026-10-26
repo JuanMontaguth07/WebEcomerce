@@ -22,11 +22,12 @@ import { productJsonLd } from "@/features/catalog/structured-data";
 import type { ProductDetail } from "@/features/catalog/types";
 import { storageImageUrl } from "@/lib/images";
 import { baseOpenGraph } from "@/lib/seo";
+import { slugParams } from "@/lib/static-params";
 
 // Se prerenderizan los productos más recientes; el resto se genera en la primera visita.
 export async function generateStaticParams() {
   const products = await getActiveProductSlugs();
-  return products.slice(0, 200).map(({ slug }) => ({ slug }));
+  return slugParams(products.slice(0, 200).map(({ slug }) => slug));
 }
 
 export async function generateMetadata({
@@ -146,7 +147,7 @@ function ProductInfo({ product }: { product: ProductDetail }) {
 }
 
 async function RelatedProducts({ product }: { product: ProductDetail }) {
-  const related = await getRelatedProducts(product);
+  const related = await getRelatedProducts(product.id, product.category.slug);
   return (
     <HomeSection
       id="relacionados"

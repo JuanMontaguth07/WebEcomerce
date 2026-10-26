@@ -14,6 +14,8 @@ import {
   getProductBySlug,
 } from "@/features/catalog/queries";
 import { siteJsonLd } from "@/features/catalog/structured-data";
+import type { ProductSummary } from "@/features/catalog/types";
+import type { AppHref } from "@/lib/routes";
 import { baseOpenGraph } from "@/lib/seo";
 
 const title = `${siteConfig.name} · Componentes de PC y computadores en Colombia`;
@@ -38,7 +40,13 @@ async function HomeHero() {
     prebuilt.find((product) => product.stock > 0) ??
     prebuilt[0];
   const product = candidate ? await getProductBySlug(candidate.slug) : null;
-  return <Hero product={product} />;
+  return <Hero product={product} prebuiltHref={prebuiltCategoryHref(prebuilt)} />;
+}
+
+/** Categoría de los equipos armados según los datos (null si aún no hay ninguno). */
+function prebuiltCategoryHref(prebuilt: ProductSummary[]): AppHref | null {
+  const slug = prebuilt[0]?.category.slug;
+  return slug ? `/categorias/${slug}` : null;
 }
 
 async function HomeCategories() {
@@ -81,7 +89,7 @@ async function HomeCollections() {
         id="computadores"
         title="Computadores armados"
         description="Equipos configurados con componentes compatibles entre sí."
-        href="/categorias/computadores"
+        href={prebuiltCategoryHref(prebuilt) ?? undefined}
         linkLabel="Ver computadores"
         products={prebuilt}
       />

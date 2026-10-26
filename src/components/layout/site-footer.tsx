@@ -55,11 +55,6 @@ export async function SiteFooter() {
               </Link>
             </li>
             <li>
-              <Link href="/categorias/computadores" className="hover:text-primary hover:underline">
-                Computadores armados
-              </Link>
-            </li>
-            <li>
               <Link href="/buscar" className="hover:text-primary hover:underline">
                 Buscar productos
               </Link>

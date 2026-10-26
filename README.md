@@ -6,7 +6,7 @@ Modelo de tienda propia: la empresa administra productos, precios, inventario y 
 **Stack:** Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind CSS 4 ·
 Supabase (PostgreSQL, Auth, Storage) · Vercel.
 
-> Estado: **Fase 7 — SEO y rendimiento.** Ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+> Estado: **Fase 8 — Producción.** Ver [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) y [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md).
 
 ## Requisitos
 
@@ -60,6 +60,7 @@ con minúsculas, mayúsculas y números.
 | `npm run lint`         | ESLint                                            |
 | `npm run typecheck`    | Genera tipos de rutas y ejecuta `tsc`             |
 | `npm test`             | Pruebas unitarias y de base de datos (Vitest)     |
+| `npm run test:e2e`     | Pruebas en navegador (Playwright, tras el build)  |
 | `npm run check`        | Lint + typecheck + pruebas                        |
 | `npm run format`       | Prettier                                          |
 | `npm run db:new <nom>` | Crea una migración nueva en `supabase/migrations` |

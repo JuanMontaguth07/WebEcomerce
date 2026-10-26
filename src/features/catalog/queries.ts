@@ -322,7 +322,9 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
   if (error) fail("getProductBySlug", error);
   if (!data) return null;
 
-  const images = [...data.images].sort((a, b) => a.position - b.position);
+  const images = [...data.images].sort(
+    (a, b) => a.position - b.position || a.id.localeCompare(b.id),
+  );
   // El padre se resuelve con la lista de categorías (ya cacheada): el embed de una
   // relación de la tabla consigo misma es ambiguo en PostgREST.
   const parent = data.category.parent_id
@@ -348,8 +350,13 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
   };
 }
 
+/**
+ * Recibe valores simples, no el producto: los argumentos forman la clave de la
+ * caché y un objeto grande (con listas) puede variar entre consultas.
+ */
 export async function getRelatedProducts(
-  product: Pick<ProductSummary, "id" | "category">,
+  productId: string,
+  categorySlug: string,
   limit = 4,
 ): Promise<ProductSummary[]> {
   "use cache";
@@ -360,8 +367,8 @@ export async function getRelatedProducts(
     .from("products")
     .select(SUMMARY_SELECT)
     .eq("is_active", true)
-    .eq("category.slug", product.category.slug)
-    .neq("id", product.id)
+    .eq("category.slug", categorySlug)
+    .neq("id", productId)
     .gt("stock", 0)
     .order("is_featured", { ascending: false })
     .order("created_at", { ascending: false })

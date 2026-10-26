@@ -6,10 +6,11 @@ import { Breadcrumbs } from "@/components/shop/breadcrumbs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCategories, getCategoryBySlug } from "@/features/catalog/queries";
 import { listingMetadata } from "@/features/catalog/seo";
+import { slugParams } from "@/lib/static-params";
 
 export async function generateStaticParams() {
   const categories = await getCategories();
-  return categories.map((category) => ({ slug: category.slug }));
+  return slugParams(categories.map((category) => category.slug));
 }
 
 export async function generateMetadata({

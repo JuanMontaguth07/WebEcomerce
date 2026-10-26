@@ -35,22 +35,29 @@ export function formatSpecValue(
 
 /** Normaliza y ordena las especificaciones de un producto según su definición. */
 export function toProductSpecs(raw: RawSpec[]): ProductSpec[] {
-  return raw
-    .filter((spec): spec is RawSpec & { definition: NonNullable<RawSpec["definition"]> } =>
-      Boolean(spec.definition),
-    )
-    .sort((a, b) => a.definition.position - b.definition.position)
-    .map((spec) => ({
-      key: spec.definition.key,
-      label: spec.definition.label,
-      group: spec.definition.group_label ?? "General",
-      value: formatSpecValue(
-        spec.definition.data_type,
-        { text: spec.value_text, number: spec.value_number, boolean: spec.value_boolean },
-        spec.definition.unit,
-      ),
-    }))
-    .filter((spec) => spec.value !== "");
+  return (
+    raw
+      .filter((spec): spec is RawSpec & { definition: NonNullable<RawSpec["definition"]> } =>
+        Boolean(spec.definition),
+      )
+      // Desempate por clave: el orden debe ser estable aunque dos posiciones coincidan.
+      .sort(
+        (a, b) =>
+          a.definition.position - b.definition.position ||
+          a.definition.key.localeCompare(b.definition.key),
+      )
+      .map((spec) => ({
+        key: spec.definition.key,
+        label: spec.definition.label,
+        group: spec.definition.group_label ?? "General",
+        value: formatSpecValue(
+          spec.definition.data_type,
+          { text: spec.value_text, number: spec.value_number, boolean: spec.value_boolean },
+          spec.definition.unit,
+        ),
+      }))
+      .filter((spec) => spec.value !== "")
+  );
 }
 
 /** Agrupa especificaciones conservando el orden de aparición de cada grupo. */

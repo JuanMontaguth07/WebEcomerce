@@ -72,7 +72,16 @@ export async function CatalogResults({
   const filters: Filters = { ...parseCatalogParams(await searchParams), ...fixed };
   const [{ items, total, pageCount }, facets] = await Promise.all([
     searchCatalog(filters, scope),
-    getCatalogFacets(filters, scope),
+    // Solo los campos que usa: los argumentos son la clave de la caché.
+    getCatalogFacets(
+      {
+        q: filters.q,
+        category: filters.category,
+        inStock: filters.inStock,
+        onSale: filters.onSale,
+      },
+      scope,
+    ),
   ]);
   const categories: CategoryRef[] = categoryMode.type === "none" ? [] : categoryMode.categories;
 

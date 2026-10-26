@@ -205,3 +205,22 @@ repite en el layout del panel y en cada Server Action.
 - **Sin zod en el navegador fuera del checkout**: `lib/env.ts` y `features/catalog/params.ts`
   validan a mano porque llegan a todas las páginas (~70 KB comprimidos menos). El checkout sí
   valida en el navegador con el mismo esquema del servidor.
+
+## D16 — Preparación para producción (2026-10-26)
+
+- **Catálogo vacío en producción**: el seed es solo de demostración y nunca se aplica allí. Con
+  Cache Components, `generateStaticParams` vacío rompe el build; `slugParams()` devuelve un slug
+  de relleno que la página resuelve con "no encontrado".
+- **Sin enlaces a categorías fijas**: "Ver computadores" sale de la categoría de los equipos
+  armados que existan; si no hay ninguno, no se muestra.
+- **Argumentos de funciones cacheadas**: son la clave de la caché. Se pasan valores simples
+  (`getRelatedProducts(id, categorySlug)`) y solo los campos usados (`getCatalogFacets`); las
+  listas se ordenan con desempate. Un objeto con orden variable provocaba "Unexpected cache
+  miss" al regenerar páginas en paralelo.
+- **CSP mínima** (`frame-ancestors`, `object-src`, `base-uri`, `form-action`). No se restringen
+  scripts: exigiría nonces por petición y desactivaría el prerenderizado.
+- **Pruebas de extremo a extremo** (`e2e/`, Playwright): solo lectura, así que pueden correr
+  contra producción con `E2E_BASE_URL`. Fallan ante cualquier error de JavaScript o de consola.
+  Corren en CI después del build.
+- **Supabase producción** se administra con `--project-ref` (migraciones y configuración) sin
+  cambiar el proyecto vinculado, que sigue siendo desarrollo.

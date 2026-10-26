@@ -6,10 +6,11 @@ import { Breadcrumbs } from "@/components/shop/breadcrumbs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getBrandBySlug, getBrands, getCategories } from "@/features/catalog/queries";
 import { listingMetadata } from "@/features/catalog/seo";
+import { slugParams } from "@/lib/static-params";
 
 export async function generateStaticParams() {
   const brands = await getBrands();
-  return brands.map((brand) => ({ slug: brand.slug }));
+  return slugParams(brands.map((brand) => brand.slug));
 }
 
 export async function generateMetadata({
