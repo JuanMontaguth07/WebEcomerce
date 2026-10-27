@@ -28,7 +28,13 @@ export type ProductSummary = {
   rarity: Rarity | null;
   /** Bandera de marca o línea (NVIDIA, AMD Ryzen…), o null. */
   flag: ProductFlag | null;
+  warrantyMonths: number | null;
+  /** Hasta 3 especificaciones marcadas «en la tarjeta» en la ficha de su categoría. */
+  keySpecs: CardSpec[];
 };
+
+/** Especificación corta de la tarjeta: «12 GB», «8 núcleos». `label` es su nombre completo. */
+export type CardSpec = { label: string; text: string };
 
 export type Category = {
   id: string;
@@ -63,7 +69,6 @@ export type ProductDetail = ProductSummary & {
   description: string | null;
   /** Por qué es una pieza única (null = producto normal). */
   uniqueNote: string | null;
-  warrantyMonths: number | null;
   seoTitle: string | null;
   seoDescription: string | null;
   updatedAt: string;

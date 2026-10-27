@@ -478,6 +478,90 @@
     0 18px 48px -14px color-mix(in oklab, var(--rarity) 90%, transparent);
 }
 
+/* Fuera de pantalla las rarezas se detienen (CardEffects pone data-offscreen). */
+.rarity-card[data-offscreen],
+.rarity-card[data-offscreen]::before,
+.rarity-card[data-offscreen]::after,
+.rarity-card[data-offscreen] .rarity-badge {
+  animation-play-state: paused;
+}
+
+/* =============================================================================
+   Tarjeta de producto: giro 3D y reflejo que siguen al cursor (--rx, --ry, --gx
+   y --gy los pone CardEffects) y una luz que recorre el borde mientras el cursor
+   está encima. Nada se mueve en reposo.
+   ============================================================================= */
+
+@property --beam-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.product-card {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition:
+    transform 0.45s var(--expo-out),
+    translate 0.3s var(--expo-out),
+    box-shadow 0.3s var(--expo-out),
+    border-color 0.3s var(--expo-out);
+}
+
+.card-glare {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    circle at var(--gx, 50%) var(--gy, 0%),
+    color-mix(in oklab, white 16%, transparent),
+    transparent 55%
+  );
+  transition: opacity 0.3s var(--expo-out);
+}
+
+.card-beam {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  padding: 1.5px;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: conic-gradient(
+    from var(--beam-angle),
+    transparent 0deg 290deg,
+    color-mix(in oklab, var(--primary) 60%, transparent) 330deg,
+    var(--primary) 356deg,
+    transparent 360deg
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  transition: opacity 0.3s var(--expo-out);
+}
+
+@media (hover: hover) {
+  .product-card:hover .card-glare {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .product-card:is(:hover, :focus-within) .card-beam {
+    opacity: 1;
+    animation: card-beam 2.8s linear infinite;
+  }
+}
+
+@keyframes card-beam {
+  to {
+    --beam-angle: 360deg;
+  }
+}
+
 /* Etiqueta: fondo con un toque del color y texto en el color de texto normal. */
 .rarity-badge {
   border-color: color-mix(in oklab, var(--rarity) 65%, transparent);

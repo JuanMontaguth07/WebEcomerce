@@ -434,6 +434,7 @@ export const saveSpecDefinition = adminAction(
       unit: values.unit ?? null,
       data_type: values.dataType,
       is_filterable: values.isFilterable,
+      show_on_card: values.showOnCard,
       position: values.position,
     };
     const { data, error } = values.id
@@ -444,6 +445,13 @@ export const saveSpecDefinition = adminAction(
           .select("id")
           .single()
       : await supabase.from("spec_definitions").insert(row).select("id").single();
+    if (error?.message.includes("CARD_SPECS_LIMIT")) {
+      throw new AppError("VALIDATION", {
+        details: {
+          showOnCard: ["La tarjeta muestra hasta 3. Desmarca otra especificación primero."],
+        },
+      });
+    }
     if (error) {
       translateDbError(error, {
         uniqueFields: {

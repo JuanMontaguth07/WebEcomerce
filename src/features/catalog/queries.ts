@@ -6,7 +6,7 @@ import { getRarityMap } from "@/features/rarities/queries";
 import type { Rarity } from "@/features/rarities/types";
 import { createPublicClient } from "@/lib/supabase/public";
 import { PAGE_SIZE, type CatalogFilters } from "./params";
-import { toProductSpecs } from "./specs";
+import { toCardSpecs, toProductSpecs, type RawSpec } from "./specs";
 import type {
   Brand,
   CatalogFacets,
@@ -94,7 +94,46 @@ function toSummary(row: SummaryRow, lookups: Lookups): ProductSummary {
     category: row.category,
     image: image ? { path: image.storage_path, alt: image.alt_text } : null,
     ...decorate(row, lookups),
+    warrantyMonths: null,
+    keySpecs: [],
   };
+}
+
+type CardSpecRow = RawSpec & { product_id: string };
+
+/**
+ * Completa un listado con la garantía y las especificaciones marcadas «en la
+ * tarjeta». Dos consultas por listado, sin importar cuántos productos tenga.
+ */
+async function withCardDetails(items: ProductSummary[]): Promise<ProductSummary[]> {
+  if (!items.length) return items;
+  const client = createPublicClient({ retry: true });
+  const ids = items.map((item) => item.id);
+  const [warranties, specs] = await Promise.all([
+    client.from("products").select("id, warranty_months").in("id", ids),
+    client
+      .from("product_specs")
+      .select(
+        `product_id, value_text, value_number, value_boolean,
+         definition:spec_definitions!inner(key, label, group_label, unit, data_type, position)`,
+      )
+      .in("product_id", ids)
+      .eq("definition.show_on_card", true)
+      .overrideTypes<CardSpecRow[], { merge: false }>(),
+  ]);
+  if (warranties.error) fail("withCardDetails", warranties.error);
+  if (specs.error) fail("withCardDetails", specs.error);
+
+  const warranty = new Map(warranties.data.map((row) => [row.id, row.warranty_months]));
+  const byProduct = new Map<string, CardSpecRow[]>();
+  for (const row of specs.data) {
+    byProduct.set(row.product_id, [...(byProduct.get(row.product_id) ?? []), row]);
+  }
+  return items.map((item) => ({
+    ...item,
+    warrantyMonths: warranty.get(item.id) ?? null,
+    keySpecs: toCardSpecs(byProduct.get(item.id) ?? []),
+  }));
 }
 
 function fail(context: string, error: { message: string }): never {
@@ -217,9 +256,15 @@ export async function searchCatalog(
     category: { name: row.category_name, slug: row.category_slug },
     image: row.image_path ? { path: row.image_path, alt: row.image_alt } : null,
     ...decorate(row, lookups),
+    warrantyMonths: null,
+    keySpecs: [],
   }));
 
-  return { items, total, pageCount: Math.max(1, Math.ceil(total / PAGE_SIZE)) };
+  return {
+    items: await withCardDetails(items),
+    total,
+    pageCount: Math.max(1, Math.ceil(total / PAGE_SIZE)),
+  };
 }
 
 export async function getCatalogFacets(
@@ -287,7 +332,7 @@ export async function getHomeCollection(
 
   // Los agotados van al final, pero siguen visibles.
   const lookups = await getLookups();
-  const items = data.map((row) => toSummary(row, lookups));
+  const items = await withCardDetails(data.map((row) => toSummary(row, lookups)));
   return [...items.filter((p) => p.stock > 0), ...items.filter((p) => p.stock <= 0)];
 }
 
@@ -312,7 +357,8 @@ export async function getUniqueProducts(limit = 4): Promise<UniqueProduct[]> {
   if (error) fail("getUniqueProducts", error);
 
   const lookups = await getLookups();
-  return data.map((row) => ({ product: toSummary(row, lookups), note: row.unique_note }));
+  const products = await withCardDetails(data.map((row) => toSummary(row, lookups)));
+  return products.map((product, index) => ({ product, note: data[index]?.unique_note ?? "" }));
 }
 
 /** Más vendidos según pedidos reales. Sin ventas devuelve una lista vacía. */
@@ -335,7 +381,8 @@ export async function getBestSellers(limit = 8): Promise<ProductSummary[]> {
   if (productsError) fail("getBestSellers", productsError);
 
   const lookups = await getLookups();
-  const byId = new Map(data.map((row) => [row.id, toSummary(row, lookups)]));
+  const products = await withCardDetails(data.map((row) => toSummary(row, lookups)));
+  const byId = new Map(products.map((product) => [product.id, product]));
   return ids.flatMap((id) => byId.get(id) ?? []);
 }
 
@@ -378,7 +425,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
       images:product_images(id, storage_path, alt_text, position, width, height),
       specs:product_specs(
         value_text, value_number, value_boolean,
-        definition:spec_definitions(key, label, group_label, unit, data_type, position)
+        definition:spec_definitions(key, label, group_label, unit, data_type, position, show_on_card)
       )
     `,
     )
@@ -401,6 +448,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
     description: data.description,
     uniqueNote: data.unique_note,
     warrantyMonths: data.warranty_months,
+    keySpecs: toCardSpecs(data.specs.filter((spec) => spec.definition?.show_on_card)),
     seoTitle: data.seo_title,
     seoDescription: data.seo_description,
     updatedAt: data.updated_at,
@@ -445,7 +493,7 @@ export async function getRelatedProducts(
     .overrideTypes<SummaryRow[], { merge: false }>();
   if (error) fail("getRelatedProducts", error);
   const lookups = await getLookups();
-  return data.map((row) => toSummary(row, lookups));
+  return withCardDetails(data.map((row) => toSummary(row, lookups)));
 }
 
 export async function getActiveProductSlugs(): Promise<{ slug: string; updatedAt: string }[]> {

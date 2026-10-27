@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { discountPercent, formatCOP, slugify } from "./format";
+import { discountPercent, formatCOP, formatWarranty, slugify } from "./format";
 
 describe("formatCOP", () => {
   it("usa separador de miles con punto y sin decimales", () => {
@@ -35,5 +35,19 @@ describe("slugify", () => {
       expect(slug).toMatch(dbSlugPattern);
       expect(slug.length).toBeLessThanOrEqual(120);
     }
+  });
+});
+
+describe("formatWarranty", () => {
+  it("usa años cuando son exactos y meses si no", () => {
+    expect(formatWarranty(12)).toBe("1 año de garantía");
+    expect(formatWarranty(36)).toBe("3 años de garantía");
+    expect(formatWarranty(18)).toBe("18 meses de garantía");
+    expect(formatWarranty(1)).toBe("1 mes de garantía");
+  });
+
+  it("sin garantía no muestra nada", () => {
+    expect(formatWarranty(null)).toBeNull();
+    expect(formatWarranty(0)).toBeNull();
   });
 });

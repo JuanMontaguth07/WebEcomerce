@@ -98,20 +98,25 @@ export function CheckboxField({
   hint,
   checked,
   onCheckedChange,
+  errors,
+  disabled,
 }: {
   name: string;
   label: string;
   hint?: string;
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
+  errors?: Errors;
+  disabled?: boolean;
 }) {
   return (
-    <Field described={Boolean(hint)}>
+    <Field error={errors?.[name]} described={Boolean(hint)}>
       <div className="flex items-start gap-3">
         <FieldControl>
           <Checkbox
             name={name}
             checked={checked}
+            disabled={disabled}
             onCheckedChange={(value) => onCheckedChange(value === true)}
             className="mt-0.5"
           />

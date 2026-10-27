@@ -180,3 +180,28 @@ describe("best_selling_products", () => {
     expect(result.rows).toHaveLength(0);
   });
 });
+
+describe("especificaciones en la tarjeta", () => {
+  it("la semilla marca las 3 primeras de cada ficha y el visitante las lee", async () => {
+    const rows = await asRole(db, "anon", null, () =>
+      db.query<{ slug: string; n: number }>(
+        `select c.slug, count(*) filter (where d.show_on_card)::int n
+           from public.spec_definitions d join public.categories c on c.id = d.category_id
+          group by c.slug`,
+      ),
+    );
+    expect(rows.rows.length).toBeGreaterThan(0);
+    for (const row of rows.rows) expect(row.n, row.slug).toBe(3);
+  });
+
+  it("una categoría no muestra más de 3", async () => {
+    await expect(
+      db.query(
+        `update public.spec_definitions set show_on_card = true
+          where id = (select d.id from public.spec_definitions d
+                        join public.categories c on c.id = d.category_id
+                       where c.slug = 'tarjetas-graficas' and not d.show_on_card limit 1)`,
+      ),
+    ).rejects.toThrow(/CARD_SPECS_LIMIT/);
+  });
+});

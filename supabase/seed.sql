@@ -116,6 +116,14 @@ begin
   ) as s(cat, key, label, grp, unit, dtype, filterable, pos)
   join public.categories c on c.slug = s.cat;
 
+  -- Las 3 primeras de cada ficha salen en la tarjeta de producto.
+  update public.spec_definitions d set show_on_card = true
+  from (
+    select id, row_number() over (partition by category_id order by position, key) as n
+    from public.spec_definitions
+  ) ranked
+  where ranked.id = d.id and ranked.n <= 3;
+
   -- Productos ------------------------------------------------------------------
   insert into public.products (
     name, slug, sku, product_type, short_description, description, price, compare_at_price,

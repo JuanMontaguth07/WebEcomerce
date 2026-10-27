@@ -125,6 +125,7 @@ export const specDefinitionSchema = z.object({
   unit: optionalText(20),
   dataType: z.enum(["text", "number", "boolean"]),
   isFilterable: z.boolean(),
+  showOnCard: z.boolean().default(false),
   position: z.coerce.number().int().min(0).max(1000),
 });
 

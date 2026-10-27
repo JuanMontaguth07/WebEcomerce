@@ -845,6 +845,7 @@ export type Database = {
           key: string
           label: string
           position: number
+          show_on_card: boolean
           unit: string | null
         }
         Insert: {
@@ -857,6 +858,7 @@ export type Database = {
           key: string
           label: string
           position?: number
+          show_on_card?: boolean
           unit?: string | null
         }
         Update: {
@@ -869,6 +871,7 @@ export type Database = {
           key?: string
           label?: string
           position?: number
+          show_on_card?: boolean
           unit?: string | null
         }
         Relationships: [

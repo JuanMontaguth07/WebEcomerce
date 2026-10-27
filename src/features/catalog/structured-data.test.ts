@@ -32,6 +32,7 @@ const product: ProductDetail = {
   images: [{ id: "i1", path: "products/p1/a.webp", alt: "Frente", width: 800, height: 800 }],
   specs: [],
   warrantyMonths: 12,
+  keySpecs: [],
   seoTitle: null,
   seoDescription: null,
   updatedAt: "2026-10-01T00:00:00Z",

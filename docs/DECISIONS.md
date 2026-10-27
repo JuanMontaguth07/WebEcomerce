@@ -404,3 +404,21 @@ repite en el layout del panel y en cada Server Action.
   escrita solo con `touch_admin_seen()` cada 2 minutos mientras la pestaña está activa.
 - Realtime puede rechazar la primera conexión del día mientras crea su partición diaria
   (`MissingPartition`): el panel cierra el canal y reintenta a los 30 s.
+
+## D29 — Módulo 4: tarjeta de producto premium (2026-10-27)
+
+- **Especificaciones clave** en la tarjeta (hasta 3, 2 en móvil): el admin las elige por categoría
+  con «Mostrar en la tarjeta» en la ficha técnica (`spec_definitions.show_on_card`). La base limita a
+  3 por categoría (`CARD_SPECS_LIMIT`) y el panel deshabilita la casilla al llegar al tope. La
+  migración y la semilla marcan las 3 primeras de cada ficha como punto de partida.
+- **Texto corto**: «12 GB», «8 núcleos» (número sin unidad + etiqueta), la etiqueta sola si es «Sí»;
+  un «No» se omite. El nombre completo va en `title` y para lectores de pantalla.
+- **Garantía visible** con el mismo texto de la ficha (`formatWarranty` en `lib/format`).
+- Garantía y especificaciones llegan con `withCardDetails()`: dos consultas por listado (no por
+  producto), dentro de la misma caché de cada listado.
+- **Efectos sin hidratar cada tarjeta**: `CardEffects` (uno por página) escucha el cursor y publica
+  `--rx`/`--ry`/`--gx`/`--gy` en la tarjeta bajo el cursor para el giro 3D y el reflejo. Solo con
+  mouse y sin movimiento reducido. La luz que recorre el borde corre solo mientras el cursor está
+  encima, y no en las rarezas (ya tienen la suya).
+- **Rarezas en pausa fuera de pantalla**: el mismo componente observa las `.rarity-card` (también las
+  que llegan al filtrar o navegar) y les pone `data-offscreen`, que detiene sus animaciones.

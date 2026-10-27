@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getAvailability, isDemoProduct } from "./availability";
 import { buildCatalogQuery, EMPTY_FILTERS, hasActiveFilters, parseCatalogParams } from "./params";
-import { formatSpecValue, groupSpecs } from "./specs";
+import { formatSpecValue, groupSpecs, toCardSpecs } from "./specs";
 
 describe("parseCatalogParams", () => {
   it("usa valores por defecto sin parámetros", () => {
@@ -151,5 +151,51 @@ describe("formatSpecValue", () => {
       ["Memoria", 2],
       ["Energía", 1],
     ]);
+  });
+});
+
+describe("toCardSpecs", () => {
+  const definition = (key: string, position: number, extra: object = {}) => ({
+    key,
+    label: key,
+    group_label: null,
+    unit: null,
+    data_type: "text" as const,
+    position,
+    ...extra,
+  });
+  const value = { value_text: null, value_number: null, value_boolean: null };
+
+  it("respeta el orden de la ficha y arma textos cortos", () => {
+    const specs = toCardSpecs([
+      { ...value, value_number: 8, definition: definition("Núcleos", 2, { data_type: "number" }) },
+      {
+        ...value,
+        value_number: 12,
+        definition: definition("vram", 1, { data_type: "number", unit: "GB" }),
+      },
+      { ...value, value_text: "GDDR7", definition: definition("memory_type", 3) },
+    ]);
+    expect(specs.map((spec) => spec.text)).toEqual(["12 GB", "8 núcleos", "GDDR7"]);
+  });
+
+  it("un «Sí» muestra la característica, un «No» se omite y corta en 3", () => {
+    const yes = (key: string, position: number) => ({
+      ...value,
+      value_boolean: true,
+      definition: definition(key, position, { data_type: "boolean" }),
+    });
+    const specs = toCardSpecs([
+      yes("RGB", 1),
+      {
+        ...value,
+        value_boolean: false,
+        definition: definition("WiFi", 2, { data_type: "boolean" }),
+      },
+      yes("Modular", 3),
+      yes("Pasiva", 4),
+      yes("Silenciosa", 5),
+    ]);
+    expect(specs.map((spec) => spec.text)).toEqual(["RGB", "Modular", "Pasiva"]);
   });
 });

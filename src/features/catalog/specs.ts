@@ -1,8 +1,8 @@
-import type { ProductSpec, SpecDataType } from "./types";
+import type { CardSpec, ProductSpec, SpecDataType } from "./types";
 
 const numberFormatter = new Intl.NumberFormat("es-CO", { maximumFractionDigits: 2 });
 
-type RawSpec = {
+export type RawSpec = {
   value_text: string | null;
   value_number: number | null;
   value_boolean: boolean | null;
@@ -13,6 +13,7 @@ type RawSpec = {
     unit: string | null;
     data_type: SpecDataType;
     position: number;
+    show_on_card?: boolean;
   } | null;
 };
 
@@ -67,4 +68,34 @@ export function groupSpecs(specs: ProductSpec[]): { group: string; items: Produc
     groups.set(spec.group, [...(groups.get(spec.group) ?? []), spec]);
   }
   return [...groups].map(([group, items]) => ({ group, items }));
+}
+
+/**
+ * Especificaciones de la tarjeta de producto, cortas y en el orden de la ficha:
+ * «12 GB», «8 núcleos» (número sin unidad + etiqueta) o la etiqueta sola si es
+ * un «Sí». Un «No» no aporta en una tarjeta y se omite.
+ */
+export function toCardSpecs(raw: RawSpec[], limit = 3): CardSpec[] {
+  return raw
+    .filter((spec): spec is RawSpec & { definition: NonNullable<RawSpec["definition"]> } =>
+      Boolean(spec.definition),
+    )
+    .sort(
+      (a, b) =>
+        a.definition.position - b.definition.position ||
+        a.definition.key.localeCompare(b.definition.key),
+    )
+    .flatMap(({ definition, value_text, value_number, value_boolean }): CardSpec[] => {
+      const { label, unit, data_type } = definition;
+      if (data_type === "boolean") return value_boolean ? [{ label, text: label }] : [];
+      const value = formatSpecValue(
+        data_type,
+        { text: value_text, number: value_number, boolean: value_boolean },
+        unit,
+      );
+      if (!value) return [];
+      const bare = data_type === "number" && !unit;
+      return [{ label, text: bare ? `${value} ${label.toLocaleLowerCase("es-CO")}` : value }];
+    })
+    .slice(0, limit);
 }

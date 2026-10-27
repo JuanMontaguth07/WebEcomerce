@@ -21,8 +21,12 @@ type Draft = {
   unit: string;
   dataType: "text" | "number" | "boolean";
   isFilterable: boolean;
+  showOnCard: boolean;
   position: string;
 };
+
+/** Cuántas especificaciones puede mostrar la tarjeta de producto (igual que en la base). */
+const CARD_LIMIT = 3;
 
 const TYPE_LABELS = { text: "Texto", number: "Número", boolean: "Sí / No" } as const;
 
@@ -57,6 +61,7 @@ export function SpecDefinitions({
       unit: "",
       dataType: "text",
       isFilterable: false,
+      showOnCard: false,
       position: String(definitions.length + 1),
     });
   };
@@ -71,6 +76,7 @@ export function SpecDefinitions({
       unit: definition.unit ?? "",
       dataType: definition.data_type,
       isFilterable: definition.is_filterable,
+      showOnCard: definition.show_on_card,
       position: String(definition.position),
     });
   };
@@ -113,6 +119,11 @@ export function SpecDefinitions({
         : current,
     );
 
+  // Las marcadas en las demás especificaciones (la que se edita se cuenta según la casilla).
+  const onCard =
+    definitions.filter((definition) => definition.show_on_card && definition.id !== draft?.id)
+      .length + (draft?.showOnCard ? 1 : 0);
+
   return (
     <div className="grid gap-4">
       {definitions.length ? (
@@ -131,6 +142,7 @@ export function SpecDefinitions({
                 </span>
               </div>
               <Badge variant="outline">{TYPE_LABELS[definition.data_type]}</Badge>
+              {definition.show_on_card && <Badge variant="soft">En la tarjeta</Badge>}
               {definition.is_filterable && <Badge variant="soft">Filtrable</Badge>}
               {deleting === definition.id ? (
                 <div className="flex items-center gap-2">
@@ -241,6 +253,15 @@ export function SpecDefinitions({
               onChange={(e) => set("position", e.target.value)}
             />
           </div>
+          <CheckboxField
+            name="showOnCard"
+            label="Mostrar en la tarjeta"
+            hint={`Aparece en las tarjetas de producto del catálogo (hasta ${CARD_LIMIT} por categoría, en el orden de la ficha). Usadas: ${onCard}/${CARD_LIMIT}.`}
+            errors={errors}
+            checked={draft.showOnCard}
+            disabled={!draft.showOnCard && onCard >= CARD_LIMIT}
+            onCheckedChange={(checked) => set("showOnCard", checked)}
+          />
           <CheckboxField
             name="isFilterable"
             label="Filtrable"

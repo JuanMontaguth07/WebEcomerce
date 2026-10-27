@@ -1,11 +1,11 @@
-import { FlameIcon } from "lucide-react";
+import { FlameIcon, ShieldCheckIcon } from "lucide-react";
 import Link from "next/link";
 import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 import { Badge } from "@/components/ui/badge";
 import { isDemoProduct } from "@/features/catalog/availability";
 import { rarityStyle } from "@/features/rarities/types";
 import type { ProductSummary } from "@/features/catalog/types";
-import { discountPercent } from "@/lib/format";
+import { discountPercent, formatWarranty } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Price } from "./price";
 import { ProductImage } from "./product-image";
@@ -23,22 +23,33 @@ type ProductCardProps = {
   className?: string;
 };
 
+/**
+ * Tarjeta de producto: especificaciones clave y garantía a la vista. El giro 3D,
+ * el reflejo y la pausa de rarezas fuera de pantalla los maneja CardEffects
+ * (globals.css: .product-card).
+ */
 export function ProductCard({ product, priority = false, className }: ProductCardProps) {
   const discount = discountPercent(product.price, product.compareAtPrice);
   const outOfStock = product.stock <= 0;
+  const warranty = formatWarranty(product.warrantyMonths);
   const { rarity } = product;
 
   return (
     <article
+      data-tilt
       data-effect={rarity?.effect}
       style={rarity ? rarityStyle(rarity) : undefined}
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-xl border bg-card transition-[transform,box-shadow,border-color] duration-300 ease-out-soft focus-within:border-primary/50 hover:-translate-y-1 hover:border-primary/50 hover:shadow-glow",
+        "product-card group relative flex flex-col overflow-hidden rounded-2xl border bg-card focus-within:border-primary/50 hover:-translate-y-1 hover:border-primary/50 hover:shadow-glow",
         rarity && "rarity-card",
         className,
       )}
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
+      <span aria-hidden className="card-glare" />
+      {/* Las rarezas ya tienen su propia luz de borde. */}
+      {!rarity && <span aria-hidden className="card-beam" />}
+
+      <div className="relative aspect-[4/3] overflow-hidden bg-secondary bg-[radial-gradient(70%_70%_at_50%_40%,color-mix(in_oklab,var(--tech)_12%,transparent),transparent_70%)]">
         <ProductImage
           image={product.image}
           categorySlug={product.category.slug}
@@ -81,12 +92,37 @@ export function ProductCard({ product, priority = false, className }: ProductCar
             {product.name}
           </Link>
         </h3>
+        {product.keySpecs.length > 0 && (
+          <ul aria-label="Especificaciones clave" className="flex flex-wrap gap-1.5">
+            {product.keySpecs.map((spec, index) => (
+              <li
+                key={spec.label}
+                title={`${spec.label}: ${spec.text}`}
+                // En móvil la tarjeta es angosta: dos bastan.
+                className={cn(
+                  "max-w-full truncate rounded-md bg-secondary px-2 py-1 font-mono text-[0.6875rem] leading-none text-secondary-foreground",
+                  index >= 2 && "hidden sm:block",
+                )}
+              >
+                {spec.text !== spec.label && <span className="sr-only">{spec.label}: </span>}
+                {spec.text}
+              </li>
+            ))}
+          </ul>
+        )}
         <div className="mt-auto grid gap-2 pt-1">
           <Price price={product.price} compareAtPrice={product.compareAtPrice} />
-          <div className="flex items-center justify-between gap-2">
+          {warranty && (
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <ShieldCheckIcon className="size-3.5 shrink-0 text-primary" aria-hidden />
+              <span className="truncate">{warranty}</span>
+            </p>
+          )}
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <StockBadge stock={product.stock} lowStockThreshold={product.lowStockThreshold} />
             <AddToCartButton
               variant="icon"
+              className="ml-auto"
               productId={product.id}
               name={product.name}
               stock={product.stock}

@@ -26,6 +26,7 @@ import { productJsonLd } from "@/features/catalog/structured-data";
 import type { ProductDetail } from "@/features/catalog/types";
 import { getStoreSettings } from "@/features/store-settings/queries";
 import { whatsappLink } from "@/features/store-settings/types";
+import { formatWarranty } from "@/lib/format";
 import { storageImageUrl } from "@/lib/images";
 import { absoluteUrl, baseOpenGraph } from "@/lib/seo";
 import { slugParams } from "@/lib/static-params";
@@ -72,15 +73,6 @@ export async function generateMetadata({
   };
 }
 
-function warrantyLabel(months: number | null) {
-  if (!months) return null;
-  if (months % 12 === 0) {
-    const years = months / 12;
-    return `${years} ${years === 1 ? "año" : "años"} de garantía`;
-  }
-  return `${months} meses de garantía`;
-}
-
 function ProductInfo({
   product,
   whatsappNumber,
@@ -89,7 +81,7 @@ function ProductInfo({
   whatsappNumber: string | null;
 }) {
   const availability = getAvailability(product.stock, product.lowStockThreshold);
-  const warranty = warrantyLabel(product.warrantyMonths);
+  const warranty = formatWarranty(product.warrantyMonths);
 
   return (
     <div className="grid content-start gap-6">

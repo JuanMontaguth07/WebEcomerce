@@ -127,7 +127,7 @@ export async function getSpecDefinitions(categoryId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("spec_definitions")
-    .select("id, key, label, group_label, unit, data_type, is_filterable, position")
+    .select("id, key, label, group_label, unit, data_type, is_filterable, show_on_card, position")
     .eq("category_id", categoryId)
     .order("position")
     .order("label");

@@ -27,3 +27,13 @@ export function slugify(input: string): string {
     .slice(0, 120)
     .replace(/-+$/g, "");
 }
+
+/** «1 año de garantía», «18 meses de garantía»; null si no tiene. */
+export function formatWarranty(months: number | null): string | null {
+  if (!months) return null;
+  if (months % 12 === 0) {
+    const years = months / 12;
+    return `${years} ${years === 1 ? "año" : "años"} de garantía`;
+  }
+  return `${months} ${months === 1 ? "mes" : "meses"} de garantía`;
+}
