@@ -227,7 +227,7 @@ export function SearchBox({ className, autoFocus }: { className?: string; autoFo
         aria-activedescendant={
           showList && active >= 0 && flat[active] ? `${listId}-${flat[active].id}` : undefined
         }
-        className="h-10 w-full rounded-lg border border-input bg-secondary pr-10 pl-9 text-base outline-none placeholder:text-muted-foreground focus-visible:border-primary focus-visible:bg-card focus-visible:ring-3 focus-visible:ring-ring/25 md:text-sm [&::-webkit-search-cancel-button]:hidden"
+        className="h-10 w-full rounded-xl border border-input bg-secondary pr-10 pl-9 text-base transition-[border-color,box-shadow,background-color] outline-none placeholder:text-muted-foreground hover:border-muted-foreground focus-visible:border-primary focus-visible:bg-card focus-visible:shadow-[0_0_0_4px_color-mix(in_oklab,var(--lime)_22%,transparent)] md:text-sm [&::-webkit-search-cancel-button]:hidden"
       />
       <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground">
         {loading ? (

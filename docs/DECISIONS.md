@@ -352,3 +352,19 @@ repite en el layout del panel y en cada Server Action.
   para texto e IBM Plex Mono para datos. Las variables pasan a nombres genéricos
   (`--font-display`, `--font-body`, `--font-data`). Hanken Grotesk queda solo como opción del panel.
 - Logo, ícono, imagen para redes, manifest y página de error usan la paleta nueva.
+
+## D26 — Módulo 2: encabezado, mega menú y menú móvil (2026-10-27)
+
+- **Encabezado de una fila**: logo, «Categorías», buscador, Ofertas (en rojo de oferta), Nosotros
+  (desde xl), Soporte, interruptor de tema y carrito. La barra de categorías que se desbordaba con
+  scroll horizontal se reemplaza por el mega menú.
+- **Mega menú** con `NavigationMenu` de Radix (ya instalado): categorías con su ilustración y
+  subcategorías, accesos rápidos y marcas. Navegación por teclado, Esc y foco los da Radix. El panel
+  va en el `Viewport`, posicionado respecto al encabezado: Radix envuelve la lista en un contenedor
+  relativo y, sin Viewport, el panel quedaba del ancho del botón.
+- **Estado activo** con subrayado lima. Leer la ruta (`usePathname`, `useSearchParams`) va dentro de
+  `Suspense` con una versión sin estado activo de respaldo: con prerender parcial, leerla fuera de
+  `Suspense` rompe el build de las rutas dinámicas y los enlaces deben estar en el HTML inicial.
+- **Menú móvil**: accesos con ícono, categorías desplegables con sus subcategorías e interruptor de
+  tema. La página de ingreso también usa el interruptor.
+- El enlace «Arma tu PC» se agrega cuando exista Kova Architect (sin enlaces a páginas vacías).

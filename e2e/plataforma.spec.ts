@@ -46,3 +46,32 @@ test("soporte: preguntas frecuentes desplegables", async ({ page }) => {
   await question.click();
   await expect(page.getByText(/quedan reservados para ti durante 48 horas/)).toBeVisible();
 });
+
+test("menú de categorías: abre, se recorre con teclado y cierra con Esc", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(isMobile, "El mega menú es de escritorio; en móvil se usa el panel lateral.");
+  await page.goto("/");
+  const trigger = page
+    .getByRole("navigation", { name: "Menú de categorías" })
+    .getByRole("button", { name: "Categorías" });
+  test.skip(!(await trigger.count()), "El catálogo aún no tiene categorías.");
+
+  await trigger.click();
+  const panel = page.getByRole("navigation", { name: "Menú de categorías" }).getByRole("link");
+  await expect(panel.first()).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(panel.first()).toBeHidden();
+  await expect(trigger).toBeFocused();
+});
+
+test("menú móvil: alterna el modo oscuro", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "Solo en móvil.");
+  await page.goto("/");
+  await page.getByRole("button", { name: "Abrir menú" }).click();
+  const toggle = page.getByRole("dialog").getByRole("switch", { name: "Modo oscuro" });
+  const wasDark = (await toggle.getAttribute("aria-checked")) === "true";
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-checked", String(!wasDark));
+});

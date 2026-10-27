@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Logo } from "@/components/layout/logo";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { ThemeSwitch } from "@/components/layout/theme-switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { safeNextPath } from "@/features/auth/paths";
 import { getAdminUser } from "@/features/auth/session";
@@ -32,7 +32,7 @@ export default function LoginPage(props: PageProps<"/ingresar">) {
   return (
     <main id="contenido" className="relative grid min-h-full flex-1 place-items-center px-4 py-12">
       <div className="absolute top-4 right-4">
-        <ThemeToggle />
+        <ThemeSwitch />
       </div>
       <div className="grid w-full max-w-sm gap-8">
         <div className="grid justify-items-center gap-4 text-center">

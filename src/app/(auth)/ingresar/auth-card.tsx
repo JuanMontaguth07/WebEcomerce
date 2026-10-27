@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/layout/logo";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { ThemeSwitch } from "@/components/layout/theme-switch";
 
 /** Marco común de las pantallas de acceso al panel. */
 export function AuthCard({
@@ -17,7 +17,7 @@ export function AuthCard({
   return (
     <main id="contenido" className="relative grid min-h-full flex-1 place-items-center px-4 py-12">
       <div className="absolute top-4 right-4">
-        <ThemeToggle />
+        <ThemeSwitch />
       </div>
       <div className="grid w-full max-w-sm gap-8">
         <div className="grid justify-items-center gap-4 text-center">
