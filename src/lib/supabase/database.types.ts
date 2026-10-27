@@ -14,6 +14,29 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_last_seen: {
+        Row: {
+          seen_at: string
+          user_id: string
+        }
+        Insert: {
+          seen_at?: string
+          user_id: string
+        }
+        Update: {
+          seen_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_last_seen_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -1082,6 +1105,7 @@ export type Database = {
           price: number
         }[]
       }
+      touch_admin_seen: { Args: never; Returns: undefined }
       update_order_status: {
         Args: {
           p_note?: string

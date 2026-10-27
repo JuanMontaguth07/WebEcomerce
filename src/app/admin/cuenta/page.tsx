@@ -1,5 +1,6 @@
 import { LogOutIcon } from "lucide-react";
 import type { Metadata } from "next";
+import { AdminStatus, PresenceDot } from "@/components/admin/admin-presence";
 import { AdminPageHeader } from "@/components/admin/admin-ui";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,16 +32,21 @@ function Section({
   );
 }
 
-/** Administradores de la tienda (RLS: un admin ve todos los perfiles). */
+/** Administradores de la tienda con su última vez en el panel (RLS: solo admins). */
 async function listAdmins() {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, full_name, email")
-    .eq("role", "admin")
-    .order("created_at");
-  if (error) throw error;
-  return data;
+  const [admins, seen] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, full_name, email")
+      .eq("role", "admin")
+      .order("created_at"),
+    supabase.from("admin_last_seen").select("user_id, seen_at"),
+  ]);
+  if (admins.error) throw admins.error;
+  if (seen.error) throw seen.error;
+  const lastSeen = new Map(seen.data.map((row) => [row.user_id, row.seen_at]));
+  return admins.data.map((person) => ({ ...person, lastSeen: lastSeen.get(person.id) ?? null }));
 }
 
 export default async function AccountPage() {
@@ -76,13 +82,15 @@ export default async function AccountPage() {
               key={person.id}
               className="flex items-center gap-3 rounded-lg border bg-background p-3"
             >
-              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-secondary text-sm font-semibold">
+              <span className="relative grid size-9 shrink-0 place-items-center rounded-full bg-secondary text-sm font-semibold">
                 {initials({ fullName: person.full_name, email: person.email })}
+                <PresenceDot userId={person.id} className="ring-background" />
               </span>
               <span className="grid min-w-0 flex-1 gap-0.5">
                 <span className="truncate font-semibold">{person.full_name ?? "Sin nombre"}</span>
                 <span className="truncate text-xs text-muted-foreground">{person.email}</span>
               </span>
+              <AdminStatus userId={person.id} lastSeen={person.lastSeen} />
               {person.id === admin.id && <Badge variant="soft">Tú</Badge>}
             </li>
           ))}

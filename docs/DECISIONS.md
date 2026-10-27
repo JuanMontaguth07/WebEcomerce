@@ -389,3 +389,18 @@ repite en el layout del panel y en cada Server Action.
 - **Foto opcional por categoría** desde el panel (`categories.image_path`, que ya existía sin uso,
   ahora validada a `categories/<uuid>.<ext>`). Se borra del bucket al cambiarla, quitarla o eliminar
   la categoría. Sin foto se usa la ilustración.
+
+## D28 — Estado «en línea» de los administradores (2026-10-27)
+
+- **En vivo con Realtime Presence**, sin escribir en la base por cada cambio: cada pestaña del panel
+  se anuncia en el canal privado `admin-presence` con nombre, iniciales y estado. Las políticas sobre
+  `realtime.messages` dejan escuchar y anunciarse solo a administradores; un visitante recibe
+  «Unauthorized».
+- **Estados**: «En línea» con la pestaña visible; «Ausente» si queda en segundo plano o pasan 5
+  minutos sin teclado ni mouse. Con varias pestañas cuenta la más activa.
+- **Dónde se ve**: punto de estado en el avatar propio, avatares de los otros admins conectados en el
+  encabezado y, en Mi cuenta → Administradores, «En línea», «Ausente» o «Visto hace…».
+- **Última vez visto** en `admin_last_seen` (tabla aparte para no tocar `profiles.updated_at`),
+  escrita solo con `touch_admin_seen()` cada 2 minutos mientras la pestaña está activa.
+- Realtime puede rechazar la primera conexión del día mientras crea su partición diaria
+  (`MissingPartition`): el panel cierra el canal y reintenta a los 30 s.

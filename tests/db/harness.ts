@@ -7,7 +7,8 @@ import { join } from "node:path";
 
 /**
  * PostgreSQL en memoria (PGlite) con una simulación mínima de Supabase:
- * roles anon/authenticated, auth.users, auth.uid(), storage y los privilegios
+ * roles anon/authenticated, auth.users, auth.uid(), storage, realtime.messages
+ * (el tópico del canal sale de la variable realtime.topic) y los privilegios
  * por defecto que Supabase concede en el esquema public. Permite probar las
  * migraciones reales sin Docker.
  */
@@ -31,6 +32,17 @@ const SUPABASE_STUB = `
   create table storage.objects (id uuid primary key default gen_random_uuid(), bucket_id text, name text);
   alter table storage.objects enable row level security;
   grant all on storage.objects to anon, authenticated;
+  create schema realtime;
+  grant usage on schema realtime to anon, authenticated, service_role;
+  create table realtime.messages (
+    id bigserial primary key, topic text, extension text, event text, payload jsonb
+  );
+  alter table realtime.messages enable row level security;
+  grant select, insert on realtime.messages to anon, authenticated;
+  grant usage on sequence realtime.messages_id_seq to anon, authenticated;
+  create function realtime.topic() returns text language sql stable as
+    $$ select nullif(current_setting('realtime.topic', true), '') $$;
+  grant execute on function realtime.topic() to anon, authenticated;
   grant usage on schema public to anon, authenticated, service_role;
   alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
   alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
