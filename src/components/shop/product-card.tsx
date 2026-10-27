@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { isDemoProduct } from "@/features/catalog/availability";
 import { rarityStyle } from "@/features/rarities/types";
 import type { ProductSummary } from "@/features/catalog/types";
+import { categoryTint } from "@/features/catalog/tint";
 import { discountPercent, formatWarranty } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Price } from "./price";
@@ -49,7 +50,11 @@ export function ProductCard({ product, priority = false, className }: ProductCar
       {/* Las rarezas ya tienen su propia luz de borde. */}
       {!rarity && <span aria-hidden className="card-beam" />}
 
-      <div className="relative aspect-[4/3] overflow-hidden bg-secondary bg-[radial-gradient(70%_70%_at_50%_40%,color-mix(in_oklab,var(--tech)_12%,transparent),transparent_70%)]">
+      {/* Cada categoría tiñe el fondo y el dibujo con su tono (categoryTint). */}
+      <div
+        style={{ "--tint": categoryTint(product.category.slug) } as React.CSSProperties}
+        className="relative aspect-[4/3] overflow-hidden bg-secondary bg-[radial-gradient(70%_70%_at_50%_40%,color-mix(in_oklab,var(--tint)_16%,transparent),transparent_72%)]"
+      >
         <ProductImage
           image={product.image}
           categorySlug={product.category.slug}
@@ -57,7 +62,7 @@ export function ProductCard({ product, priority = false, className }: ProductCar
           sizes="(min-width: 1280px) 300px, (min-width: 768px) 33vw, 50vw"
           priority={priority}
           className={cn(
-            "transition-transform duration-500 ease-out-soft group-hover:scale-105",
+            "text-[color:color-mix(in_oklab,var(--tint)_40%,var(--muted-foreground))] transition-transform duration-500 ease-out-soft group-hover:scale-105",
             outOfStock && "opacity-60",
           )}
         />

@@ -10,6 +10,7 @@ export function ProductGrid({
   products,
   priorityCount = 0,
   animateChanges = false,
+  stagger = false,
   className,
 }: {
   products: ProductSummary[];
@@ -17,15 +18,22 @@ export function ProductGrid({
   priorityCount?: number;
   /** Desliza las tarjetas al filtrar u ordenar (catálogo). */
   animateChanges?: boolean;
+  /** Las tarjetas entran una tras otra al bajar (portada, relacionados). */
+  stagger?: boolean;
   className?: string;
 }) {
   const items = products.map((product, index) => (
-    <li key={product.id} data-key={product.id} className="flex">
+    <li
+      key={product.id}
+      data-key={product.id}
+      style={stagger ? ({ "--i": index % 4 } as React.CSSProperties) : undefined}
+      className="flex"
+    >
       <ProductCard product={product} priority={index < priorityCount} className="w-full" />
     </li>
   ));
   if (animateChanges) return <ReorderList className={cn(GRID, className)}>{items}</ReorderList>;
-  return <ul className={cn(GRID, className)}>{items}</ul>;
+  return <ul className={cn(GRID, stagger && "stagger-in", className)}>{items}</ul>;
 }
 
 export function ProductGridSkeleton({

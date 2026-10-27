@@ -5,6 +5,7 @@ import { bentoLayout, sortByProductCount, type BentoSize } from "@/features/cata
 import { storageImageUrl } from "@/lib/images";
 import { cn } from "@/lib/utils";
 import { CategoryIllustration } from "./category-illustration";
+import { SectionHeader } from "./section-header";
 
 export type BentoCategory = {
   name: string;
@@ -43,10 +44,13 @@ export function CategoryBento({ categories }: { categories: BentoCategory[] }) {
 
   return (
     <section aria-labelledby="categorias" className="reveal container-page grid gap-6">
-      <h2 id="categorias" className="flex items-center gap-3 text-2xl font-bold md:text-3xl">
-        <span aria-hidden className="h-7 w-1.5 shrink-0 rounded-full bg-primary" />
-        Compra por categoría
-      </h2>
+      <SectionHeader
+        id="categorias"
+        eyebrow="Explora"
+        title="Compra por categoría"
+        href="/productos"
+        linkLabel="Todo el catálogo"
+      />
       <ul className="grid grid-flow-row-dense auto-rows-[8.5rem] grid-cols-2 gap-3 md:auto-rows-[10rem] md:grid-cols-4">
         {sorted.map((category, index) => (
           <BentoTile key={category.slug} category={category} size={sizes[index] ?? "cell"} />

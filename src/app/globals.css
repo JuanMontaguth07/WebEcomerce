@@ -661,6 +661,134 @@
   }
 }
 
+/* Tarjetas que entran una tras otra al bajar: cada una arranca un poco después
+   según su posición (--i). Solo con animaciones por scroll y sin movimiento reducido. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .stagger-in > * {
+      animation: stagger-in linear both;
+      animation-timeline: view();
+      animation-range: entry calc(var(--i, 0) * 7%) entry calc(65% + var(--i, 0) * 7%);
+    }
+  }
+}
+
+@keyframes stagger-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.75rem) scale(0.97);
+  }
+}
+
+/* Marquesina: dos copias del contenido se desplazan sin fin y se pausan al pasar el
+   cursor o enfocar un enlace. Con movimiento reducido queda quieta y sin la copia. */
+.marquee {
+  --marquee-gap: 0.75rem;
+  /* Dentro de una grilla, sin esto crecería al ancho de todo su contenido. */
+  min-width: 0;
+  overflow: hidden;
+  mask: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  gap: var(--marquee-gap);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .marquee-track {
+    animation: marquee var(--marquee-duration, 45s) linear infinite;
+  }
+
+  .marquee[data-reverse] .marquee-track {
+    animation-direction: reverse;
+  }
+
+  .marquee:is(:hover, :focus-within) .marquee-track {
+    animation-play-state: paused;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    mask: none;
+  }
+
+  .marquee-track {
+    width: auto;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .marquee-track [data-clone] {
+    display: none;
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(calc(-50% - var(--marquee-gap) / 2));
+  }
+}
+
+/* Bandas a lo ancho para cortar el ritmo de la portada: con luz en los bordes y un
+   tinte (--band) muy suave. */
+.band {
+  position: relative;
+  isolation: isolate;
+  padding-block: clamp(2.5rem, 6vw, 4.5rem);
+  background:
+    radial-gradient(
+      60% 80% at 85% 0%,
+      color-mix(in oklab, var(--band) 10%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      50% 70% at 0% 100%,
+      color-mix(in oklab, var(--band) 7%, transparent),
+      transparent 70%
+    ),
+    var(--card);
+}
+
+.dark .band {
+  background:
+    radial-gradient(
+      60% 80% at 85% 0%,
+      color-mix(in oklab, var(--band) 9%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      50% 70% at 0% 100%,
+      color-mix(in oklab, var(--band) 6%, transparent),
+      transparent 70%
+    ),
+    color-mix(in oklab, var(--card) 55%, var(--background));
+}
+
+.band::before,
+.band::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--band) 70%, transparent),
+    transparent
+  );
+}
+
+.band::before {
+  top: 0;
+}
+
+.band::after {
+  bottom: 0;
+}
+
 /* Esqueletos de carga: un brillo suave los recorre mientras llega el contenido. */
 .skeleton-shimmer {
   background:

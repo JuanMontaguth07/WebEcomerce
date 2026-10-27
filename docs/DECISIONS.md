@@ -562,3 +562,25 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
   dos valores distintos (o si ya se está filtrando por ella).
 - Sin categoría (todos los productos, búsqueda general) no hay filtros por especificación: las
   fichas cambian de una categoría a otra. Al cambiar de categoría, esos filtros no se llevan.
+
+## D37 — Portada con más dinamismo (2026-10-27)
+
+- **Problema**: cuatro secciones seguidas con el mismo título y la misma grilla de 4 tarjetas, todo
+  estático salvo el hero y tarjetas casi iguales (sin fotos aún).
+- **Cada colección con su forma** (`components/shop/home-collections.tsx`): Selección Kova con
+  filtro por categoría (botones, sin recargar) y una pieza destacada en grande (`SpotlightCard`);
+  Ofertas como carrusel deslizable (`ProductRail`) sobre una banda con tinte de oferta y el mayor
+  descuento en el antetítulo; Computadores armados como vitrina (uno grande y el resto en lista);
+  Más vendidos como ranking con números grandes; Recién agregados como fila de tarjetas compactas.
+  En celular, las listas se deslizan de lado en lugar de apilarse.
+- **Encabezados variados** (`SectionHeader`): numerados en el orden en que aparecen, con
+  antetítulo y tres disposiciones (izquierda, en columnas y centrado).
+- **Bandas** a lo ancho (`.band`) con luz en los bordes y un tinte por sección (`--band`).
+- **Movimiento**: beneficios como cinta bajo el hero y marcas como marquesina (`Marquee`), que se
+  pausan al pasar el cursor; tarjetas que entran escalonadas al bajar (`.stagger-in`, con
+  animaciones por scroll). Con movimiento reducido todo queda quieto y la copia de la marquesina
+  se oculta. La copia también queda fuera del teclado y de los lectores de pantalla (`inert`).
+- **Tinte por categoría** (`categoryTint`): el fondo y el dibujo de cada tarjeta toman un tono
+  según su categoría, derivado del slug, para que una grilla sin fotos no se vea uniforme.
+- La columna de `<main>` en la portada es `minmax(0, 1fr)`: sin eso, el ancho de la marquesina
+  ensanchaba toda la página.

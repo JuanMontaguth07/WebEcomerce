@@ -6,7 +6,13 @@ import { Benefits } from "@/components/shop/benefits";
 import { CategoryBento } from "@/components/shop/category-bento";
 import { Hero } from "@/components/shop/hero";
 import { HomeBannerCard } from "@/components/shop/home-banner";
-import { HomeSection } from "@/components/shop/home-section";
+import {
+  BestSellersSection,
+  DealsSection,
+  FeaturedSection,
+  NewArrivalsSection,
+  PrebuiltSection,
+} from "@/components/shop/home-collections";
 import { JsonLd } from "@/components/seo/json-ld";
 import { ProductGridSkeleton } from "@/components/shop/product-grid";
 import { UniqueShowcase } from "@/components/shop/unique-showcase";
@@ -109,75 +115,46 @@ async function HomeBrands() {
 
 async function HomeCollections() {
   const [featured, deals, prebuilt, newest, bestSellers, unique, banners] = await Promise.all([
-    getHomeCollection("featured", 8),
-    getHomeCollection("deals", 4),
+    getHomeCollection("featured", 12),
+    getHomeCollection("deals", 8),
     getHomeCollection("prebuilt", 4),
-    getHomeCollection("newest", 4),
+    getHomeCollection("newest", 8),
     getBestSellers(4),
     getUniqueProducts(4),
     getHomeBanners(),
   ]);
 
-  // Filas completas en escritorio (4 columnas) para no dejar huecos.
-  const featuredRows =
-    featured.length >= 4 ? featured.slice(0, featured.length - (featured.length % 4)) : featured;
-
-  // Solo las secciones con productos; entre ellas se intercalan los anuncios.
-  const sections = [
-    featuredRows.length > 0 && (
-      <HomeSection
-        key="destacados"
-        id="destacados"
-        title="Selección Kova"
-        description="Los componentes y equipos que recomendamos."
-        href="/productos"
-        linkLabel="Ver catálogo"
-        products={featuredRows}
-      />
-    ),
-    unique.length > 0 && <UniqueShowcase key="unicas" items={unique} />,
-    deals.length > 0 && (
-      <HomeSection
-        key="ofertas"
-        id="ofertas"
-        title="Ofertas"
-        description="Productos con precio rebajado frente a su precio anterior."
-        href="/productos?oferta=1"
-        linkLabel="Ver todas las ofertas"
-        products={deals}
-      />
-    ),
-    prebuilt.length > 0 && (
-      <HomeSection
-        key="computadores"
-        id="computadores"
-        title="Computadores armados"
-        description="Equipos configurados con componentes compatibles entre sí."
-        href={prebuiltCategoryHref(prebuilt) ?? undefined}
-        linkLabel="Ver computadores"
-        products={prebuilt}
-      />
-    ),
-    bestSellers.length > 0 && (
-      <HomeSection
-        key="mas-vendidos"
-        id="mas-vendidos"
-        title="Más vendidos"
-        description="Lo que más se ha pedido en los últimos 90 días."
-        products={bestSellers}
-      />
-    ),
-    newest.length > 0 && (
-      <HomeSection
-        key="nuevos"
-        id="nuevos"
-        title="Recién agregados"
-        href="/productos?orden=newest"
-        linkLabel="Ver novedades"
-        products={newest}
-      />
-    ),
-  ].filter(Boolean);
+  // Cada colección con su propia forma; se numeran en el orden en que aparecen.
+  const builders: [boolean, (index: number) => React.ReactNode][] = [
+    [
+      featured.length > 0,
+      (index) => <FeaturedSection key="destacados" index={index} products={featured} />,
+    ],
+    [unique.length > 0, (index) => <UniqueShowcase key="unicas" index={index} items={unique} />],
+    [deals.length > 0, (index) => <DealsSection key="ofertas" index={index} products={deals} />],
+    [
+      prebuilt.length > 0,
+      (index) => (
+        <PrebuiltSection
+          key="computadores"
+          index={index}
+          products={prebuilt}
+          href={prebuiltCategoryHref(prebuilt) ?? undefined}
+        />
+      ),
+    ],
+    [
+      bestSellers.length > 0,
+      (index) => <BestSellersSection key="mas-vendidos" index={index} products={bestSellers} />,
+    ],
+    [
+      newest.length > 0,
+      (index) => <NewArrivalsSection key="nuevos" index={index} products={newest} />,
+    ],
+  ];
+  const sections = builders
+    .filter(([visible]) => visible)
+    .map(([, build], position) => build(position + 1));
 
   return <>{interleave(sections, banners)}</>;
 }
@@ -207,11 +184,14 @@ function interleave(sections: React.ReactNode[], banners: HomeBanner[]) {
 
 export default function HomePage() {
   return (
-    <main id="contenido" className="grid gap-16 pb-8 md:gap-20">
+    <main id="contenido" className="grid grid-cols-[minmax(0,1fr)] gap-16 pb-8 md:gap-20">
       <JsonLd data={siteJsonLd()} />
-      <HomeHero />
+      {/* La cinta de beneficios va pegada al hero. */}
+      <div>
+        <HomeHero />
+        <Benefits />
+      </div>
       <AboutSection />
-      <Benefits />
       <HomeCategories />
       <HomeBrands />
       <Suspense fallback={<ProductGridSkeleton className="container-page" />}>
