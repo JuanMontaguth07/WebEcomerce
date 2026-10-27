@@ -339,3 +339,16 @@ repite en el layout del panel y en cada Server Action.
 - **Rarezas**: efectos «Circuito» (dos destellos recorren el borde; el pseudo-elemento solo pinta
   el borde) y «Sobrecarga» (el borde se enciende y se apaga). Al pasar el cursor la luz del borde se
   intensifica en todos los efectos.
+
+## D25 — Módulo 1 del rediseño Neon Forge: sistema de diseño (2026-10-27)
+
+- **Paleta Neon Forge**: carbón #101318 y grafito #1B222C de base, lima eléctrico #B8FF5C como
+  color de marca y azul #55D6FF como reflejo escaso (`--tech`). En claro el lima no se lee como
+  texto (1,1:1), así que `--primary` pasa a lima profundo #3D6B00 y el neón queda en `--lime`. El
+  rojo se reserva para ofertas (`--sale`) y errores. Todos los pares de texto miden ≥ 4,5:1.
+- **Modo oscuro por defecto** (`defaultTheme="dark"`); el visitante puede cambiarlo y se recuerda.
+- **Fuentes**: Mona Sans para titulares (OFL, subconjunto latino de 98 KB alojado en
+  `src/assets/fonts` con su licencia, `display: optional` para no afectar el LCP), Instrument Sans
+  para texto e IBM Plex Mono para datos. Las variables pasan a nombres genéricos
+  (`--font-display`, `--font-body`, `--font-data`). Hanken Grotesk queda solo como opción del panel.
+- Logo, ícono, imagen para redes, manifest y página de error usan la paleta nueva.

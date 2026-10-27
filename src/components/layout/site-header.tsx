@@ -41,7 +41,7 @@ export async function SiteHeader() {
           <li>
             <Link
               href="/productos?oferta=1"
-              className="inline-flex h-8 items-center rounded-md px-3 font-semibold whitespace-nowrap text-primary hover:bg-primary-soft"
+              className="inline-flex h-8 items-center rounded-md px-3 font-semibold whitespace-nowrap text-sale hover:bg-sale/10"
             >
               Ofertas
             </Link>

@@ -1,6 +1,6 @@
 import { LogOutIcon } from "lucide-react";
 import Link from "next/link";
-import { figtree, plex } from "@/app/admin/fonts";
+import { figtree, hanken, plex } from "@/app/admin/fonts";
 import { Logo } from "@/components/layout/logo";
 import { ThemeSwitch } from "@/components/layout/theme-switch";
 import { signOut } from "@/features/auth/actions";
@@ -28,6 +28,7 @@ export function AdminShell({
         "grid min-h-full flex-1 font-sans lg:grid-cols-[15rem_1fr]",
         plex.variable,
         figtree.variable,
+        hanken.variable,
       )}
     >
       <aside className="border-t-3 border-b border-t-primary bg-sidebar lg:sticky lg:top-0 lg:h-dvh lg:border-r lg:border-b-0">

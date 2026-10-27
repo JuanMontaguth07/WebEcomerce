@@ -1,4 +1,4 @@
-import { Figtree, IBM_Plex_Sans } from "next/font/google";
+import { Figtree, Hanken_Grotesk, IBM_Plex_Sans } from "next/font/google";
 
 // Fuentes del panel (se eligen en «Mi cuenta»). Solo se cargan en /admin.
 export const plex = IBM_Plex_Sans({
@@ -11,5 +11,11 @@ export const plex = IBM_Plex_Sans({
 export const figtree = Figtree({
   subsets: ["latin"],
   variable: "--font-figtree",
+  display: "swap",
+});
+
+export const hanken = Hanken_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-hanken",
   display: "swap",
 });

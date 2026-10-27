@@ -9,13 +9,13 @@ export const size = { width: DEFAULT_OG_IMAGE.width, height: DEFAULT_OG_IMAGE.he
 export const contentType = "image/png";
 
 const COLORS = {
-  background: "#0C0909",
-  surface: "#161112",
-  border: "#2D2425",
-  foreground: "#F5EFEF",
-  muted: "#A39798",
-  accent: "#F0384A",
-  onAccent: "#140A0B",
+  background: "#101318",
+  surface: "#1B222C",
+  border: "#2C3542",
+  foreground: "#F1F4F6",
+  muted: "#929BA8",
+  accent: "#B8FF5C",
+  onAccent: "#101318",
 };
 
 export default function OpenGraphImage() {
@@ -29,7 +29,7 @@ export default function OpenGraphImage() {
         justifyContent: "space-between",
         padding: 72,
         background: COLORS.background,
-        backgroundImage: `radial-gradient(circle at 85% 20%, rgba(240,56,74,0.32), transparent 55%)`,
+        backgroundImage: `radial-gradient(circle at 85% 20%, rgba(184,255,92,0.24), transparent 55%)`,
         color: COLORS.foreground,
       }}
     >

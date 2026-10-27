@@ -42,11 +42,11 @@ export function Hero({
       {/* Resplandor rojo y retícula técnica decorativa */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-48 right-[-15%] size-[42rem] rounded-full bg-primary/15 blur-3xl dark:bg-primary/25"
+        className="pointer-events-none absolute -top-48 right-[-15%] size-[42rem] rounded-full bg-primary/12 blur-3xl dark:bg-primary/10"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -bottom-40 -left-40 size-96 rounded-full bg-primary/8 blur-3xl dark:bg-primary/10"
+        className="pointer-events-none absolute -bottom-40 -left-40 size-96 rounded-full bg-tech/10 blur-3xl dark:bg-tech/15"
       />
       <div
         aria-hidden

@@ -18,7 +18,7 @@ export type AdminAccent = keyof typeof ADMIN_ACCENTS;
 export const ADMIN_FONTS = {
   plex: { label: "IBM Plex Sans", hint: "Técnica y sobria, pensada para interfaces." },
   figtree: { label: "Figtree", hint: "Geométrica y amable, muy legible." },
-  hanken: { label: "Hanken Grotesk", hint: "La misma de la tienda." },
+  hanken: { label: "Hanken Grotesk", hint: "Cálida y redonda, cómoda para leer." },
 } as const;
 
 export type AdminFont = keyof typeof ADMIN_FONTS;

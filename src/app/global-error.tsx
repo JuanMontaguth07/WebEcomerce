@@ -11,21 +11,21 @@ export default function GlobalError({ reset }: { error: Error; reset: () => void
           display: "grid",
           placeItems: "center",
           fontFamily: "system-ui, sans-serif",
-          background: "#F7F5F5",
-          color: "#17100F",
+          background: "#101318",
+          color: "#F1F4F6",
         }}
       >
         <main style={{ textAlign: "center", padding: 24 }}>
           <h1 style={{ fontSize: 28, margin: "0 0 8px" }}>Algo salió mal</h1>
-          <p style={{ margin: "0 0 20px", color: "#625859" }}>
+          <p style={{ margin: "0 0 20px", color: "#929BA8" }}>
             Ocurrió un error inesperado. Inténtalo de nuevo.
           </p>
           <button
             type="button"
             onClick={reset}
             style={{
-              background: "#D61F2C",
-              color: "#fff",
+              background: "#B8FF5C",
+              color: "#101318",
               border: 0,
               borderRadius: 10,
               padding: "10px 18px",

@@ -3,7 +3,7 @@ import { Providers } from "@/components/providers/providers";
 import { siteConfig } from "@/config/site";
 import { allowIndexing, baseOpenGraph } from "@/lib/seo";
 import { cn } from "@/lib/utils";
-import { archivo, hanken, jetbrains } from "./fonts";
+import { body, data, display } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,8 +25,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F7F5F5" },
-    { media: "(prefers-color-scheme: dark)", color: "#0C0909" },
+    { media: "(prefers-color-scheme: light)", color: "#F1F4F6" },
+    { media: "(prefers-color-scheme: dark)", color: "#101318" },
   ],
 };
 
@@ -36,7 +36,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="es-CO"
       suppressHydrationWarning
-      className={cn("h-full antialiased", archivo.variable, hanken.variable, jetbrains.variable)}
+      className={cn("h-full antialiased", display.variable, body.variable, data.variable)}
     >
       <body className="flex min-h-full flex-col">
         <a

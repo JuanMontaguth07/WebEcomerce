@@ -26,6 +26,9 @@ const COLOR_TOKENS = [
   ["muted-foreground", "Texto secundario"],
   ["primary", "Acción principal, foco"],
   ["primary-soft", "Fondos de acento"],
+  ["lime", "Neón de marca: luces y halos"],
+  ["tech", "Azul tecnológico, con moderación"],
+  ["sale", "Ofertas y descuentos"],
   ["success", "En stock, éxito"],
   ["warning", "Stock bajo"],
   ["destructive", "Agotado, error"],
@@ -77,7 +80,7 @@ export default function DesignSystemPage() {
         <div className="grid gap-4">
           <p className="text-eyebrow text-muted-foreground">Referencia interna</p>
           <h1 className="text-4xl font-extrabold font-stretch-125% md:text-5xl">
-            Carbón cálido y un solo acento rojo
+            Carbón y grafito, con el lima eléctrico como marca
           </h1>
           <p className="max-w-prose text-lg text-muted-foreground">
             Todos los componentes consumen tokens semánticos; cambia el tema con el selector de
@@ -106,7 +109,7 @@ export default function DesignSystemPage() {
         <Section id="tipografia" title="Tipografía">
           <div className="grid gap-6 md:grid-cols-3">
             <div className="grid content-start gap-2 border-t-2 border-foreground pt-4">
-              <span className="text-eyebrow text-muted-foreground">Display · Archivo</span>
+              <span className="text-eyebrow text-muted-foreground">Display · Mona Sans</span>
               {TYPE_SCALE.map(([size, text]) => (
                 <span
                   key={size}
@@ -117,14 +120,14 @@ export default function DesignSystemPage() {
               ))}
             </div>
             <div className="grid content-start gap-2 border-t-2 border-foreground pt-4">
-              <span className="text-eyebrow text-muted-foreground">Texto · Hanken Grotesk</span>
+              <span className="text-eyebrow text-muted-foreground">Texto · Instrument Sans</span>
               <p className="text-lg">Envío a toda Colombia, con seguimiento del pedido.</p>
               <p className="text-muted-foreground">
                 Descripciones, formularios y navegación. Legible en pantallas pequeñas.
               </p>
             </div>
             <div className="grid content-start gap-2 border-t-2 border-foreground pt-4">
-              <span className="text-eyebrow text-muted-foreground">Datos · JetBrains Mono</span>
+              <span className="text-eyebrow text-muted-foreground">Datos · IBM Plex Mono</span>
               <p className="font-mono text-base">SKU CPU-DEMO-8C</p>
               <p className="font-mono text-sm text-muted-foreground tabular-nums">
                 8C/16T · 5.5 GHz · 65 W
@@ -157,7 +160,7 @@ export default function DesignSystemPage() {
             <Badge variant="success">En stock</Badge>
             <Badge variant="warning">Quedan 3</Badge>
             <Badge variant="destructive">Agotado</Badge>
-            <Badge>-12%</Badge>
+            <Badge variant="sale">-12%</Badge>
             <Badge variant="soft">Nuevo</Badge>
             <Badge variant="outline">Envío gratis</Badge>
           </div>

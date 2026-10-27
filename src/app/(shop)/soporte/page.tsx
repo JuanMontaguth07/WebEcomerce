@@ -123,7 +123,7 @@ export default async function SupportPage() {
       <section className="relative overflow-hidden border-b bg-card dark:bg-background">
         <span
           aria-hidden
-          className="pointer-events-none absolute -top-40 right-[-10%] size-[32rem] rounded-full bg-primary/15 blur-3xl dark:bg-primary/25"
+          className="pointer-events-none absolute -top-40 right-[-10%] size-[32rem] rounded-full bg-primary/12 blur-3xl dark:bg-primary/10"
         />
         <div className="relative container-page grid gap-5 py-12 md:py-16">
           <Breadcrumbs items={[{ name: "Inicio", href: "/" }, { name: "Soporte" }]} />

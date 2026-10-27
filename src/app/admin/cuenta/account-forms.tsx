@@ -4,8 +4,7 @@ import { CheckIcon, MonitorIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { figtree, plex } from "@/app/admin/fonts";
-import { hanken } from "@/app/fonts";
+import { figtree, hanken, plex } from "@/app/admin/fonts";
 import { TextField } from "@/components/admin/form-helpers";
 import { ThemeSwitch } from "@/components/layout/theme-switch";
 import { useChangeTheme } from "@/components/layout/theme-toggle";
@@ -23,7 +22,7 @@ import { cn } from "@/lib/utils";
 
 type Errors = Partial<Record<string, string[]>>;
 
-// Dentro del panel --font-hanken apunta a la fuente elegida: la muestra usa la familia real.
+// Dentro del panel --font-body apunta a la fuente elegida: la muestra usa la familia real.
 const FONT_PREVIEW: Record<AdminFont, string> = {
   plex: plex.style.fontFamily,
   figtree: figtree.style.fontFamily,

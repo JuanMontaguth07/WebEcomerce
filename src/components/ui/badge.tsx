@@ -12,6 +12,8 @@ const badgeVariants = cva(
         secondary: "border-transparent bg-secondary text-secondary-foreground",
         outline: "border-border bg-card text-foreground",
         soft: "border-transparent bg-primary-soft text-primary",
+        // Ofertas: el rojo queda reservado para descuentos (la marca es el lima).
+        sale: "border-transparent bg-sale text-sale-foreground",
         // Estados de inventario: texto del color semántico con punto indicador.
         success:
           "border-border bg-card text-success before:size-1.5 before:rounded-full before:bg-current",

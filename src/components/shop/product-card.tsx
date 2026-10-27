@@ -53,7 +53,7 @@ export function ProductCard({ product, priority = false, className }: ProductCar
         {/* Una sola fila que se parte en dos si la tarjeta es angosta (móvil). */}
         <div className="absolute inset-x-3 top-3 flex flex-wrap items-start gap-1.5">
           {discount !== null && (
-            <Badge className={cn(discount >= HOT_DEAL && "gap-1 shadow-glow")}>
+            <Badge variant="sale" className={cn(discount >= HOT_DEAL && "gap-1 shadow-sm")}>
               {discount >= HOT_DEAL && <FlameIcon aria-hidden />}-{discount}%
             </Badge>
           )}

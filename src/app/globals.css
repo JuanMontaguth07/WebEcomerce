@@ -6,38 +6,45 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* =============================================================================
-   Design tokens — Kova Studio
-   Carbón cálido (neutros con un leve sesgo hacia el rojo) y un único acento rojo
-   intenso. Los componentes solo consumen nombres semánticos; cada tema redefine
-   sus valores. Contrastes verificados (WCAG AA): texto ≥ 4.5:1, bordes de
-   campos ≥ 3:1. En oscuro el rojo es más luminoso y lleva texto oscuro encima.
+   Design tokens — Kova Studio · Neon Forge
+   Carbón y grafito de base, lima eléctrico como color de marca (acciones,
+   estados activos, detalles) y azul tecnológico como reflejo escaso. El rojo
+   queda para ofertas (--sale) y errores (--destructive).
+   Los componentes solo consumen nombres semánticos; cada tema redefine sus
+   valores. Contrastes medidos (WCAG 2): texto ≥ 4.5:1, bordes de campos ≥ 3:1.
+   En claro el lima eléctrico no se lee como texto (1.1:1): --primary pasa a un
+   lima profundo y el neón queda en --lime para luces y halos.
    ============================================================================= */
 
 :root {
-  --background: oklch(0.972 0.002 17.2); /* #F7F5F5 */
-  --foreground: oklch(0.182 0.012 27.7); /* #17100F */
-  --card: oklch(1 0 0); /* #FFFFFF */
+  --background: #f1f4f6; /* blanco hielo */
+  --foreground: #101318; /* carbón · 16.9:1 */
+  --card: #ffffff;
   --card-foreground: var(--foreground);
-  --popover: oklch(1 0 0);
+  --popover: #ffffff;
   --popover-foreground: var(--foreground);
 
-  --primary: oklch(0.563 0.213 25); /* #D61F2C · blanco encima 5.1:1, sobre el fondo 4.7:1 */
-  --primary-foreground: oklch(1 0 0);
-  --primary-soft: oklch(0.966 0.015 12.4); /* #FEF0F1 · rojo encima 4.6:1 */
+  --primary: #3d6b00; /* lima profundo · sobre el fondo 5.8:1, blanco encima 6.4:1 */
+  --primary-foreground: #ffffff;
+  --primary-soft: #e9f4d4; /* lima profundo encima 5.6:1 */
+  --lime: #b8ff5c; /* neón de la marca: solo luces, halos y rellenos con texto carbón */
+  --tech: #006a8e; /* azul tecnológico · sobre el fondo 5.5:1 */
+  --sale: #c81e2b; /* ofertas · blanco encima 5.7:1, sobre el fondo 5.2:1 */
+  --sale-foreground: #ffffff;
 
-  --secondary: oklch(0.946 0.004 17.2); /* #F0ECEC */
+  --secondary: #e4e8ec;
   --secondary-foreground: var(--foreground);
   --muted: var(--secondary);
-  --muted-foreground: oklch(0.47 0.013 10.7); /* #625859 */
+  --muted-foreground: #5b6470; /* gris acero profundo · 5.4:1 fondo, 4.9:1 secundario */
   --accent: var(--secondary);
   --accent-foreground: var(--foreground);
 
-  --success: oklch(0.515 0.106 164.1); /* #0F7A57 */
-  --warning: oklch(0.495 0.111 64.9); /* #8C5200: ≥ 4.5:1 también sobre bg-warning/10 */
-  --destructive: oklch(0.5 0.182 29.5); /* #B42318 */
+  --success: #0f7a57; /* 5.3:1 */
+  --warning: #8c5200; /* ≥ 4.5:1 también sobre bg-warning/10 */
+  --destructive: #b42318;
 
-  --border: oklch(0.914 0.007 17.3); /* #E7E1E1 */
-  --input: oklch(0.62 0.013 11.2); /* #8E8384 */
+  --border: #dce1e7;
+  --input: #8a929e; /* 3.1:1 */
   --ring: var(--primary);
 
   --sidebar: var(--card);
@@ -49,48 +56,48 @@
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
 
-  --elevation-card:
-    0 1px 2px oklch(0.182 0.012 27.7 / 0.06), 0 8px 24px -12px oklch(0.182 0.012 27.7 / 0.14);
-  --elevation-raised:
-    0 2px 4px oklch(0.182 0.012 27.7 / 0.06), 0 16px 40px -16px oklch(0.182 0.012 27.7 / 0.22);
-  /* Resplandor rojo para estados destacados (hover de tarjetas, CTA del hero). */
-  --elevation-glow:
-    0 0 0 1px oklch(0.563 0.213 25 / 0.35), 0 18px 44px -18px oklch(0.563 0.213 25 / 0.45);
+  --elevation-card: 0 1px 2px rgb(16 19 24 / 0.06), 0 8px 24px -12px rgb(16 19 24 / 0.14);
+  --elevation-raised: 0 2px 4px rgb(16 19 24 / 0.06), 0 16px 40px -16px rgb(16 19 24 / 0.22);
+  /* Halo de marca para estados destacados (hover de tarjetas, CTA del hero). */
+  --elevation-glow: 0 0 0 1px rgb(61 107 0 / 0.35), 0 18px 44px -18px rgb(61 107 0 / 0.4);
 
   --radius: 0.625rem;
 }
 
 .dark {
-  --background: oklch(0.144 0.005 17.8); /* #0C0909 */
-  --foreground: oklch(0.957 0.006 17.3); /* #F5EFEF */
-  --card: oklch(0.184 0.009 4.4); /* #161112 */
-  --popover: oklch(0.218 0.011 8.4); /* #1F1819 */
+  --background: #101318; /* carbón */
+  --foreground: #f1f4f6; /* blanco hielo · 16.9:1 */
+  --card: #1b222c; /* grafito · texto 14.5:1 */
+  --popover: #232c38;
 
-  --primary: oklch(0.629 0.218 21.4); /* #F0384A · sobre el fondo 5.1:1 */
-  --primary-foreground: oklch(0.16 0.018 12.7); /* #140A0B · sobre el rojo 5.0:1 */
-  --primary-soft: oklch(0.21 0.047 13.1); /* #2A0E12 · rojo encima 4.6:1 */
+  --primary: #b8ff5c; /* lima eléctrico · 15.5:1 fondo, 13.3:1 tarjeta */
+  --primary-foreground: #101318; /* sobre el lima 15.5:1 */
+  --primary-soft: #223015; /* lima encima 11.7:1 */
+  --lime: #b8ff5c;
+  --tech: #55d6ff; /* 9.5:1 sobre tarjeta */
+  --sale: #ff5a66; /* 5.3:1 sobre tarjeta */
+  --sale-foreground: #140a0b; /* sobre el rojo 6.4:1 */
 
-  --secondary: oklch(0.218 0.011 8.4); /* #1F1819 */
-  --muted-foreground: oklch(0.687 0.014 11.7); /* #A39798 */
+  --secondary: #232c38;
+  --muted-foreground: #929ba8; /* gris acero · 6.6:1 fondo, 5.7:1 tarjeta, 5.0:1 secundario */
 
-  --success: oklch(0.747 0.148 160.6); /* #3CC98D */
-  --warning: oklch(0.78 0.146 73.1); /* #EFA73A */
-  --destructive: oklch(0.713 0.181 19.3); /* #FF6B74 */
+  --success: #3cc98d;
+  --warning: #efa73a;
+  --destructive: #ff6b74;
 
-  --border: oklch(0.271 0.014 10.5); /* #2D2425 */
-  --input: oklch(0.494 0.016 6.3); /* #6A5E60 */
+  --border: #2c3542;
+  --input: #6b7584; /* 3.4:1 sobre tarjeta */
 
   /* En oscuro la profundidad viene de superficies escalonadas y un filo de luz. */
-  --elevation-card: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 10px 30px -14px oklch(0 0 0 / 0.7);
-  --elevation-raised: 0 1px 0 oklch(1 0 0 / 0.06) inset, 0 20px 48px -18px oklch(0 0 0 / 0.8);
-  --elevation-glow:
-    0 0 0 1px oklch(0.629 0.218 21.4 / 0.45), 0 18px 48px -16px oklch(0.629 0.218 21.4 / 0.4);
+  --elevation-card: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 10px 30px -14px rgb(0 0 0 / 0.7);
+  --elevation-raised: 0 1px 0 rgb(255 255 255 / 0.06) inset, 0 20px 48px -18px rgb(0 0 0 / 0.8);
+  --elevation-glow: 0 0 0 1px rgb(184 255 92 / 0.45), 0 18px 48px -16px rgb(184 255 92 / 0.35);
 }
 
 @theme inline {
-  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-archivo), var(--font-hanken), ui-sans-serif, sans-serif;
-  --font-mono: var(--font-jetbrains), ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-display), var(--font-body), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-data), ui-monospace, "Cascadia Mono", Consolas, monospace;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -101,6 +108,10 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-soft: var(--primary-soft);
+  --color-lime: var(--lime);
+  --color-tech: var(--tech);
+  --color-sale: var(--sale);
+  --color-sale-foreground: var(--sale-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -336,17 +347,21 @@
 
 /* La fuente se cambia redefiniendo las variables de next/font dentro del panel. */
 [data-admin-font="plex"] {
-  --font-hanken: var(--font-plex);
-  --font-archivo: var(--font-plex);
+  --font-body: var(--font-plex);
+  --font-display: var(--font-plex);
 }
 
 [data-admin-font="figtree"] {
-  --font-hanken: var(--font-figtree);
-  --font-archivo: var(--font-figtree);
+  --font-body: var(--font-figtree);
+  --font-display: var(--font-figtree);
 }
 
-[data-admin-font="plex"] :is(h1, h2, h3),
-[data-admin-font="figtree"] :is(h1, h2, h3) {
+[data-admin-font="hanken"] {
+  --font-body: var(--font-hanken);
+  --font-display: var(--font-hanken);
+}
+
+[data-admin-font] :is(h1, h2, h3) {
   font-stretch: normal;
   letter-spacing: -0.01em;
 }

@@ -47,7 +47,7 @@ export function HomeBannerCard({
       <span
         aria-hidden
         className={cn(
-          "pointer-events-none absolute -z-10 size-96 rounded-full bg-primary/15 blur-3xl",
+          "pointer-events-none absolute -z-10 size-96 rounded-full bg-primary/10 blur-3xl",
           reverse ? "-top-24 -left-24" : "-right-24 -bottom-24",
         )}
       />

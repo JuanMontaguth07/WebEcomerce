@@ -30,7 +30,7 @@ export function Price({ price, compareAtPrice, size = "sm", className }: PricePr
             {formatCOP(compareAtPrice)}
           </s>
           {size === "lg" && (
-            <span className="rounded-md bg-primary-soft px-2 py-0.5 text-sm font-semibold text-primary">
+            <span className="rounded-md bg-sale/10 px-2 py-0.5 text-sm font-semibold text-sale">
               Ahorras {formatCOP(compareAtPrice - price)}
             </span>
           )}

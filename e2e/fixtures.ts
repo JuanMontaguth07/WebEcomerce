@@ -27,6 +27,12 @@ export function allowNotFound() {
 /** Primer producto disponible del catálogo, o null si aún no hay ninguno. */
 export async function firstProductInStock(page: Page): Promise<string | null> {
   await page.goto("/productos?disponible=1");
+  // Los resultados llegan en streaming: se espera a ver productos o el aviso de vacío
+  // antes de contar (con el servidor recién iniciado, contar de una vez daba cero).
+  await page
+    .locator('main article, main :text("Aún no hay productos"), main :text("No encontramos")')
+    .first()
+    .waitFor({ timeout: 15_000 });
   const link = page.locator('main article a[href^="/productos/"]').first();
   if (!(await link.count())) return null;
   return link.getAttribute("href");
