@@ -1,4 +1,11 @@
-import { InfoIcon, MessageCircleIcon, ShieldCheckIcon, SparklesIcon, TagIcon } from "lucide-react";
+import {
+  CpuIcon,
+  InfoIcon,
+  MessageCircleIcon,
+  ShieldCheckIcon,
+  SparklesIcon,
+  TagIcon,
+} from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -19,11 +26,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getAvailability, isDemoProduct } from "@/features/catalog/availability";
 import {
   getActiveProductSlugs,
+  getCategories,
   getProductBySlug,
   getRelatedProducts,
 } from "@/features/catalog/queries";
 import { productJsonLd } from "@/features/catalog/structured-data";
 import type { ProductDetail } from "@/features/catalog/types";
+import type { PartKind } from "@/features/compatibility/types";
 import { getStoreSettings } from "@/features/store-settings/queries";
 import { whatsappLink } from "@/features/store-settings/types";
 import { formatWarranty } from "@/lib/format";
@@ -76,9 +85,12 @@ export async function generateMetadata({
 function ProductInfo({
   product,
   whatsappNumber,
+  architect,
 }: {
   product: ProductDetail;
   whatsappNumber: string | null;
+  /** La pieza que es en Kova Architect, si su categoría participa. */
+  architect: PartKind | null;
 }) {
   const availability = getAvailability(product.stock, product.lowStockThreshold);
   const warranty = formatWarranty(product.warrantyMonths);
@@ -168,6 +180,14 @@ function ProductInfo({
             </a>
           </Button>
         )}
+        {architect && (
+          <Button asChild variant="outline" className="w-fit">
+            <Link href={`/arma-tu-pc?pieza=${product.id}`}>
+              <CpuIcon aria-hidden />
+              Usar en Arma tu PC
+            </Link>
+          </Button>
+        )}
       </div>
 
       {product.shortDescription && <p className="text-lg">{product.shortDescription}</p>}
@@ -211,8 +231,15 @@ async function RelatedProducts({ product }: { product: ProductDetail }) {
 
 async function ProductContent({ params }: PageProps<"/productos/[slug]">) {
   const { slug } = await params;
-  const [product, settings] = await Promise.all([getProductBySlug(slug), getStoreSettings()]);
+  const [product, settings, categories] = await Promise.all([
+    getProductBySlug(slug),
+    getStoreSettings(),
+    getCategories(),
+  ]);
   if (!product) notFound();
+  const own = categories.find((item) => item.slug === product.category.slug);
+  const parent = categories.find((item) => item.id === own?.parentId);
+  const architect = own?.architectPart ?? parent?.architectPart ?? null;
 
   const paragraphs = (product.description ?? "")
     .split(/\n{2,}/)
@@ -244,7 +271,11 @@ async function ProductContent({ params }: PageProps<"/productos/[slug]">) {
             productName={product.name}
             categorySlug={product.category.slug}
           />
-          <ProductInfo product={product} whatsappNumber={settings.whatsappNumber} />
+          <ProductInfo
+            product={product}
+            whatsappNumber={settings.whatsappNumber}
+            architect={architect}
+          />
         </div>
       </div>
 

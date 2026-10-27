@@ -4,6 +4,7 @@ import { getFlagMap } from "@/features/flags/queries";
 import type { ProductFlag } from "@/features/flags/types";
 import { getRarityMap } from "@/features/rarities/queries";
 import type { Rarity } from "@/features/rarities/types";
+import { asPartKind } from "@/features/compatibility/types";
 import { createPublicClient } from "@/lib/supabase/public";
 import { PAGE_SIZE, type CatalogFilters } from "./params";
 import { toCardSpecs, toProductSpecs, type RawSpec } from "./specs";
@@ -156,7 +157,9 @@ export async function getCategories(): Promise<Category[]> {
 
   const { data, error } = await createPublicClient({ retry: true })
     .from("categories")
-    .select("id, parent_id, name, slug, description, seo_title, seo_description, image_path")
+    .select(
+      "id, parent_id, name, slug, description, seo_title, seo_description, image_path, architect_part",
+    )
     .eq("is_active", true)
     .order("position")
     .order("name");
@@ -171,6 +174,7 @@ export async function getCategories(): Promise<Category[]> {
     seoTitle: row.seo_title,
     seoDescription: row.seo_description,
     imagePath: row.image_path,
+    architectPart: asPartKind(row.architect_part),
   }));
 }
 

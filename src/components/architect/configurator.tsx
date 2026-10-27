@@ -3,6 +3,7 @@
 import { FlaskConicalIcon, ScaleIcon, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { siteConfig } from "@/config/site";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +23,12 @@ import {
   selectionTotal,
   toBuild,
 } from "@/features/architect/build";
+import { saveBuild } from "@/features/architect/actions";
+import type { GuidedAnswers } from "@/features/architect/guided";
+import { buildPayload, quoteMessage } from "@/features/architect/saved";
+import { savedBuildsActions } from "@/features/architect/saved-store";
 import { EMPTY_SELECTION, type ArchitectPart, type Selection } from "@/features/architect/types";
+import { whatsappLink } from "@/features/store-settings/types";
 import { useCart } from "@/features/cart/store";
 import { checkBuild, overallStatus } from "@/features/compatibility/engine";
 import { estimatePower } from "@/features/compatibility/rules";
@@ -32,12 +38,28 @@ import { cn } from "@/lib/utils";
 import { BuildSummary } from "./build-summary";
 import { CompareSheet } from "./compare-sheet";
 import { GuidedWizard } from "./guided-wizard";
+import { MyBuildsButton } from "./my-builds-sheet";
+import { ShareSheet, type SavedLink } from "./share-sheet";
 import { PartPicker } from "./part-picker";
 import { SlotList } from "./slot-list";
 import { StatusDot } from "./status";
 
 type Source = "catalog" | "demo";
 type Mode = "guided" | "free";
+
+/** Estado con el que abre: desde un enlace guardado o desde la ficha de un producto. */
+export type ConfiguratorInitial = {
+  mode: Mode;
+  source: Source;
+  selection: Selection;
+  active: PartKind;
+  budget: number | null;
+  /** Configuración de la que parte (guardar crea una versión nueva de ella). */
+  parent: { code: string; name: string } | null;
+};
+
+/** Enlace con el dominio donde se abrió la página (producción o una vista previa). */
+const linkTo = (code: string) => new URL(`/arma-tu-pc/${code}`, window.location.origin).toString();
 
 export const piecesLabel = (count: number) => `${count} ${count === 1 ? "pieza" : "piezas"}`;
 
@@ -49,17 +71,27 @@ export const piecesLabel = (count: number) => `${count} ${count === 1 ? "pieza" 
 export function Configurator({
   catalogParts,
   demoParts,
+  whatsappNumber,
+  initial,
 }: {
   catalogParts: ArchitectPart[];
   demoParts: ArchitectPart[];
+  whatsappNumber: string | null;
+  initial?: ConfiguratorInitial;
 }) {
   const router = useRouter();
   const { items, add } = useCart();
-  const [mode, setMode] = useState<Mode>("guided");
-  const [source, setSource] = useState<Source>(catalogParts.length ? "catalog" : "demo");
-  const [selection, setSelection] = useState<Selection>(EMPTY_SELECTION);
-  const [active, setActive] = useState<PartKind>("cpu");
-  const [budget, setBudget] = useState<number | null>(null);
+  const [mode, setMode] = useState<Mode>(initial?.mode ?? "guided");
+  const [source, setSource] = useState<Source>(
+    initial?.source ?? (catalogParts.length ? "catalog" : "demo"),
+  );
+  const [selection, setSelection] = useState<Selection>(initial?.selection ?? EMPTY_SELECTION);
+  const [active, setActive] = useState<PartKind>(initial?.active ?? "cpu");
+  const [budget, setBudget] = useState<number | null>(initial?.budget ?? null);
+  const [answers, setAnswers] = useState<GuidedAnswers | null>(null);
+  const [share, setShare] = useState<"share" | "quote" | null>(null);
+  // Lo último guardado y con qué estado, para saber si hay cambios sin guardar.
+  const [saved, setSaved] = useState<(SavedLink & { signature: string }) | null>(null);
   const [compare, setCompare] = useState<string[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
@@ -83,6 +115,55 @@ export function Configurator({
         : !available.length
           ? { ready: false, reason: "Las piezas elegidas están agotadas." }
           : { ready: true };
+
+  const signature = JSON.stringify({ selection, budget, source });
+  const current = saved?.signature === signature ? saved : null;
+  const shareName = saved?.name ?? initial?.parent?.name ?? "Mi PC";
+
+  async function save(name: string): Promise<{ ok: true } | { ok: false; message: string }> {
+    const result = await saveBuild(
+      buildPayload(selection, index, {
+        name,
+        mode: answers ? "guided" : "free",
+        source,
+        budget,
+        answers,
+        parent_code: saved?.code ?? initial?.parent?.code ?? null,
+      }),
+    );
+    if (!result.ok) {
+      return {
+        ok: false,
+        message: result.error.fieldErrors?.name?.[0] ?? result.error.message,
+      };
+    }
+    const link = { code: result.data.code, name: name.trim(), url: linkTo(result.data.code) };
+    setSaved({ ...link, signature });
+    savedBuildsActions.add({
+      code: link.code,
+      name: link.name,
+      total,
+      savedAt: new Date().toISOString(),
+    });
+    return { ok: true };
+  }
+
+  const quoteHref =
+    current && whatsappNumber
+      ? whatsappLink(
+          whatsappNumber,
+          quoteMessage({
+            storeName: siteConfig.name,
+            name: current.name,
+            selection,
+            index,
+            url: current.url,
+          }),
+        )
+      : null;
+  const shareHref = current
+    ? `https://wa.me/?text=${encodeURIComponent(`Mira el PC que armé en ${siteConfig.name}: ${current.url}`)}`
+    : null;
 
   function switchSource(next: Source) {
     if (next === source) return;
@@ -142,6 +223,18 @@ export function Configurator({
       count={count}
       cart={cart}
       onAddToCart={addAllToCart}
+      onShare={() => {
+        setSummaryOpen(false);
+        setShare("share");
+      }}
+      onQuote={
+        whatsappNumber
+          ? () => {
+              setSummaryOpen(false);
+              setShare("quote");
+            }
+          : null
+      }
       onReset={() => {
         setSelection(EMPTY_SELECTION);
         setCompare([]);
@@ -191,6 +284,7 @@ export function Configurator({
               </button>
             ))}
           </div>
+          <MyBuildsButton />
         </div>
         {!catalogParts.length && (
           <p className="text-xs text-muted-foreground">
@@ -213,7 +307,8 @@ export function Configurator({
         <GuidedWizard
           key={source}
           parts={parts}
-          onApply={(next, towerBudget) => {
+          onApply={(next, towerBudget, guidedAnswers) => {
+            setAnswers(guidedAnswers);
             setSelection(next);
             setBudget(towerBudget);
             setCompare([]);
@@ -321,6 +416,18 @@ export function Configurator({
               <div className="p-5">{summary}</div>
             </SheetContent>
           </Sheet>
+
+          <ShareSheet
+            key={share ? `${share}-${current?.code ?? "nuevo"}` : "cerrado"}
+            open={share !== null}
+            onOpenChange={(open) => !open && setShare(null)}
+            intent={share ?? "share"}
+            saved={current}
+            defaultName={shareName}
+            onSave={save}
+            quoteHref={quoteHref}
+            shareHref={shareHref}
+          />
 
           <CompareSheet
             parts={

@@ -119,7 +119,7 @@ export function GuidedWizard({
   onApply,
 }: {
   parts: ArchitectPart[];
-  onApply: (selection: Selection, budget: number) => void;
+  onApply: (selection: Selection, budget: number, answers: GuidedAnswers) => void;
 }) {
   const [answers, setAnswers] = useState<GuidedAnswers>(DEFAULT_ANSWERS);
   const [step, setStep] = useState(0);
@@ -140,7 +140,7 @@ export function GuidedWizard({
           setResult((value) => value && { ...value, selection: swapPick(value.selection, part) })
         }
         onBack={() => setResult(null)}
-        onApply={() => onApply(result.selection, result.base.towerBudget)}
+        onApply={() => onApply(result.selection, result.base.towerBudget, answers)}
       />
     );
   }

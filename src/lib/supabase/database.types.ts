@@ -109,6 +109,104 @@ export type Database = {
         }
         Relationships: []
       }
+      build_components: {
+        Row: {
+          build_id: string
+          demo_part_id: string | null
+          kind: string
+          name: string
+          position: number
+          price: number
+          product_id: string | null
+          sku: string | null
+        }
+        Insert: {
+          build_id: string
+          demo_part_id?: string | null
+          kind: string
+          name: string
+          position: number
+          price: number
+          product_id?: string | null
+          sku?: string | null
+        }
+        Update: {
+          build_id?: string
+          demo_part_id?: string | null
+          kind?: string
+          name?: string
+          position?: number
+          price?: number
+          product_id?: string | null
+          sku?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "build_components_build_id_fkey"
+            columns: ["build_id"]
+            isOneToOne: false
+            referencedRelation: "builds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "build_components_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      builds: {
+        Row: {
+          answers: Json | null
+          budget: number | null
+          created_at: string
+          currency: string
+          id: string
+          mode: string
+          name: string
+          parent_id: string | null
+          share_code: string
+          source: string
+          total: number
+        }
+        Insert: {
+          answers?: Json | null
+          budget?: number | null
+          created_at?: string
+          currency?: string
+          id?: string
+          mode: string
+          name: string
+          parent_id?: string | null
+          share_code: string
+          source: string
+          total: number
+        }
+        Update: {
+          answers?: Json | null
+          budget?: number | null
+          created_at?: string
+          currency?: string
+          id?: string
+          mode?: string
+          name?: string
+          parent_id?: string | null
+          share_code?: string
+          source?: string
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "builds_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "builds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           architect_part: string | null
@@ -1080,6 +1178,7 @@ export type Database = {
       }
       duplicate_product: { Args: { p_product_id: string }; Returns: string }
       expire_pending_orders: { Args: never; Returns: number }
+      get_build: { Args: { p_code: string }; Returns: Json }
       get_order_by_token: {
         Args: { p_order_id: string; p_token: string }
         Returns: Json
@@ -1091,6 +1190,7 @@ export type Database = {
         Args: { p_image_ids: string[]; p_product_id: string }
         Returns: undefined
       }
+      save_build: { Args: { p_build: Json }; Returns: string }
       search_suggestions: {
         Args: { p_limit?: number; p_query: string }
         Returns: Json

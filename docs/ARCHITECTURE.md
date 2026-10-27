@@ -150,6 +150,8 @@ profiles (1:1 auth.users) ── orders.user_id (opcional)
 | `product_flags`        | Banderas de marca (color, logo en `flags/`); `products.flag_id` opcional.                                                  |
 | `home_banners`         | Anuncios propios de la portada (imagen en `banners/` o ilustración incluida).                                              |
 | `admin_last_seen`      | Última vez que cada admin tuvo el panel abierto; solo la escribe `touch_admin_seen()`.                                     |
+| `builds`               | Configuraciones de Kova Architect (inmutables; versiones con `parent_id`).                                                 |
+| `build_components`     | Piezas de cada configuración con copia de nombre, SKU y precio.                                                            |
 | `audit_log`            | Historial general inmutable (triggers y funciones); solo lo lee el admin.                                                  |
 | `payments`             | Vacía en el MVP; la llenarán los adaptadores de pasarela.                                                                  |
 
@@ -162,6 +164,8 @@ profiles (1:1 auth.users) ── orders.user_id (opcional)
 | `search_suggestions(q)`     | Sugerencias del buscador por prefijo, SKU y similitud; incluye categorías y marcas.                                                     |
 | `best_selling_products(n)`  | Más vendidos (90 días). `security definer`: solo expone IDs y unidades.                                                                 |
 | `category_product_counts()` | Productos visibles por categoría principal (suma subcategorías) para el bento de la portada.                                            |
+| `save_build(p_build)`       | Guarda una configuración con precios de la base y devuelve su código. `security definer`.                                               |
+| `get_build(p_code)`         | Una configuración por su código, con sus piezas. `security definer`.                                                                    |
 
 ### Funciones de negocio (RPC)
 

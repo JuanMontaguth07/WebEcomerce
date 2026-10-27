@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Configurator } from "@/components/architect/configurator";
+import { ConfiguratorEntry } from "@/components/architect/configurator-entry";
+import { ConfiguratorSkeleton } from "@/components/architect/configurator-skeleton";
 import { Breadcrumbs } from "@/components/shop/breadcrumbs";
-import { Skeleton } from "@/components/ui/skeleton";
 import { siteConfig } from "@/config/site";
 import { demoArchitectParts } from "@/features/architect/parts";
 import { getArchitectParts } from "@/features/architect/queries";
+import { getStoreSettings } from "@/features/store-settings/queries";
 import { baseOpenGraph } from "@/lib/seo";
 
 const title = "Arma tu PC";
@@ -25,30 +26,13 @@ export const metadata: Metadata = {
 };
 
 async function ConfiguratorWithParts() {
-  const catalogParts = await getArchitectParts();
-  return <Configurator catalogParts={catalogParts} demoParts={demoArchitectParts()} />;
-}
-
-function ConfiguratorSkeleton() {
+  const [catalogParts, settings] = await Promise.all([getArchitectParts(), getStoreSettings()]);
   return (
-    <div
-      className="grid gap-5 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[15rem_minmax(0,1fr)_21rem]"
-      aria-busy
-    >
-      <span className="sr-only">Cargando piezas…</span>
-      <div className="hidden gap-2 lg:grid lg:content-start">
-        {Array.from({ length: 8 }, (_, index) => (
-          <Skeleton key={index} className="h-14 rounded-xl" />
-        ))}
-      </div>
-      <div className="grid content-start gap-2.5">
-        <Skeleton className="h-8 w-56" />
-        {Array.from({ length: 5 }, (_, index) => (
-          <Skeleton key={index} className="h-24 rounded-xl" />
-        ))}
-      </div>
-      <Skeleton className="hidden h-96 rounded-2xl xl:block" />
-    </div>
+    <ConfiguratorEntry
+      catalogParts={catalogParts}
+      demoParts={demoArchitectParts()}
+      whatsappNumber={settings.whatsappNumber}
+    />
   );
 }
 

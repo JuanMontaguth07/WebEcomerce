@@ -521,3 +521,26 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
   para jugar la gráfica es lo que más pesa. Tiene 12 GB de memoria de video…») y ofrece una
   alternativa más económica y otra mejor. No se prometen FPS: no hay datos que los respalden.
 - «Ajustar en modo libre» abre el resultado en los tres paneles con el presupuesto de la torre.
+
+## D35 — Kova Architect M9: guardar, compartir, cotizar e integrar (2026-10-27)
+
+- **Guardar sin cuentas**: «Guardar y compartir» pide un nombre y crea un enlace propio
+  (`/arma-tu-pc/<código>`, 12 caracteres al azar). Cada guardado es una fila nueva e inmutable en
+  `builds` + `build_components`; guardar a partir de un enlace crea una versión nueva que apunta a
+  la anterior (`parent_id`), así que el enlace original nunca cambia.
+- **Precios desde la base**: `save_build()` toma nombre, SKU y precio de los productos (no del
+  navegador) y exige que estén activos; las piezas demo se guardan con su id de código y precio de
+  ejemplo. Freno básico: 60 guardados cada 10 minutos en toda la tienda. Nadie lee las tablas
+  directamente: `get_build(código)` devuelve solo esa configuración; los admins pueden consultarlas.
+- **Enlace guardado**: abre la configuración en el modo libre y avisa si alguna pieza ya no está en
+  el catálogo o cambió de precio desde que se guardó. No se indexa en buscadores.
+- **Mis configuraciones**: la lista de las guardadas desde este navegador (localStorage, hasta 30),
+  dicho así en pantalla. Quitar una de la lista no borra su enlace.
+- **Cotización por WhatsApp** al número de la tienda con cada pieza, su precio, el total y el
+  enlace (solo si hay WhatsApp configurado en el panel). También «Compartir por WhatsApp» y copiar
+  el enlace.
+- **Entradas desde la tienda**: «Usar en Arma tu PC» en la ficha de los productos cuya categoría
+  tiene pieza de Architect (`?pieza=` abre el modo libre con ese producto puesto) y «Arma tu PC con
+  esta pieza» en esas categorías (`?tipo=`).
+- Las pruebas de navegador no guardan configuraciones: también corren contra producción y dejarían
+  filas de prueba (igual que con los pedidos).

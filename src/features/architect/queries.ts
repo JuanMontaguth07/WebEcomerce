@@ -5,6 +5,7 @@ import type { RawSpec } from "@/features/catalog/specs";
 import { asPartKind, type PartKind } from "@/features/compatibility/types";
 import { createPublicClient } from "@/lib/supabase/public";
 import { describeSpecs } from "./parts";
+import { SHARE_CODE, type SavedBuild } from "./saved";
 import type { ArchitectPart } from "./types";
 
 /** Tope de productos por consulta: alcanza para un catálogo de tienda propia. */
@@ -86,4 +87,21 @@ export async function getArchitectParts(): Promise<ArchitectPart[]> {
       ...describeSpecs(row.specs),
     };
   });
+}
+
+/**
+ * Una configuración guardada por su código. Son inmutables: se cachean sin
+ * vencimiento. null si el código no es válido o no existe.
+ */
+export async function getSavedBuild(code: string): Promise<SavedBuild | null> {
+  "use cache";
+  cacheTag(`build:${code}`);
+  cacheLife("max");
+
+  if (!SHARE_CODE.test(code)) return null;
+  const { data, error } = await createPublicClient({ retry: true }).rpc("get_build", {
+    p_code: code,
+  });
+  if (error) throw new Error(`[architect] configuración: ${error.message.slice(0, 300)}`);
+  return (data as SavedBuild | null) ?? null;
 }

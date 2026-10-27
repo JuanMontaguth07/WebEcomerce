@@ -14,6 +14,7 @@ import {
   toBuild,
 } from "./build";
 import { DEMO_PARTS } from "./demo-parts";
+import { entryFromParams } from "./entry";
 import { demoArchitectParts, describeSpecs } from "./parts";
 import { EMPTY_SELECTION, type ArchitectPart, type Selection } from "./types";
 
@@ -140,5 +141,29 @@ describe("comparar", () => {
       difference: { side: "a", text: "4 GB más" },
     });
     expect(rows.find((row) => row.key === "memory_type")?.difference).toBeNull();
+  });
+});
+
+describe("entradas desde la tienda", () => {
+  const real: ArchitectPart = { ...get("demo-gpu-12"), id: "real-gpu", demo: false, stock: 2 };
+  const params = (query: string) => new URLSearchParams(query);
+
+  it("?pieza abre el modo libre con ese producto puesto", () => {
+    expect(entryFromParams(params("pieza=real-gpu"), [real])).toEqual({
+      mode: "free",
+      source: "catalog",
+      selection: { parts: { gpu: "real-gpu" }, storage: [] },
+      active: "gpu",
+    });
+  });
+
+  it("?tipo abre en esa pieza si el catálogo la tiene", () => {
+    expect(entryFromParams(params("tipo=gpu"), [real])?.active).toBe("gpu");
+    expect(entryFromParams(params("tipo=cpu"), [real])).toBeNull();
+  });
+
+  it("lo que no se reconoce se ignora", () => {
+    expect(entryFromParams(params("pieza=otro&tipo=monitor"), [real])).toBeNull();
+    expect(entryFromParams(params(""), [real])).toBeNull();
   });
 });

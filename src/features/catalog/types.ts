@@ -2,6 +2,8 @@ import type { ProductFlag } from "@/features/flags/types";
 import type { Rarity } from "@/features/rarities/types";
 import type { Database } from "@/lib/supabase/database.types";
 
+import type { PartKind } from "@/features/compatibility/types";
+
 export type ProductType = Database["public"]["Enums"]["product_type"];
 export type SpecDataType = Database["public"]["Enums"]["spec_data_type"];
 
@@ -46,6 +48,8 @@ export type Category = {
   seoDescription: string | null;
   /** Foto subida desde el panel; sin ella se usa la ilustración. */
   imagePath: string | null;
+  /** Pieza que representa en Kova Architect (solo la propia; las hijas pueden heredarla). */
+  architectPart: PartKind | null;
 };
 
 export type Brand = {

@@ -1,6 +1,12 @@
 "use client";
 
-import { RotateCcwIcon, ShoppingCartIcon, ZapIcon } from "lucide-react";
+import {
+  MessageCircleIcon,
+  RotateCcwIcon,
+  Share2Icon,
+  ShoppingCartIcon,
+  ZapIcon,
+} from "lucide-react";
 import { useId } from "react";
 import { Button } from "@/components/ui/button";
 import type { BudgetUsage } from "@/features/architect/build";
@@ -31,6 +37,8 @@ export function BuildSummary({
   count,
   cart,
   onAddToCart,
+  onShare,
+  onQuote,
   onReset,
 }: {
   total: number;
@@ -44,6 +52,9 @@ export function BuildSummary({
   /** Si se puede comprar y, si no, por qué (piezas demo, nada elegido, agotadas). */
   cart: { ready: true } | { ready: false; reason: string };
   onAddToCart: () => void;
+  onShare: () => void;
+  /** Sin WhatsApp configurado en la tienda no se ofrece. */
+  onQuote: (() => void) | null;
   onReset: () => void;
 }) {
   const id = useId();
@@ -153,6 +164,20 @@ export function BuildSummary({
           <p className="text-xs text-destructive">
             Revisa las piezas que no encajan antes de comprar.
           </p>
+        )}
+        {count > 0 && (
+          <>
+            <Button type="button" variant="secondary" onClick={onShare}>
+              <Share2Icon aria-hidden />
+              Guardar y compartir
+            </Button>
+            {onQuote && (
+              <Button type="button" variant="secondary" onClick={onQuote}>
+                <MessageCircleIcon aria-hidden />
+                Pedir cotización por WhatsApp
+              </Button>
+            )}
+          </>
         )}
         {count > 0 && (
           <Button type="button" variant="ghost" onClick={onReset}>
