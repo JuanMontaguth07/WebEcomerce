@@ -40,9 +40,12 @@ const toKey = (label: string) =>
 export function SpecDefinitions({
   categoryId,
   definitions,
+  architectKeys = [],
 }: {
   categoryId: string;
   definitions: SpecDefinition[];
+  /** Claves que usa el motor de compatibilidad para la pieza de esta categoría. */
+  architectKeys?: string[];
 }) {
   const router = useRouter();
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -142,6 +145,15 @@ export function SpecDefinitions({
                 </span>
               </div>
               <Badge variant="outline">{TYPE_LABELS[definition.data_type]}</Badge>
+              {architectKeys.includes(definition.key) && (
+                <Badge
+                  variant="outline"
+                  className="border-tech/50 text-tech"
+                  title="La usa Kova Architect para comprobar la compatibilidad"
+                >
+                  Architect
+                </Badge>
+              )}
               {definition.show_on_card && <Badge variant="soft">En la tarjeta</Badge>}
               {definition.is_filterable && <Badge variant="soft">Filtrable</Badge>}
               {deleting === definition.id ? (

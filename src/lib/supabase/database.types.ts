@@ -111,6 +111,7 @@ export type Database = {
       }
       categories: {
         Row: {
+          architect_part: string | null
           created_at: string
           description: string | null
           id: string
@@ -125,6 +126,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          architect_part?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -139,6 +141,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          architect_part?: string | null
           created_at?: string
           description?: string | null
           id?: string

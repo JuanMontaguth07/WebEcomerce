@@ -440,3 +440,28 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
 - **Reordenado animado** en el catálogo: `ReorderList` aplica FLIP con la Web Animations API; las
   tarjetas que siguen se deslizan a su lugar y las nuevas aparecen. Sin dependencias y sin animación
   con movimiento reducido.
+
+## D31 — Kova Architect M6: motor de compatibilidad y plantilla (2026-10-27)
+
+- **Motor** en `features/compatibility`: TypeScript puro, sin dependencias, compartido por navegador y
+  servidor. Cada regla es una función pequeña que devuelve `null` si sus piezas no están elegidas.
+  Estados: compatible, advertencia, incompatible y «no se puede confirmar» cuando falta un dato: el
+  motor nunca adivina. Los resultados salen ordenados, lo más grave primero, y `partStatus` da el
+  estado de cada pieza.
+- **Reglas con datos**: socket CPU ↔ placa, tipo de memoria, módulos ↔ ranuras, formato de placa ↔
+  gabinete, largo de la gráfica (advertencia con menos de 10 mm de margen), disipador (socket y
+  capacidad térmica, holgada desde +20 % sobre el TDP), fuente (CPU + GPU + 75 W; error si no
+  alcanza, advertencia con menos de 30 % de margen o por debajo de lo que pide la gráfica) y ranuras
+  M.2.
+- **Sin datos todavía**: altura del disipador, radiador y conectores de la fuente se marcan «no se
+  puede confirmar». Altura y radiador se comprueban de verdad en cuanto la ficha tenga `height`,
+  `max_cooler_height` y `radiator_support`.
+- La ficha se lee de forma tolerante: «322 mm», «1.000 W», «2 × 16 GB», «Micro-ATX» = «mATX».
+- **Plantilla en el panel**: en cada categoría, «Kova Architect» fija qué pieza representa
+  (`categories.architect_part`; una subcategoría sin valor usa el de su principal) y agrega a la
+  ficha las especificaciones de la plantilla que falten, sin cambiar las que hay. Las que usa el
+  motor se marcan «Architect». Una prueba comprueba que la plantilla cubre todas las claves que leen
+  las reglas.
+- **Piezas demo en código** (`features/architect/demo-parts.ts`): ficticias, marcadas «demo», con
+  precios de ejemplo y no comprables. Sirven para probar el motor y para que el configurador funcione
+  aunque el catálogo no tenga productos con ficha.

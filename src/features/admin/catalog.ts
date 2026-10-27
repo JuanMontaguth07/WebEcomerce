@@ -106,7 +106,7 @@ export async function getCategoryOptions() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("categories")
-    .select("id, name, slug, parent_id, is_active, position")
+    .select("id, name, slug, parent_id, is_active, position, architect_part")
     .order("position")
     .order("name");
   if (error) throw error;

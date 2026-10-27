@@ -6,6 +6,9 @@ import { getAdminCategory, getCategoryOptions, getSpecDefinitions } from "@/feat
 import { deleteCategory } from "@/features/admin/catalog-actions";
 import { requireAdmin } from "@/features/auth/session";
 import { CategoryForm } from "../category-form";
+import { architectKeys } from "@/features/compatibility/template";
+import { asPartKind } from "@/features/compatibility/types";
+import { ArchitectTemplate } from "./architect-template";
 import { SpecDefinitions } from "./spec-definitions";
 
 export const metadata: Metadata = { title: "Editar categoría" };
@@ -23,6 +26,13 @@ export default async function EditCategoryPage({ params }: PageProps<"/admin/cat
     getSpecDefinitions(id),
   ]);
   if (!category) notFound();
+
+  // Una subcategoría sin pieza propia usa la de su categoría principal.
+  const own = asPartKind(category.architect_part);
+  const parent = all.find((item) => item.id === category.parent_id);
+  const parentPart = asPartKind(parent?.architect_part);
+  const inherited = !own && parent && parentPart ? { part: parentPart, from: parent.name } : null;
+  const part = own ?? inherited?.part ?? null;
 
   return (
     <div className="grid max-w-4xl gap-6">
@@ -55,7 +65,32 @@ export default async function EditCategoryPage({ params }: PageProps<"/admin/cat
             ficha.
           </p>
         </div>
-        <SpecDefinitions categoryId={category.id} definitions={definitions} />
+        <SpecDefinitions
+          categoryId={category.id}
+          definitions={definitions}
+          architectKeys={part ? [...architectKeys(part)] : []}
+        />
+      </section>
+      <section
+        aria-labelledby="architect"
+        className="grid gap-4 rounded-xl border bg-card p-5 sm:p-6"
+      >
+        <div className="grid gap-1">
+          <h2 id="architect" className="text-lg font-bold">
+            Kova Architect
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Indica qué pieza del PC es esta categoría para que sus productos aparezcan en «Arma tu
+            PC». La plantilla agrega las especificaciones que el configurador usa para comprobar la
+            compatibilidad (marcadas «Architect»).
+          </p>
+        </div>
+        <ArchitectTemplate
+          categoryId={category.id}
+          current={own}
+          inherited={inherited}
+          existingKeys={definitions.map((definition) => definition.key)}
+        />
       </section>
       <section className="grid gap-3 rounded-xl border bg-card p-5 sm:p-6">
         <h2 className="text-lg font-bold">Eliminar</h2>

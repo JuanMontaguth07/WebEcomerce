@@ -217,3 +217,27 @@ describe("logos de marca", () => {
     ).rejects.toThrow(/check constraint/);
   });
 });
+
+describe("piezas de Kova Architect", () => {
+  it("la semilla asigna la pieza a cada categoría de componentes", async () => {
+    const rows = await asRole(db, "anon", null, () =>
+      db.query<{ slug: string; architect_part: string | null }>(
+        `select slug, architect_part from public.categories order by slug`,
+      ),
+    );
+    const parts = Object.fromEntries(rows.rows.map((row) => [row.slug, row.architect_part]));
+    expect(parts).toMatchObject({
+      procesadores: "cpu",
+      "placas-madre": "motherboard",
+      "tarjetas-graficas": "gpu",
+      gabinetes: "case",
+      monitores: null,
+    });
+  });
+
+  it("solo acepta piezas conocidas", async () => {
+    await expect(
+      db.query(`update public.categories set architect_part = 'monitor' where slug = 'monitores'`),
+    ).rejects.toThrow(/check constraint/);
+  });
+});

@@ -116,6 +116,15 @@ begin
   ) as s(cat, key, label, grp, unit, dtype, filterable, pos)
   join public.categories c on c.slug = s.cat;
 
+  -- Pieza de Kova Architect que representa cada categoría de componentes.
+  update public.categories c set architect_part = v.part
+  from (values
+    ('procesadores', 'cpu'), ('placas-madre', 'motherboard'), ('tarjetas-graficas', 'gpu'),
+    ('memorias-ram', 'ram'), ('almacenamiento', 'storage'), ('fuentes-de-poder', 'psu'),
+    ('refrigeracion', 'cooler'), ('gabinetes', 'case')
+  ) as v(slug, part)
+  where c.slug = v.slug;
+
   -- Las 3 primeras de cada ficha salen en la tarjeta de producto.
   update public.spec_definitions d set show_on_card = true
   from (

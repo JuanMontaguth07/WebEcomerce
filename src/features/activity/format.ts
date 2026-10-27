@@ -81,6 +81,7 @@ const FIELD_LABELS: Record<string, string> = {
   is_featured: "Destacado",
   is_filterable: "Filtrable",
   show_on_card: "En la tarjeta",
+  architect_part: "Pieza en Architect",
   seo_title: "Título SEO",
   seo_description: "Descripción SEO",
   position: "Orden",

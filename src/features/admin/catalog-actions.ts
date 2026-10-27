@@ -2,6 +2,8 @@
 
 import { z } from "zod";
 import { revalidateCatalog } from "@/features/catalog/revalidate";
+import { missingTemplateSpecs } from "@/features/compatibility/template";
+import { PART_KINDS } from "@/features/compatibility/types";
 import { adminAction } from "@/lib/admin-action";
 import { AppError, toAppError } from "@/lib/errors";
 import { CATALOG_BUCKET } from "@/lib/images";
@@ -464,6 +466,52 @@ export const saveSpecDefinition = adminAction(
     }
     revalidateCatalog();
     return { id: data.id };
+  },
+);
+
+/**
+ * Fija la pieza de Kova Architect de la categoría y agrega a su ficha las
+ * especificaciones de la plantilla que falten. Nunca borra ni cambia las que hay.
+ */
+export const applyArchitectTemplate = adminAction(
+  z.object({ categoryId: z.uuid(), part: z.enum(PART_KINDS).nullable() }),
+  async ({ categoryId, part }, { supabase }) => {
+    const { error } = await supabase
+      .from("categories")
+      .update({ architect_part: part })
+      .eq("id", categoryId);
+    if (error) throw error;
+
+    let added = 0;
+    if (part) {
+      const { data: existing, error: readError } = await supabase
+        .from("spec_definitions")
+        .select("key, position, show_on_card")
+        .eq("category_id", categoryId);
+      if (readError) throw readError;
+      const missing = missingTemplateSpecs(part, existing);
+      // Si la ficha aún no muestra nada en la tarjeta, las 3 primeras nuevas sí.
+      const cardSlots = existing.some((item) => item.show_on_card) ? 0 : 3;
+      if (missing.length) {
+        const { error: insertError } = await supabase.from("spec_definitions").insert(
+          missing.map((item, index) => ({
+            category_id: categoryId,
+            key: item.key,
+            label: item.label,
+            group_label: item.groupLabel,
+            unit: item.unit,
+            data_type: item.dataType,
+            is_filterable: item.isFilterable,
+            show_on_card: index < cardSlots,
+            position: item.position,
+          })),
+        );
+        if (insertError) throw insertError;
+        added = missing.length;
+      }
+    }
+    revalidateCatalog({ categories: true });
+    return { added };
   },
 );
 
