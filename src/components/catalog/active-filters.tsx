@@ -1,8 +1,8 @@
 import { XIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { buildCatalogQuery, type CatalogFilters } from "@/features/catalog/params";
-import type { CatalogFacets, CategoryRef } from "@/features/catalog/types";
+import { buildCatalogQuery, toggleSpec, type CatalogFilters } from "@/features/catalog/params";
+import type { CatalogFacets, CategoryRef, SpecFacet } from "@/features/catalog/types";
 import { formatCOP } from "@/lib/format";
 
 type Chip = { key: string; label: string; changes: Partial<CatalogFilters> };
@@ -12,11 +12,13 @@ export function ActiveFilters({
   filters,
   basePath,
   facets,
+  specFacets = [],
   categories = [],
 }: {
   filters: CatalogFilters;
   basePath: string;
   facets: CatalogFacets;
+  specFacets?: SpecFacet[];
   categories?: CategoryRef[];
 }) {
   const brandName = (slug: string) => facets.brands.find((b) => b.slug === slug)?.name ?? slug;
@@ -33,6 +35,17 @@ export function ActiveFilters({
       label: brandName(slug),
       changes: { brands: filters.brands.filter((b) => b !== slug) },
     });
+  }
+  for (const [key, values] of Object.entries(filters.specs)) {
+    const facet = specFacets.find((item) => item.key === key);
+    for (const value of values) {
+      const label = facet?.values.find((item) => item.value === value)?.label ?? value;
+      chips.push({
+        key: `spec-${key}-${value}`,
+        label: facet ? `${facet.label}: ${label}` : label,
+        changes: { specs: toggleSpec(filters.specs, key, value, false) },
+      });
+    }
   }
   if (filters.minPrice !== null || filters.maxPrice !== null) {
     const label =
@@ -57,6 +70,7 @@ export function ActiveFilters({
     maxPrice: null,
     inStock: false,
     onSale: false,
+    specs: {},
     page: 1,
   });
 

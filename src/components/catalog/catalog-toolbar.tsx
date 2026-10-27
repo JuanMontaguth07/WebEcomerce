@@ -12,7 +12,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { hasActiveFilters, SORT_OPTIONS, type SortValue } from "@/features/catalog/params";
-import type { CatalogFacets } from "@/features/catalog/types";
+import type { CatalogFacets, SpecFacet } from "@/features/catalog/types";
 import { CatalogFilters, type CategoryFilterMode } from "./catalog-filters";
 import { useCatalogNavigation } from "./catalog-navigation";
 
@@ -20,10 +20,12 @@ import { useCatalogNavigation } from "./catalog-navigation";
 export function CatalogToolbar({
   total,
   facets,
+  specFacets,
   categoryMode,
 }: {
   total: number;
   facets: CatalogFacets;
+  specFacets: SpecFacet[];
   categoryMode: CategoryFilterMode;
 }) {
   const { filters, update } = useCatalogNavigation();
@@ -32,7 +34,8 @@ export function CatalogToolbar({
     filters.brands.length +
     (filters.minPrice !== null || filters.maxPrice !== null ? 1 : 0) +
     (filters.inStock ? 1 : 0) +
-    (filters.onSale ? 1 : 0);
+    (filters.onSale ? 1 : 0) +
+    Object.values(filters.specs).reduce((sum, values) => sum + values.length, 0);
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -59,7 +62,12 @@ export function CatalogToolbar({
               <SheetDescription>{total} productos coinciden.</SheetDescription>
             </SheetHeader>
             <div className="overflow-y-auto p-4">
-              <CatalogFilters facets={facets} categoryMode={categoryMode} idPrefix="movil" />
+              <CatalogFilters
+                facets={facets}
+                specFacets={specFacets}
+                categoryMode={categoryMode}
+                idPrefix="movil"
+              />
             </div>
           </SheetContent>
         </Sheet>

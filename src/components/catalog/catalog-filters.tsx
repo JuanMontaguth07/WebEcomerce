@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { buildCatalogQuery } from "@/features/catalog/params";
-import type { CatalogFacets, CategoryRef } from "@/features/catalog/types";
+import { buildCatalogQuery, toggleSpec } from "@/features/catalog/params";
+import type { CatalogFacets, CategoryRef, SpecFacet } from "@/features/catalog/types";
 import { formatCOP } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useCatalogNavigation } from "./catalog-navigation";
@@ -33,10 +33,13 @@ const digitsOnly = (value: string) => value.replace(/\D/g, "");
 
 export function CatalogFilters({
   facets,
+  specFacets = [],
   categoryMode,
   idPrefix,
 }: {
   facets: CatalogFacets;
+  /** Especificaciones filtrables de la categoría (vacío fuera de una categoría). */
+  specFacets?: SpecFacet[];
   categoryMode: CategoryFilterMode;
   /** Distingue los ids cuando el panel aparece dos veces (escritorio y móvil). */
   idPrefix: string;
@@ -48,13 +51,15 @@ export function CatalogFilters({
     update({ brands });
   };
 
-  // Para enlaces a otras categorías se conservan los filtros generales.
+  // Para enlaces a otras categorías se conservan los filtros generales (las
+  // especificaciones cambian de una categoría a otra y no se llevan).
   const keep = buildCatalogQuery({
     ...filters,
     category: null,
     brands: [],
     minPrice: null,
     maxPrice: null,
+    specs: {},
     page: 1,
   });
 
@@ -140,6 +145,10 @@ export function CatalogFilters({
         </FilterGroup>
       )}
 
+      {specFacets.map((facet) => (
+        <SpecFilter key={facet.key} facet={facet} idPrefix={idPrefix} />
+      ))}
+
       <FilterGroup title="Precio">
         {/* La clave reinicia los campos cuando el precio cambia desde la URL. */}
         <PriceFilter
@@ -149,6 +158,54 @@ export function CatalogFilters({
         />
       </FilterGroup>
     </div>
+  );
+}
+
+/** Opciones visibles antes de «Ver más» en una especificación. */
+const SPEC_PREVIEW = 6;
+
+function SpecFilter({ facet, idPrefix }: { facet: SpecFacet; idPrefix: string }) {
+  const { filters, update } = useCatalogNavigation();
+  const selected = filters.specs[facet.key] ?? [];
+  const [expanded, setExpanded] = useState(false);
+  // Lo elegido siempre se ve, aunque quede fuera de las primeras opciones.
+  const visible = expanded
+    ? facet.values
+    : facet.values.filter((item, index) => index < SPEC_PREVIEW || selected.includes(item.value));
+  const hidden = facet.values.length - visible.length;
+
+  return (
+    <FilterGroup title={facet.label}>
+      {visible.map((item) => {
+        const id = `${idPrefix}-spec-${facet.key}-${item.value.replace(/[^a-z0-9]+/g, "-")}`;
+        return (
+          <div key={item.value} className="flex items-center gap-3">
+            <Checkbox
+              id={id}
+              checked={selected.includes(item.value)}
+              onCheckedChange={(checked) =>
+                update({
+                  specs: toggleSpec(filters.specs, facet.key, item.value, checked === true),
+                })
+              }
+            />
+            <Label htmlFor={id} className="flex-1 font-normal">
+              {item.label}
+            </Label>
+            <span className="text-xs text-muted-foreground tabular-nums">{item.count}</span>
+          </div>
+        );
+      })}
+      {(hidden > 0 || expanded) && facet.values.length > SPEC_PREVIEW && (
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="w-fit text-xs font-semibold text-primary hover:underline"
+        >
+          {expanded ? "Ver menos" : `Ver ${hidden} más`}
+        </button>
+      )}
+    </FilterGroup>
   );
 }
 

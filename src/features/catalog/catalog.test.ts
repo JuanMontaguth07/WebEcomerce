@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { getAvailability, isDemoProduct } from "./availability";
-import { buildCatalogQuery, EMPTY_FILTERS, hasActiveFilters, parseCatalogParams } from "./params";
+import {
+  buildCatalogQuery,
+  EMPTY_FILTERS,
+  hasActiveFilters,
+  parseCatalogParams,
+  toggleSpec,
+} from "./params";
 import { formatSpecValue, groupSpecs, toCardSpecs } from "./specs";
 
 describe("parseCatalogParams", () => {
@@ -30,6 +36,7 @@ describe("parseCatalogParams", () => {
       onSale: true,
       sort: "price_asc",
       page: 3,
+      specs: {},
     });
   });
 
@@ -197,5 +204,54 @@ describe("toCardSpecs", () => {
       yes("Silenciosa", 5),
     ]);
     expect(specs.map((spec) => spec.text)).toEqual(["RGB", "Modular", "Pasiva"]);
+  });
+});
+
+describe("filtros por especificación en la URL", () => {
+  it("lee f_<clave> con uno o varios valores, en minúsculas y sin repetir", () => {
+    const filters = parseCatalogParams({ f_socket: ["AM5", "am5", " LGA1851 "], f_vram: "12" });
+    expect(filters.specs).toEqual({ socket: ["am5", "lga1851"], vram: ["12"] });
+    expect(hasActiveFilters(filters)).toBe(true);
+  });
+
+  it("ignora claves inválidas y valores vacíos o demasiado largos", () => {
+    const filters = parseCatalogParams({
+      "f_Mal-Clave": "x",
+      f_: "x",
+      f_ok: ["", "a".repeat(81)],
+      marca: "kairos",
+    });
+    expect(filters.specs).toEqual({});
+  });
+
+  it("limita cuántas especificaciones y valores se aceptan", () => {
+    const many = Object.fromEntries(Array.from({ length: 12 }, (_, i) => [`f_k${i}`, "1"]));
+    expect(Object.keys(parseCatalogParams(many).specs)).toHaveLength(8);
+    const values = Array.from({ length: 20 }, (_, i) => String(i));
+    expect(parseCatalogParams({ f_vram: values }).specs.vram).toHaveLength(12);
+  });
+
+  it("se serializa como parámetros repetidos y vuelve a leerse igual", () => {
+    const query = buildCatalogQuery({
+      ...EMPTY_FILTERS,
+      specs: { socket: ["lga1851", "am5"], cores: ["8"] },
+    });
+    expect(query).toBe("?f_cores=8&f_socket=am5&f_socket=lga1851");
+    const params = Object.fromEntries(
+      [...new URLSearchParams(query).keys()].map((key) => [
+        key,
+        new URLSearchParams(query).getAll(key),
+      ]),
+    );
+    expect(parseCatalogParams(params).specs).toEqual({ cores: ["8"], socket: ["am5", "lga1851"] });
+  });
+
+  it("agrega y quita valores; sin valores, la clave desaparece", () => {
+    let specs = toggleSpec({}, "socket", "am5", true);
+    specs = toggleSpec(specs, "socket", "lga1851", true);
+    expect(specs).toEqual({ socket: ["am5", "lga1851"] });
+    specs = toggleSpec(specs, "socket", "am5", false);
+    specs = toggleSpec(specs, "socket", "lga1851", false);
+    expect(specs).toEqual({});
   });
 });

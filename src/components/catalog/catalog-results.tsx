@@ -11,7 +11,12 @@ import {
   type CatalogFilters as Filters,
   type RawSearchParams,
 } from "@/features/catalog/params";
-import { getCatalogFacets, searchCatalog, type CatalogScope } from "@/features/catalog/queries";
+import {
+  getCatalogFacets,
+  getSpecFacets,
+  searchCatalog,
+  type CatalogScope,
+} from "@/features/catalog/queries";
 import type { CategoryRef } from "@/features/catalog/types";
 import { ActiveFilters } from "./active-filters";
 import { CatalogFilters, type CategoryFilterMode } from "./catalog-filters";
@@ -52,7 +57,7 @@ function EmptyState({ filters, basePath }: { filters: Filters; basePath: string 
           <Button asChild variant="secondary">
             <Link
               href={
-                `${basePath}${buildCatalogQuery({ ...filters, brands: [], minPrice: null, maxPrice: null, inStock: false, onSale: false, page: 1 })}` as Route
+                `${basePath}${buildCatalogQuery({ ...filters, brands: [], minPrice: null, maxPrice: null, inStock: false, onSale: false, specs: {}, page: 1 })}` as Route
               }
             >
               Quitar filtros
@@ -83,7 +88,7 @@ export async function CatalogResults({
   categoryMode,
 }: CatalogResultsProps) {
   const filters: Filters = { ...parseCatalogParams(await searchParams), ...fixed };
-  const [{ items, total, pageCount }, facets] = await Promise.all([
+  const [{ items, total, pageCount }, facets, specFacets] = await Promise.all([
     searchCatalog(filters, scope),
     // Solo los campos que usa: los argumentos son la clave de la caché.
     getCatalogFacets(
@@ -92,6 +97,21 @@ export async function CatalogResults({
         category: filters.category,
         inStock: filters.inStock,
         onSale: filters.onSale,
+        specs: filters.specs,
+      },
+      scope,
+    ),
+    // Sin orden ni página: los mismos valores sirven para todas las páginas.
+    getSpecFacets(
+      {
+        q: filters.q,
+        category: filters.category,
+        brands: filters.brands,
+        minPrice: filters.minPrice,
+        maxPrice: filters.maxPrice,
+        inStock: filters.inStock,
+        onSale: filters.onSale,
+        specs: filters.specs,
       },
       scope,
     ),
@@ -103,16 +123,27 @@ export async function CatalogResults({
       <div className="grid gap-8 lg:grid-cols-[15rem_1fr] xl:grid-cols-[16.5rem_1fr]">
         <aside aria-label="Filtros" className="hidden lg:block">
           <div className="sticky top-32">
-            <CatalogFilters facets={facets} categoryMode={categoryMode} idPrefix="escritorio" />
+            <CatalogFilters
+              facets={facets}
+              specFacets={specFacets}
+              categoryMode={categoryMode}
+              idPrefix="escritorio"
+            />
           </div>
         </aside>
 
         <div className="grid content-start gap-5">
-          <CatalogToolbar total={total} facets={facets} categoryMode={categoryMode} />
+          <CatalogToolbar
+            total={total}
+            facets={facets}
+            specFacets={specFacets}
+            categoryMode={categoryMode}
+          />
           <ActiveFilters
             filters={filters}
             basePath={basePath}
             facets={facets}
+            specFacets={specFacets}
             categories={categoryMode.type === "param" ? categories : []}
           />
           <CatalogPendingRegion className="grid gap-10">

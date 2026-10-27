@@ -277,7 +277,7 @@ export function SpecDefinitions({
           <CheckboxField
             name="isFilterable"
             label="Filtrable"
-            hint="Reservado para filtros por especificación en el catálogo."
+            hint="Aparece como filtro en el catálogo de esta categoría (con al menos dos valores distintos)."
             checked={draft.isFilterable}
             onCheckedChange={(checked) => set("isFilterable", checked)}
           />

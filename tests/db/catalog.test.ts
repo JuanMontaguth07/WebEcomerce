@@ -241,3 +241,81 @@ describe("piezas de Kova Architect", () => {
     ).rejects.toThrow(/check constraint/);
   });
 });
+
+describe("filtros por especificación", () => {
+  type Facet = {
+    key: string;
+    label: string;
+    values: { value: string; label: string | null; count: number }[];
+  };
+
+  const facets = (category: string | null, specs: object | null = null) =>
+    asRole(db, "anon", null, () =>
+      one<{ facets: Facet[] }>(
+        db,
+        "select public.catalog_spec_facets(p_category => $1, p_specs => $2::jsonb) as facets",
+        [category, specs ? JSON.stringify(specs) : null],
+      ),
+    ).then((row) => row.facets);
+
+  const names = (specs: object, category = "procesadores") =>
+    asRole(db, "anon", null, () =>
+      db.query<{ name: string; total_count: number }>(
+        "select name, total_count from public.catalog_search(p_category => $1, p_specs => $2::jsonb, p_limit => 60)",
+        [category, JSON.stringify(specs)],
+      ),
+    ).then((result) => result.rows);
+
+  it("lista las especificaciones filtrables de la categoría con sus valores y conteos", async () => {
+    const result = await facets("procesadores");
+    const socket = result.find((facet) => facet.key === "socket");
+    expect(socket?.label).toBe("Socket");
+    expect(socket?.values.map((item) => item.value).sort()).toEqual(["am5", "lga1851"]);
+    expect(socket?.values.find((item) => item.value === "am5")?.label).toBe("AM5");
+    const all = await names({});
+    const total = socket?.values.reduce((sum, item) => sum + item.count, 0);
+    expect(total).toBe(all.length);
+  });
+
+  it("dentro de una especificación suma opciones y entre especificaciones las cruza", async () => {
+    const amd = await names({ socket: ["AM5"] });
+    const intel = await names({ socket: ["lga1851"] });
+    const both = await names({ socket: ["am5", "lga1851"] });
+    expect(amd.length).toBeGreaterThan(0);
+    expect(intel.length).toBeGreaterThan(0);
+    expect(both.length).toBe(amd.length + intel.length);
+    expect(Number(amd[0]?.total_count)).toBe(amd.length);
+
+    const cores = (await facets("procesadores", { socket: ["am5"] })).find(
+      (f) => f.key === "cores",
+    );
+    const first = cores?.values[0];
+    const crossed = await names({ socket: ["am5"], cores: [first?.value] });
+    expect(crossed.length).toBe(first?.count);
+  });
+
+  it("el conteo de una especificación no se filtra a sí mismo", async () => {
+    const socket = (await facets("procesadores", { socket: ["am5"] })).find(
+      (f) => f.key === "socket",
+    );
+    expect(socket?.values.map((item) => item.value).sort()).toEqual(["am5", "lga1851"]);
+  });
+
+  it("los números se comparan sin ceros sobrantes", async () => {
+    const vram = (await facets("tarjetas-graficas")).find((facet) => facet.key === "vram");
+    expect(vram?.values.map((item) => item.value)).toEqual(["8", "12", "16"]);
+    expect(await names({ vram: ["12"] }, "tarjetas-graficas")).toHaveLength(1);
+  });
+
+  it("ignora filtros mal formados y no inventa resultados", async () => {
+    const all = await names({});
+    expect(await names({ socket: "am5" })).toHaveLength(all.length);
+    expect(await names({ socket: [] })).toHaveLength(all.length);
+    expect(await names({ socket: ["no-existe"] })).toHaveLength(0);
+    expect(await names({ clave_inexistente: ["x"] })).toHaveLength(0);
+  });
+
+  it("sin categoría no hay filtros por especificación", async () => {
+    expect(await facets(null)).toEqual([]);
+  });
+});

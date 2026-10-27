@@ -96,7 +96,7 @@ async function HomeCategories() {
 async function HomeBrands() {
   const [brands, facets] = await Promise.all([
     getBrands(),
-    getCatalogFacets({ q: null, category: null, inStock: false, onSale: false }),
+    getCatalogFacets({ q: null, category: null, inStock: false, onSale: false, specs: {} }),
   ]);
   const counts = new Map(facets.brands.map((brand) => [brand.slug, brand.count]));
   const strip = brands

@@ -21,6 +21,11 @@ export type CatalogFilters = {
   onSale: boolean;
   sort: SortValue;
   page: number;
+  /**
+   * Especificaciones filtradas: clave de la ficha → valores elegidos, en
+   * minúsculas (como los compara la base). En la URL: `?f_vram=12&f_vram=16`.
+   */
+  specs: Record<string, string[]>;
 };
 
 export type RawSearchParams = Record<string, string | string[] | undefined>;
@@ -32,6 +37,33 @@ const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const SORT_VALUES: readonly string[] = SORT_OPTIONS.map((option) => option.value);
 
 const first = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value);
+const all = (value: string | string[] | undefined) =>
+  value === undefined ? [] : Array.isArray(value) ? value : [value];
+
+/** Prefijo de los parámetros de especificación y límites para no abusar de la URL. */
+const SPEC_PREFIX = "f_";
+const SPEC_KEY = /^[a-z][a-z0-9_]{0,49}$/;
+const MAX_SPEC_KEYS = 8;
+const MAX_SPEC_VALUES = 12;
+
+/** Lee los `f_<clave>` de la URL: claves válidas, valores recortados y sin repetir. */
+function parseSpecs(params: RawSearchParams): Record<string, string[]> {
+  const specs: Record<string, string[]> = {};
+  const keys = Object.keys(params)
+    .filter((name) => name.startsWith(SPEC_PREFIX))
+    .map((name) => name.slice(SPEC_PREFIX.length))
+    .filter((key) => SPEC_KEY.test(key))
+    .sort()
+    .slice(0, MAX_SPEC_KEYS);
+  for (const key of keys) {
+    const values = all(params[SPEC_PREFIX + key])
+      .map((value) => value.trim().toLowerCase())
+      .filter((value) => value.length > 0 && value.length <= 80);
+    const unique = [...new Set(values)].sort().slice(0, MAX_SPEC_VALUES);
+    if (unique.length) specs[key] = unique;
+  }
+  return specs;
+}
 
 /** Entero dentro de [min, max] o null; acepta espacios alrededor, no decimales. */
 function integerInRange(value: string | undefined, min: number, max: number): number | null {
@@ -67,6 +99,7 @@ export function parseCatalogParams(params: RawSearchParams): CatalogFilters {
     onSale: first(params.oferta) === "1",
     sort: SORT_VALUES.includes(sort) ? (sort as SortValue) : "relevance",
     page: integerInRange(first(params.pagina), 1, 500) ?? 1,
+    specs: parseSpecs(params),
   };
 }
 
@@ -87,6 +120,10 @@ export function buildCatalogQuery(
   if (next.maxPrice !== null) params.set("max", String(next.maxPrice));
   if (next.inStock) params.set("disponible", "1");
   if (next.onSale) params.set("oferta", "1");
+  for (const key of Object.keys(next.specs).sort()) {
+    for (const value of [...(next.specs[key] ?? [])].sort())
+      params.append(SPEC_PREFIX + key, value);
+  }
   if (next.sort !== "relevance") params.set("orden", next.sort);
   if (next.page > 1) params.set("pagina", String(next.page));
   const query = params.toString();
@@ -99,7 +136,8 @@ export function hasActiveFilters(filters: CatalogFilters): boolean {
     filters.minPrice !== null ||
     filters.maxPrice !== null ||
     filters.inStock ||
-    filters.onSale
+    filters.onSale ||
+    Object.keys(filters.specs).length > 0
   );
 }
 
@@ -113,4 +151,22 @@ export const EMPTY_FILTERS: CatalogFilters = {
   onSale: false,
   sort: "relevance",
   page: 1,
+  specs: {},
 };
+
+/** Agrega o quita un valor de una especificación filtrada. */
+export function toggleSpec(
+  specs: Record<string, string[]>,
+  key: string,
+  value: string,
+  checked: boolean,
+): Record<string, string[]> {
+  const current = specs[key] ?? [];
+  const values = checked
+    ? [...new Set([...current, value])].sort()
+    : current.filter((item) => item !== value);
+  const next = { ...specs };
+  if (values.length) next[key] = values;
+  else delete next[key];
+  return next;
+}

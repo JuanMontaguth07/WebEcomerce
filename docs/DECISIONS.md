@@ -544,3 +544,21 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
   esta pieza» en esas categorías (`?tipo=`).
 - Las pruebas de navegador no guardan configuraciones: también corren contra producción y dejarían
   filas de prueba (igual que con los pedidos).
+
+## D36 — Filtros por especificación en el catálogo (2026-10-27)
+
+- Las especificaciones marcadas **«Filtrable»** en la ficha de una categoría aparecen como filtros
+  en esa categoría (y en sus subcategorías, por clave): memoria de video, socket, núcleos,
+  capacidad… Cada valor muestra cuántos productos tiene.
+- **Combinación**: dentro de una especificación se suman opciones («8 GB» o «12 GB»); entre
+  especificaciones se cruzan («AM5» y «8 núcleos»). El conteo de cada especificación aplica los
+  demás filtros pero no el suyo, para poder sumar opciones (igual que las marcas).
+- **URL legible y segura**: `?f_vram=12&f_vram=16`. Parámetros repetidos (no listas con coma)
+  para que un valor con coma no se rompa; claves validadas y tope de 8 especificaciones y 12
+  valores. Como los demás filtros, esas combinaciones no se indexan.
+- **En la base**: `spec_value_key()` normaliza el valor (números sin ceros sobrantes, booleanos,
+  textos en minúsculas); `catalog_matches`, `catalog_search` y `catalog_facets` reciben `p_specs`
+  y `catalog_spec_facets()` entrega los valores. Una especificación solo se muestra con al menos
+  dos valores distintos (o si ya se está filtrando por ella).
+- Sin categoría (todos los productos, búsqueda general) no hay filtros por especificación: las
+  fichas cambian de una categoría a otra. Al cambiar de categoría, esos filtros no se llevan.

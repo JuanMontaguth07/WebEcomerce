@@ -94,3 +94,10 @@ export type CatalogFacets = {
   maxPrice: number | null;
   brands: { slug: string; name: string; count: number }[];
 };
+
+/** Especificación filtrable de una categoría con sus valores («12 GB», «AM5», «Sí»). */
+export type SpecFacet = {
+  key: string;
+  label: string;
+  values: { value: string; label: string; count: number }[];
+};

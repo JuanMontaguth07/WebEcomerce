@@ -1100,6 +1100,7 @@ export type Database = {
           p_on_sale?: boolean
           p_product_type?: Database["public"]["Enums"]["product_type"]
           p_query?: string
+          p_specs?: Json
         }
         Returns: Json
       }
@@ -1113,6 +1114,7 @@ export type Database = {
           p_on_sale?: boolean
           p_product_type?: Database["public"]["Enums"]["product_type"]
           p_query?: string
+          p_specs?: Json
         }
         Returns: {
           product_id: string
@@ -1132,6 +1134,7 @@ export type Database = {
           p_product_type?: Database["public"]["Enums"]["product_type"]
           p_query?: string
           p_sort?: string
+          p_specs?: Json
         }
         Returns: {
           brand_name: string
@@ -1156,6 +1159,20 @@ export type Database = {
           stock: number
           total_count: number
         }[]
+      }
+      catalog_spec_facets: {
+        Args: {
+          p_brands?: string[]
+          p_category?: string
+          p_in_stock?: boolean
+          p_max_price?: number
+          p_min_price?: number
+          p_on_sale?: boolean
+          p_product_type?: Database["public"]["Enums"]["product_type"]
+          p_query?: string
+          p_specs?: Json
+        }
+        Returns: Json
       }
       category_product_counts: {
         Args: never
@@ -1210,6 +1227,15 @@ export type Database = {
           min_days: number
           price: number
         }[]
+      }
+      spec_value_key: {
+        Args: {
+          p_boolean: boolean
+          p_data_type: Database["public"]["Enums"]["spec_data_type"]
+          p_number: number
+          p_text: string
+        }
+        Returns: string
       }
       touch_admin_seen: { Args: never; Returns: undefined }
       update_order_status: {

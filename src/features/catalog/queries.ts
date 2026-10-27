@@ -7,7 +7,7 @@ import type { Rarity } from "@/features/rarities/types";
 import { asPartKind } from "@/features/compatibility/types";
 import { createPublicClient } from "@/lib/supabase/public";
 import { PAGE_SIZE, type CatalogFilters } from "./params";
-import { toCardSpecs, toProductSpecs, type RawSpec } from "./specs";
+import { formatSpecValue, toCardSpecs, toProductSpecs, type RawSpec } from "./specs";
 import type {
   Brand,
   CatalogFacets,
@@ -15,6 +15,8 @@ import type {
   ProductDetail,
   ProductSummary,
   ProductType,
+  SpecDataType,
+  SpecFacet,
 } from "./types";
 
 /**
@@ -240,6 +242,7 @@ export async function searchCatalog(
     p_sort: filters.sort,
     p_limit: PAGE_SIZE,
     p_offset: (filters.page - 1) * PAGE_SIZE,
+    p_specs: Object.keys(filters.specs).length ? filters.specs : undefined,
   });
   if (error) fail("searchCatalog", error);
 
@@ -272,7 +275,7 @@ export async function searchCatalog(
 }
 
 export async function getCatalogFacets(
-  filters: Pick<CatalogFilters, "q" | "category" | "inStock" | "onSale">,
+  filters: Pick<CatalogFilters, "q" | "category" | "inStock" | "onSale" | "specs">,
   scope: CatalogScope = {},
 ): Promise<CatalogFacets> {
   "use cache";
@@ -285,6 +288,7 @@ export async function getCatalogFacets(
     p_in_stock: filters.inStock,
     p_on_sale: filters.onSale,
     p_product_type: scope.productType,
+    p_specs: Object.keys(filters.specs).length ? filters.specs : undefined,
   });
   if (error) fail("getCatalogFacets", error);
 
@@ -300,6 +304,63 @@ export async function getCatalogFacets(
     maxPrice: facets.max_price,
     brands: facets.brands,
   };
+}
+
+type SpecFacetRow = {
+  key: string;
+  label: string;
+  unit: string | null;
+  data_type: SpecDataType;
+  values: { value: string; label: string | null; count: number }[];
+};
+
+/**
+ * Especificaciones filtrables de la categoría con sus valores y conteos (cada
+ * uno aplica los demás filtros). Solo dentro de una categoría: las fichas
+ * cambian de una a otra.
+ */
+export async function getSpecFacets(
+  filters: Omit<CatalogFilters, "sort" | "page">,
+  scope: CatalogScope = {},
+): Promise<SpecFacet[]> {
+  "use cache";
+  cacheTag(CATALOG_TAGS.products, CATALOG_TAGS.categories);
+  cacheLife("minutes");
+
+  if (!filters.category) return [];
+  const { data, error } = await createPublicClient({ retry: true }).rpc("catalog_spec_facets", {
+    p_query: filters.q ?? undefined,
+    p_category: filters.category,
+    p_brands: filters.brands.length ? filters.brands : undefined,
+    p_min_price: filters.minPrice ?? undefined,
+    p_max_price: filters.maxPrice ?? undefined,
+    p_in_stock: filters.inStock,
+    p_on_sale: filters.onSale,
+    p_product_type: scope.productType,
+    p_specs: Object.keys(filters.specs).length ? filters.specs : undefined,
+  });
+  if (error) fail("getSpecFacets", error);
+
+  return (data as SpecFacetRow[]).map((facet) => ({
+    key: facet.key,
+    label: facet.label,
+    values: facet.values.map((item) => ({
+      value: item.value,
+      count: item.count,
+      label:
+        facet.data_type === "text"
+          ? (item.label ?? item.value)
+          : formatSpecValue(
+              facet.data_type,
+              {
+                text: null,
+                number: facet.data_type === "number" ? Number(item.value) : null,
+                boolean: facet.data_type === "boolean" ? item.value === "true" : null,
+              },
+              facet.unit,
+            ),
+    })),
+  }));
 }
 
 // -----------------------------------------------------------------------------
