@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useFocusFirstField } from "@/components/admin/use-focus-first-field";
 import { AdminEmpty } from "@/components/admin/admin-ui";
 import { CheckboxField, TextField } from "@/components/admin/form-helpers";
 import { ProductFlagTag } from "@/components/shop/product-flag";
@@ -79,6 +80,7 @@ export function FlagsManager({ flags }: { flags: AdminFlag[] }) {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
+  useFocusFirstField(formRef, draft ? (draft.id ?? "nuevo") : null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Libera la URL temporal de la imagen elegida.
@@ -89,9 +91,6 @@ export function FlagsManager({ flags }: { flags: AdminFlag[] }) {
     setFile(null);
     setPreview(null);
     setDraft(next);
-    requestAnimationFrame(() =>
-      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
-    );
   }
 
   function set<K extends keyof Draft>(key: K, value: Draft[K]) {

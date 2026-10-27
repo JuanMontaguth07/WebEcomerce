@@ -58,6 +58,7 @@ export function BrandForm({ brandId, initial }: { brandId?: string; initial: Bra
           name="name"
           label="Nombre"
           errors={errors}
+          autoFocus={!brandId}
           value={values.name}
           onChange={(e) => set("name", e.target.value)}
         />

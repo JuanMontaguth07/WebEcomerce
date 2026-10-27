@@ -2,9 +2,10 @@
 
 import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { CheckboxField, SelectField, TextField } from "@/components/admin/form-helpers";
+import { useFocusFirstField } from "@/components/admin/use-focus-first-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { deleteSpecDefinition, saveSpecDefinition } from "@/features/admin/catalog-actions";
@@ -44,6 +45,8 @@ export function SpecDefinitions({
   const [errors, setErrors] = useState<Errors>({});
   const [pending, startTransition] = useTransition();
   const [deleting, setDeleting] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  useFocusFirstField(formRef, draft ? (draft.id ?? "nueva") : null);
 
   const startNew = () => {
     setErrors({});
@@ -175,6 +178,7 @@ export function SpecDefinitions({
 
       {draft ? (
         <form
+          ref={formRef}
           onSubmit={save}
           noValidate
           className="grid gap-4 rounded-lg border bg-secondary/40 p-4"

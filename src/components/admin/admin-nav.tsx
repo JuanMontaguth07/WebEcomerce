@@ -13,6 +13,7 @@ import {
   SettingsIcon,
   TagIcon,
   TruckIcon,
+  UserCogIcon,
   WarehouseIcon,
 } from "lucide-react";
 import type { Route } from "next";
@@ -101,6 +102,12 @@ export const ADMIN_NAV: { title: string | null; items: AdminNavItem[] }[] = [
         label: "Actividad",
         Icon: HistoryIcon,
         keywords: "historial cambios registro",
+      },
+      {
+        href: "/admin/cuenta",
+        label: "Mi cuenta",
+        Icon: UserCogIcon,
+        keywords: "perfil contraseña tema oscuro claro color fuente cerrar sesion",
       },
     ],
   },

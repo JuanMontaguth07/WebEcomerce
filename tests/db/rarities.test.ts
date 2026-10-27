@@ -210,3 +210,40 @@ describe("etiquetas de bandera", () => {
     expect(product.flag_id).toBeNull();
   });
 });
+
+describe("preferencias del panel y efectos nuevos", () => {
+  it("cada usuario cambia solo su acento y su fuente, con valores válidos", async () => {
+    await asAdmin(() =>
+      db.query(`update public.profiles set admin_accent = 'lime', admin_font = 'figtree'`),
+    );
+    const rows = await db.query<{ id: string; admin_accent: string }>(
+      `select id, admin_accent from public.profiles order by id`,
+    );
+    // La política solo deja actualizar la propia fila.
+    expect(rows.rows).toEqual([
+      { id: ADMIN, admin_accent: "lime" },
+      { id: CUSTOMER, admin_accent: "orange" },
+    ]);
+    await expect(
+      asAdmin(() => db.query(`update public.profiles set admin_accent = 'rosado'`)),
+    ).rejects.toThrow(/check constraint/);
+    await expect(
+      asAdmin(() => db.query(`update public.profiles set role = 'customer'`)),
+    ).rejects.toThrow(/permission denied/);
+  });
+
+  it("las rarezas aceptan los efectos circuito y sobrecarga", async () => {
+    await asAdmin(() =>
+      db.query(
+        `insert into public.rarities (name, slug, color, effect) values
+           ('Circuito', 'circuito', '#55D6FF', 'circuit'),
+           ('Sobrecarga', 'sobrecarga', '#B8FF5C', 'surge')`,
+      ),
+    );
+    const count = await one<{ c: number }>(
+      db,
+      `select count(*)::int c from public.rarities where effect in ('circuit', 'surge')`,
+    );
+    expect(count.c).toBe(2);
+  });
+});

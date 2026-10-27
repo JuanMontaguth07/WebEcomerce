@@ -325,3 +325,17 @@ repite en el layout del panel y en cada Server Action.
   a nítido con animación por scroll (sin JavaScript; se omite con movimiento reducido).
 - **Piezas únicas**: `products.unique_note` dice por qué un producto es especial. Los que la tienen
   salen en «Piezas únicas» de la portada con ese texto y en un recuadro de su ficha.
+
+## D24 — Mi cuenta, preferencias del panel y efectos de borde (2026-10-27)
+
+- **Mi cuenta** (`/admin/cuenta`): nombre, cambio de contraseña (pide la actual), modo claro u
+  oscuro con interruptor, lista de administradores y cierre de sesión.
+- **Preferencias por administrador** (`profiles.admin_accent`, `admin_font`): seis colores de
+  acento con tonos propios para claro y oscuro (texto ≥ 4,5:1 medido) y tres fuentes (IBM Plex
+  Sans por defecto, Figtree o Hanken Grotesk). Solo cambian la vista de quien las elige; las
+  fuentes del panel se cargan únicamente en `/admin`.
+- **Formularios**: los campos ya no se estiran cuando el vecino de fila es más alto
+  (`content-start`) y al abrir un formulario el cursor queda en el primer campo.
+- **Rarezas**: efectos «Circuito» (dos destellos recorren el borde; el pseudo-elemento solo pinta
+  el borde) y «Sobrecarga» (el borde se enciende y se apaga). Al pasar el cursor la luz del borde se
+  intensifica en todos los efectos.

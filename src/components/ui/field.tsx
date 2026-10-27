@@ -45,7 +45,9 @@ function Field({ className, error, described = false, children, ...props }: Fiel
 
   return (
     <FieldContext.Provider value={value}>
-      <div data-slot="field" className={cn("grid gap-2", className)} {...props}>
+      {/* content-start: si otro campo de la misma fila es más alto (ayuda, error), este no se
+          estira y su casilla queda a la misma altura que la del vecino. */}
+      <div data-slot="field" className={cn("grid content-start gap-2", className)} {...props}>
         {children}
         {message && (
           <p id={value.errorId} role="alert" className="text-sm text-destructive">

@@ -231,6 +231,127 @@
 }
 
 /* =============================================================================
+   Panel: color de acento y fuente que elige cada administrador en «Mi cuenta».
+   Cada acento tiene su tono para modo claro y oscuro (texto ≥ 4,5:1 sobre fondo,
+   tarjeta y fondo suave). --ring y --sidebar-primary se repiten porque en :root
+   quedan resueltos con el rojo de la tienda.
+   ============================================================================= */
+
+[data-admin-accent="orange"] {
+  --primary: #c2410c;
+  --primary-foreground: #ffffff;
+  --primary-soft: #fff1e7;
+  --ring: #c2410c;
+  --sidebar-primary: #c2410c;
+  --sidebar-primary-foreground: #ffffff;
+}
+.dark [data-admin-accent="orange"] {
+  --primary: #fb923c;
+  --primary-foreground: #1c0d03;
+  --primary-soft: #2b1708;
+  --ring: #fb923c;
+  --sidebar-primary: #fb923c;
+  --sidebar-primary-foreground: #1c0d03;
+}
+[data-admin-accent="red"] {
+  --primary: #d61f2c;
+  --primary-foreground: #ffffff;
+  --primary-soft: #fef0f1;
+  --ring: #d61f2c;
+  --sidebar-primary: #d61f2c;
+  --sidebar-primary-foreground: #ffffff;
+}
+.dark [data-admin-accent="red"] {
+  --primary: #f0384a;
+  --primary-foreground: #140a0b;
+  --primary-soft: #2a0e12;
+  --ring: #f0384a;
+  --sidebar-primary: #f0384a;
+  --sidebar-primary-foreground: #140a0b;
+}
+[data-admin-accent="lime"] {
+  --primary: #3f6212;
+  --primary-foreground: #ffffff;
+  --primary-soft: #f0f7e2;
+  --ring: #3f6212;
+  --sidebar-primary: #3f6212;
+  --sidebar-primary-foreground: #ffffff;
+}
+.dark [data-admin-accent="lime"] {
+  --primary: #a3e635;
+  --primary-foreground: #0f1704;
+  --primary-soft: #19230a;
+  --ring: #a3e635;
+  --sidebar-primary: #a3e635;
+  --sidebar-primary-foreground: #0f1704;
+}
+[data-admin-accent="blue"] {
+  --primary: #1d4ed8;
+  --primary-foreground: #ffffff;
+  --primary-soft: #ebf1ff;
+  --ring: #1d4ed8;
+  --sidebar-primary: #1d4ed8;
+  --sidebar-primary-foreground: #ffffff;
+}
+.dark [data-admin-accent="blue"] {
+  --primary: #60a5fa;
+  --primary-foreground: #08111f;
+  --primary-soft: #0d1a2f;
+  --ring: #60a5fa;
+  --sidebar-primary: #60a5fa;
+  --sidebar-primary-foreground: #08111f;
+}
+[data-admin-accent="violet"] {
+  --primary: #6d28d9;
+  --primary-foreground: #ffffff;
+  --primary-soft: #f2ecff;
+  --ring: #6d28d9;
+  --sidebar-primary: #6d28d9;
+  --sidebar-primary-foreground: #ffffff;
+}
+.dark [data-admin-accent="violet"] {
+  --primary: #a78bfa;
+  --primary-foreground: #110a22;
+  --primary-soft: #1b1431;
+  --ring: #a78bfa;
+  --sidebar-primary: #a78bfa;
+  --sidebar-primary-foreground: #110a22;
+}
+[data-admin-accent="teal"] {
+  --primary: #0f766e;
+  --primary-foreground: #ffffff;
+  --primary-soft: #e3f5f2;
+  --ring: #0f766e;
+  --sidebar-primary: #0f766e;
+  --sidebar-primary-foreground: #ffffff;
+}
+.dark [data-admin-accent="teal"] {
+  --primary: #2dd4bf;
+  --primary-foreground: #04201c;
+  --primary-soft: #082320;
+  --ring: #2dd4bf;
+  --sidebar-primary: #2dd4bf;
+  --sidebar-primary-foreground: #04201c;
+}
+
+/* La fuente se cambia redefiniendo las variables de next/font dentro del panel. */
+[data-admin-font="plex"] {
+  --font-hanken: var(--font-plex);
+  --font-archivo: var(--font-plex);
+}
+
+[data-admin-font="figtree"] {
+  --font-hanken: var(--font-figtree);
+  --font-archivo: var(--font-figtree);
+}
+
+[data-admin-font="plex"] :is(h1, h2, h3),
+[data-admin-font="figtree"] :is(h1, h2, h3) {
+  font-stretch: normal;
+  letter-spacing: -0.01em;
+}
+
+/* =============================================================================
    Rarezas: el color llega en línea como --rarity (lo elige el admin) y el
    efecto en data-effect. El color solo pinta bordes, halos e íconos: el texto
    sigue usando los tokens de texto, así se lee con cualquier color elegido.
@@ -249,7 +370,8 @@
 .rarity-card[data-effect="glow"],
 .rarity-card[data-effect="pulse"],
 .rarity-card[data-effect="shimmer"],
-.rarity-card[data-effect="holo"] {
+.rarity-card[data-effect="holo"],
+.rarity-card[data-effect="circuit"] {
   box-shadow:
     0 0 0 1px color-mix(in oklab, var(--rarity) 50%, transparent),
     0 0 22px -6px color-mix(in oklab, var(--rarity) 70%, transparent),
@@ -295,6 +417,52 @@
   animation: rarity-spin 6s linear infinite;
 }
 
+/* Circuito: dos destellos recorren el borde. El pseudo-elemento solo pinta el
+   borde (la máscara recorta el interior) para no tapar la imagen ni el texto. */
+.rarity-card[data-effect="circuit"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  padding: 2px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--rarity-angle),
+    transparent 0deg 120deg,
+    color-mix(in oklab, var(--rarity) 55%, transparent) 150deg,
+    white 172deg,
+    var(--rarity) 176deg,
+    transparent 180deg 300deg,
+    color-mix(in oklab, var(--rarity) 55%, transparent) 330deg,
+    white 352deg,
+    var(--rarity) 356deg,
+    transparent 360deg
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  animation: rarity-spin 3.6s linear infinite;
+}
+
+/* Sobrecarga: el borde y un brillo interior se encienden y se apagan. */
+.rarity-card[data-effect="surge"] {
+  animation: rarity-surge 2.4s ease-in-out infinite;
+}
+
+/* Al pasar el cursor la luz de los bordes se intensifica. */
+.rarity-card:is(
+    [data-effect="glow"],
+    [data-effect="shimmer"],
+    [data-effect="holo"],
+    [data-effect="circuit"]
+  ):is(:hover, :focus-within) {
+  box-shadow:
+    0 0 0 1px var(--rarity),
+    0 0 26px -4px color-mix(in oklab, var(--rarity) 85%, transparent),
+    0 18px 48px -14px color-mix(in oklab, var(--rarity) 90%, transparent);
+}
+
 /* Etiqueta: fondo con un toque del color y texto en el color de texto normal. */
 .rarity-badge {
   border-color: color-mix(in oklab, var(--rarity) 65%, transparent);
@@ -302,7 +470,9 @@
 }
 
 .rarity-badge[data-effect="holo"],
-.rarity-badge[data-effect="shimmer"] {
+.rarity-badge[data-effect="shimmer"],
+.rarity-badge[data-effect="circuit"],
+.rarity-badge[data-effect="surge"] {
   background:
     linear-gradient(
         110deg,
@@ -392,6 +562,23 @@
     box-shadow:
       0 0 0 2px color-mix(in oklab, var(--rarity) 70%, transparent),
       0 16px 46px -10px color-mix(in oklab, var(--rarity) 95%, transparent);
+  }
+}
+
+@keyframes rarity-surge {
+  0%,
+  100% {
+    border-color: color-mix(in oklab, var(--rarity) 55%, var(--border));
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--rarity) 30%, transparent),
+      0 10px 30px -16px color-mix(in oklab, var(--rarity) 60%, transparent);
+  }
+  50% {
+    border-color: var(--rarity);
+    box-shadow:
+      0 0 0 1px var(--rarity),
+      inset 0 0 22px -8px color-mix(in oklab, var(--rarity) 80%, transparent),
+      0 0 30px -4px color-mix(in oklab, var(--rarity) 90%, transparent);
   }
 }
 

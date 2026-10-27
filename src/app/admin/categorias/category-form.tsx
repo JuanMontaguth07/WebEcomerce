@@ -88,7 +88,13 @@ export function CategoryForm({
   return (
     <form onSubmit={submit} noValidate className="grid gap-5 rounded-xl border bg-card p-5 sm:p-6">
       <div className="grid gap-5 sm:grid-cols-2">
-        <TextField name="name" label="Nombre" errors={errors} {...text("name")} />
+        <TextField
+          name="name"
+          label="Nombre"
+          errors={errors}
+          autoFocus={!categoryId}
+          {...text("name")}
+        />
         <TextField
           name="slug"
           label="Slug (URL)"

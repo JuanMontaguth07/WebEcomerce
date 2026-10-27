@@ -13,6 +13,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { useFocusFirstField } from "@/components/admin/use-focus-first-field";
 import { AdminEmpty } from "@/components/admin/admin-ui";
 import { CheckboxField, TextAreaField, TextField } from "@/components/admin/form-helpers";
 import { BannerIllustration } from "@/components/shop/banner-illustration";
@@ -84,6 +85,7 @@ export function BannersManager({ banners }: { banners: HomeBanner[] }) {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
+  useFocusFirstField(formRef, draft ? (draft.id ?? "nuevo") : null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // La lista local sigue a la del servidor después de cada guardado.
@@ -99,9 +101,6 @@ export function BannersManager({ banners }: { banners: HomeBanner[] }) {
     setFile(null);
     setPreview(null);
     setDraft(next);
-    requestAnimationFrame(() =>
-      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
-    );
   }
 
   function set<K extends keyof Draft>(key: K, value: Draft[K]) {

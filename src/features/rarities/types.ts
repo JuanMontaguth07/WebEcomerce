@@ -19,6 +19,14 @@ export const RARITY_EFFECTS = {
   pulse: { label: "Latido", hint: "El halo se enciende y se apaga lentamente." },
   shimmer: { label: "Destello", hint: "Un reflejo de luz cruza la tarjeta cada pocos segundos." },
   holo: { label: "Holográfico", hint: "Borde iridiscente que gira, como una carta coleccionable." },
+  circuit: {
+    label: "Circuito",
+    hint: "Dos destellos de luz recorren el borde como corriente en una pista de circuito.",
+  },
+  surge: {
+    label: "Sobrecarga",
+    hint: "Los bordes se encienden con fuerza y se apagan, como energía.",
+  },
 } as const;
 
 export type RarityEffect = keyof typeof RARITY_EFFECTS;

@@ -23,12 +23,13 @@ const OPTIONS = [
 const prefersDark = () => window.matchMedia("(prefers-color-scheme: dark)").matches;
 const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/** Selector de apariencia. El ícono se decide por CSS para evitar desajustes de hidratación. */
-export function ThemeToggle() {
+/**
+ * Cambia el tema con la transición circular de globals.css (View Transitions).
+ * Sin soporte, con movimiento reducido o si el aspecto no cambia, se aplica al instante.
+ */
+export function useChangeTheme() {
   const { theme, resolvedTheme, setTheme } = useTheme();
 
-  // Cambia el tema con la transición circular de globals.css (View Transitions).
-  // Sin soporte, con movimiento reducido o si el aspecto no cambia, se aplica al instante.
   function changeTheme(value: string) {
     const nextResolved = value === "system" ? (prefersDark() ? "dark" : "light") : value;
     if (
@@ -43,6 +44,13 @@ export function ThemeToggle() {
     // dentro del callback, por eso se aplica de forma síncrona.
     document.startViewTransition(() => flushSync(() => setTheme(value)));
   }
+
+  return { theme, resolvedTheme, changeTheme };
+}
+
+/** Selector de apariencia. El ícono se decide por CSS para evitar desajustes de hidratación. */
+export function ThemeToggle() {
+  const { theme, changeTheme } = useChangeTheme();
 
   return (
     <DropdownMenu>

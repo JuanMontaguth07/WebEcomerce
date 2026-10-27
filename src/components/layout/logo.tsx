@@ -2,55 +2,26 @@ import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 
-type LogoVariant = "store" | "admin";
-
-/**
- * Monograma: "K" sobre un cuadro rojo (naranja en el panel de administración,
- * igual que su ícono). También se usa en el ícono y la imagen para redes.
- */
-export function LogoMark({
-  className,
-  variant = "store",
-}: {
-  className?: string;
-  variant?: LogoVariant;
-}) {
+/** Monograma: "K" sobre un cuadro rojo. También se usa en el ícono y la imagen para redes. */
+export function LogoMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={cn("size-8", className)} aria-hidden>
-      <rect
-        width="32"
-        height="32"
-        rx="8"
-        className={variant === "admin" ? "fill-orange-600" : "fill-primary"}
-      />
+      <rect width="32" height="32" rx="8" className="fill-primary" />
       <path
         d="M11 8.5v15M21.5 8.5 14 16l7.5 7.5"
         fill="none"
-        className={variant === "admin" ? "stroke-white" : "stroke-primary-foreground"}
+        className="stroke-primary-foreground"
         strokeWidth="3.2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <rect
-        x="22"
-        y="14.4"
-        width="3.2"
-        height="3.2"
-        rx="0.8"
-        className={variant === "admin" ? "fill-white" : "fill-primary-foreground"}
-      />
+      <rect x="22" y="14.4" width="3.2" height="3.2" rx="0.8" className="fill-primary-foreground" />
     </svg>
   );
 }
 
 /** Logotipo: monograma + nombre ("KOVA" protagonista, el resto como subtítulo). */
-export function Logo({
-  className,
-  variant = "store",
-}: {
-  className?: string;
-  variant?: LogoVariant;
-}) {
+export function Logo({ className }: { className?: string }) {
   const [first, ...rest] = siteConfig.name.split(" ");
 
   return (
@@ -62,24 +33,12 @@ export function Logo({
         className,
       )}
     >
-      <LogoMark
-        variant={variant}
-        className="transition-transform duration-300 ease-out-soft group-hover:-rotate-6"
-      />
+      <LogoMark className="transition-transform duration-300 ease-out-soft group-hover:-rotate-6" />
       <span className="flex items-baseline gap-1.5 leading-none">
         <span className="font-heading text-xl font-extrabold tracking-tight uppercase font-stretch-125%">
           {first}
         </span>
-        {rest.length > 0 && (
-          <span
-            className={cn(
-              "text-eyebrow",
-              variant === "admin" ? "text-orange-700 dark:text-orange-400" : "text-primary",
-            )}
-          >
-            {rest.join(" ")}
-          </span>
-        )}
+        {rest.length > 0 && <span className="text-eyebrow text-primary">{rest.join(" ")}</span>}
       </span>
     </Link>
   );

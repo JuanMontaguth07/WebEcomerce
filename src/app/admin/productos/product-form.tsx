@@ -161,7 +161,14 @@ export function ProductForm({
   return (
     <form onSubmit={handleSubmit} noValidate className="grid gap-6">
       <Section title="Información básica">
-        <TextField name="name" label="Nombre" errors={errors} required {...text("name")} />
+        <TextField
+          name="name"
+          label="Nombre"
+          errors={errors}
+          required
+          autoFocus={!productId}
+          {...text("name")}
+        />
         <div className="grid gap-5 sm:grid-cols-2">
           <TextField
             name="slug"

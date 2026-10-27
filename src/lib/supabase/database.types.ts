@@ -702,6 +702,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          admin_accent: string
+          admin_font: string
           created_at: string
           email: string
           full_name: string | null
@@ -710,6 +712,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          admin_accent?: string
+          admin_font?: string
           created_at?: string
           email: string
           full_name?: string | null
@@ -718,6 +722,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          admin_accent?: string
+          admin_font?: string
           created_at?: string
           email?: string
           full_name?: string | null

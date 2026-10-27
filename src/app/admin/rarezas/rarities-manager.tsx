@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { CheckboxField, TextAreaField, TextField } from "@/components/admin/form-helpers";
+import { useFocusFirstField } from "@/components/admin/use-focus-first-field";
 import { AdminEmpty } from "@/components/admin/admin-ui";
 import { RarityPreview } from "@/components/admin/rarity-preview";
 import { Badge } from "@/components/ui/badge";
@@ -59,15 +60,12 @@ export function RaritiesManager({ rarities }: { rarities: AdminRarity[] }) {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
+  useFocusFirstField(formRef, draft ? (draft.id ?? "nuevo") : null);
 
   function open(next: Draft) {
     setErrors({});
     setSlugTouched(Boolean(next.id));
     setDraft(next);
-    // En pantallas pequeñas el formulario queda debajo de la lista.
-    requestAnimationFrame(() =>
-      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
-    );
   }
 
   function set<K extends keyof Draft>(key: K, value: Draft[K]) {

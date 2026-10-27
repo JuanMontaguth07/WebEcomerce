@@ -2,8 +2,9 @@
 
 import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { useFocusFirstField } from "@/components/admin/use-focus-first-field";
 import { CheckboxField, SelectField, TextField } from "@/components/admin/form-helpers";
 import { AdminEmpty, AdminTable, AdminTh } from "@/components/admin/admin-ui";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +50,8 @@ export function RatesManager({ rates }: { rates: ShippingRate[] }) {
   const [errors, setErrors] = useState<Errors>({});
   const [deleting, setDeleting] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const formRef = useRef<HTMLFormElement>(null);
+  useFocusFirstField(formRef, draft ? (draft.id ?? "nueva") : null);
 
   const open = (next: Draft) => {
     setErrors({});
@@ -101,6 +104,7 @@ export function RatesManager({ rates }: { rates: ShippingRate[] }) {
     <div className="grid gap-6">
       {draft ? (
         <form
+          ref={formRef}
           onSubmit={save}
           noValidate
           className="grid gap-5 rounded-xl border bg-card p-5 sm:p-6"
