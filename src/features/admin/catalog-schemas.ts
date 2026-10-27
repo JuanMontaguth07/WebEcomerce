@@ -88,6 +88,8 @@ export const productSchema = z
 export type ProductInput = z.input<typeof productSchema>;
 export type ProductValues = z.output<typeof productSchema>;
 
+export const CATEGORY_IMAGE_PATH = /^categories\/[0-9a-f-]{36}\.(webp|png|jpg|jpeg|avif)$/;
+
 export const categorySchema = z.object({
   name: z.string().trim().min(2, "Escribe el nombre.").max(80),
   slug,
@@ -97,6 +99,7 @@ export const categorySchema = z.object({
   isActive: z.boolean(),
   seoTitle: optionalText(70),
   seoDescription: optionalText(160),
+  imagePath: z.string().regex(CATEGORY_IMAGE_PATH, "Imagen inválida.").nullable().default(null),
 });
 
 export type CategoryInput = z.input<typeof categorySchema>;
