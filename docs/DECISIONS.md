@@ -486,3 +486,17 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
 - **Celular y tablet**: las piezas son una fila deslizable y el resumen va en una barra fija que se
   abre como panel. El botón de WhatsApp sube para no taparla.
 - Guardar, compartir y cotizar llegan en el M9: no hay botones que todavía no hagan nada.
+
+## D33 — Presencia de los admins al estilo Discord (2026-10-27)
+
+- **El equipo siempre a la vista**: en el encabezado del panel (también en el celular, donde antes
+  no se mostraba) están los avatares de todos los administradores; al tocarlos se abre la lista con
+  el estado de cada uno. Antes solo aparecían los que estaban conectados, y solo desde tablet.
+- **Estados**: en línea (punto verde), ausente (luna ámbar: pestaña en segundo plano o 5 minutos
+  sin actividad) y desconectado (aro gris, con «visto hace…»).
+- **Dispositivo**: cada pestaña anuncia si es computador o celular (tabletas cuentan como celular;
+  iPadOS se detecta por la pantalla táctil). Como en Discord, se muestra el ícono de celular solo si
+  la persona no está activa en un computador.
+- **Estado de la conexión** al pie de la lista («Conectado en tiempo real» o «Reintentando…»), y un
+  aviso en la consola si Realtime rechaza el canal, para diagnosticar.
+- `getAdminTeam()` arma la lista (perfil y última vez visto) para el panel y Mi cuenta.

@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { siteConfig } from "@/config/site";
+import { getAdminTeam } from "@/features/account/team";
 import { getPendingOrderCount } from "@/features/admin/orders";
 import { requireAdmin } from "@/features/auth/session";
 
@@ -16,9 +17,9 @@ export const metadata: Metadata = {
 /** Verifica en el servidor que el usuario sea administrador antes de mostrar el panel. */
 async function AdminGate({ children }: { children: React.ReactNode }) {
   const admin = await requireAdmin();
-  const pendingOrders = await getPendingOrderCount();
+  const [pendingOrders, team] = await Promise.all([getPendingOrderCount(), getAdminTeam()]);
   return (
-    <AdminShell admin={admin} pendingOrders={pendingOrders}>
+    <AdminShell admin={admin} team={team} pendingOrders={pendingOrders}>
       {children}
     </AdminShell>
   );

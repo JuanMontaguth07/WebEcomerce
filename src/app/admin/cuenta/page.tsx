@@ -4,10 +4,9 @@ import { AdminStatus, PresenceDot } from "@/components/admin/admin-presence";
 import { AdminPageHeader } from "@/components/admin/admin-ui";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { initials } from "@/features/account/initials";
+import { getAdminTeam } from "@/features/account/team";
 import { signOut } from "@/features/auth/actions";
 import { requireAdmin } from "@/features/auth/session";
-import { createClient } from "@/lib/supabase/server";
 import { AppearanceForm, PasswordForm, ProfileForm } from "./account-forms";
 
 export const metadata: Metadata = { title: "Mi cuenta" };
@@ -32,26 +31,9 @@ function Section({
   );
 }
 
-/** Administradores de la tienda con su última vez en el panel (RLS: solo admins). */
-async function listAdmins() {
-  const supabase = await createClient();
-  const [admins, seen] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("id, full_name, email")
-      .eq("role", "admin")
-      .order("created_at"),
-    supabase.from("admin_last_seen").select("user_id, seen_at"),
-  ]);
-  if (admins.error) throw admins.error;
-  if (seen.error) throw seen.error;
-  const lastSeen = new Map(seen.data.map((row) => [row.user_id, row.seen_at]));
-  return admins.data.map((person) => ({ ...person, lastSeen: lastSeen.get(person.id) ?? null }));
-}
-
 export default async function AccountPage() {
   const admin = await requireAdmin("/admin/cuenta");
-  const admins = await listAdmins();
+  const admins = await getAdminTeam();
 
   return (
     <div className="mx-auto grid w-full max-w-4xl gap-6">
@@ -82,15 +64,15 @@ export default async function AccountPage() {
               key={person.id}
               className="flex items-center gap-3 rounded-lg border bg-background p-3"
             >
-              <span className="relative grid size-9 shrink-0 place-items-center rounded-full bg-secondary text-sm font-semibold">
-                {initials({ fullName: person.full_name, email: person.email })}
-                <PresenceDot userId={person.id} className="ring-background" />
+              <span className="relative grid size-9 shrink-0 place-items-center rounded-full bg-secondary text-sm font-semibold [--presence-ring:var(--background)]">
+                {person.initials}
+                <PresenceDot userId={person.id} />
               </span>
               <span className="grid min-w-0 flex-1 gap-0.5">
-                <span className="truncate font-semibold">{person.full_name ?? "Sin nombre"}</span>
+                <span className="truncate font-semibold">{person.name}</span>
                 <span className="truncate text-xs text-muted-foreground">{person.email}</span>
+                <AdminStatus userId={person.id} lastSeen={person.lastSeen} />
               </span>
-              <AdminStatus userId={person.id} lastSeen={person.lastSeen} />
               {person.id === admin.id && <Badge variant="soft">Tú</Badge>}
             </li>
           ))}

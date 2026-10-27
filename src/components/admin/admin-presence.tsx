@@ -1,15 +1,21 @@
 "use client";
 
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import { SmartphoneIcon, UsersIcon } from "lucide-react";
+import { Popover } from "radix-ui";
 import { createContext, use, useEffect, useState, useSyncExternalStore } from "react";
 import {
+  detectDevice,
   formatLastSeen,
   mergePresence,
+  presenceLabel,
   PRESENCE_CHANNEL,
+  STATUS_LABEL,
   type OnlineAdmin,
   type PresenceMeta,
   type PresenceStatus,
 } from "@/features/account/presence";
+import type { TeamMember } from "@/features/account/team";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -21,11 +27,16 @@ const HEARTBEAT_MS = 2 * 60_000;
 const RETRY_MS = 30_000;
 const ACTIVITY_EVENTS = ["pointerdown", "keydown", "wheel", "touchstart"] as const;
 
+/** Estado del canal en vivo: si no está conectado, los estados pueden estar desactualizados. */
+type Connection = "connecting" | "live" | "retrying";
+
 type PresenceValue = {
   selfId: string;
+  team: TeamMember[];
   online: Record<string, OnlineAdmin>;
   /** Hora en que cada admin cerró su última pestaña durante esta visita. */
   leftAt: Record<string, string>;
+  connection: Connection;
 };
 
 const PresenceContext = createContext<PresenceValue | null>(null);
@@ -37,30 +48,36 @@ export function usePresence(): PresenceValue {
 }
 
 /**
- * Anuncia al admin en el canal privado de presencia y escucha a los demás.
- * Realtime solo deja entrar a administradores (políticas sobre realtime.messages).
+ * Anuncia al admin en el canal privado de presencia (estado y dispositivo) y
+ * escucha a los demás. Realtime solo deja entrar a administradores (políticas
+ * sobre realtime.messages).
  */
 export function AdminPresenceProvider({
   self,
+  team,
   children,
 }: {
   self: { id: string; name: string; initials: string };
+  team: TeamMember[];
   children: React.ReactNode;
 }) {
   const [online, setOnline] = useState<Record<string, OnlineAdmin>>({});
   const [leftAt, setLeftAt] = useState<Record<string, string>>({});
+  const [connection, setConnection] = useState<Connection>("connecting");
   const { id, name, initials } = self;
 
   useEffect(() => {
     const supabase = createClient();
+    const device = detectDevice(window.navigator);
     let channel: RealtimeChannel | null = null;
     let cancelled = false;
     let status: PresenceStatus = document.visibilityState === "visible" ? "online" : "away";
     let idleTimer: number | undefined;
+    let retry: number | undefined;
     let lastActivity = 0;
 
     const track = () => {
-      const meta: PresenceMeta = { name, initials, status };
+      const meta: PresenceMeta = { name, initials, status, device };
       void channel?.track(meta);
     };
     const setStatus = (next: PresenceStatus) => {
@@ -88,7 +105,6 @@ export function AdminPresenceProvider({
       }
     };
 
-    let retry: number | undefined;
     const join = async () => {
       // El canal privado necesita el token de la sesión antes de suscribirse.
       await supabase.realtime.setAuth();
@@ -110,13 +126,19 @@ export function AdminPresenceProvider({
         .on("presence", { event: "leave" }, ({ key }) => {
           setLeftAt((current) => ({ ...current, [key]: new Date().toISOString() }));
         })
-        .subscribe((state) => {
-          if (state === "SUBSCRIBED") track();
+        .subscribe((state, error) => {
+          // Al reconectarse (p. ej. al volver a la pestaña) se anuncia de nuevo.
+          if (state === "SUBSCRIBED") {
+            setConnection("live");
+            track();
+          }
           // Realtime puede rechazar la primera conexión del día mientras prepara
           // su almacenamiento: se cierra el canal y se reintenta con calma.
           if (state === "CHANNEL_ERROR" || state === "TIMED_OUT") {
+            console.warn("[presencia] canal no disponible", state, error?.message);
             channel = null;
             setOnline({});
+            setConnection("retrying");
             void supabase.removeChannel(joined);
             window.clearTimeout(retry);
             if (!cancelled) retry = window.setTimeout(() => void join(), RETRY_MS);
@@ -144,55 +166,55 @@ export function AdminPresenceProvider({
     };
   }, [id, name, initials]);
 
-  return <PresenceContext value={{ selfId: id, online, leftAt }}>{children}</PresenceContext>;
-}
-
-const STATUS_LABEL: Record<PresenceStatus, string> = { online: "En línea", away: "Ausente" };
-
-/** Punto verde (en línea) o ámbar (ausente) sobre un avatar; nada si no está. */
-export function PresenceDot({ userId, className }: { userId: string; className?: string }) {
-  const admin = usePresence().online[userId];
-  if (!admin) return null;
   return (
-    <span
-      className={cn(
-        "absolute -right-0.5 -bottom-0.5 size-3 rounded-full ring-2 ring-card",
-        admin.status === "online" ? "bg-success" : "bg-warning",
-        className,
-      )}
-    >
-      <span className="sr-only">{STATUS_LABEL[admin.status]}</span>
-    </span>
+    <PresenceContext value={{ selfId: id, team, online, leftAt, connection }}>
+      {children}
+    </PresenceContext>
   );
 }
 
-/** Los otros administradores conectados, como avatares en el encabezado del panel. */
-export function OnlineAdmins() {
-  const { online, selfId } = usePresence();
-  const others = Object.values(online).filter((admin) => admin.id !== selfId);
-  if (!others.length) return null;
+/**
+ * Indicador sobre el avatar, como en Discord: punto verde (en línea), luna ámbar
+ * (ausente), celular verde o ámbar (solo desde el celular) y aro gris (desconectado).
+ */
+export function PresenceDot({ userId, className }: { userId: string; className?: string }) {
+  const admin = usePresence().online[userId];
+  const label = presenceLabel(admin);
+  const ring = "ring-2 ring-[color:var(--presence-ring,var(--card))]";
 
-  const summary = others
-    .map((admin) => `${admin.name}: ${STATUS_LABEL[admin.status].toLowerCase()}`)
-    .join(", ");
-  return (
-    <div className="hidden items-center gap-2 sm:flex" title={summary}>
-      <ul aria-label="Administradores conectados" className="flex -space-x-2">
-        {others.slice(0, 3).map((admin) => (
-          <li
-            key={admin.id}
-            className="relative grid size-8 place-items-center rounded-full bg-secondary text-xs font-semibold ring-2 ring-card"
-          >
-            <span aria-hidden>{admin.initials}</span>
-            <span className="sr-only">{admin.name}</span>
-            <PresenceDot userId={admin.id} className="size-2.5" />
-          </li>
-        ))}
-      </ul>
-      <span className="hidden text-xs text-muted-foreground md:inline">
-        {others.length === 1 ? `${others[0]?.name} está conectado` : `${others.length} conectados`}
+  if (admin?.device === "mobile") {
+    return (
+      <span
+        className={cn(
+          "absolute -right-1 -bottom-1 grid h-4 w-3 place-items-center rounded-[0.2rem] bg-[color:var(--presence-ring,var(--card))]",
+          admin.status === "online" ? "text-success" : "text-warning",
+          className,
+        )}
+        title={label}
+      >
+        <SmartphoneIcon className="size-3.5" strokeWidth={2.75} aria-hidden />
+        <span className="sr-only">{label}</span>
       </span>
-    </div>
+    );
+  }
+
+  return (
+    <span
+      title={label}
+      className={cn(
+        "absolute -right-0.5 -bottom-0.5 size-3 rounded-full",
+        ring,
+        !admin &&
+          "border-[2.5px] border-muted-foreground bg-[color:var(--presence-ring,var(--card))]",
+        admin?.status === "online" && "bg-success",
+        // Luna: un círculo ámbar al que le falta un mordisco arriba a la izquierda.
+        admin?.status === "away" &&
+          "bg-warning [mask:radial-gradient(circle_at_25%_25%,transparent_32%,#000_33%)]",
+        className,
+      )}
+    >
+      <span className="sr-only">{label}</span>
+    </span>
   );
 }
 
@@ -220,29 +242,119 @@ function getClock() {
   return clock;
 }
 
-/** «En línea», «Ausente» o «Visto hace…» de un admin (lista de Mi cuenta). */
+/** Texto del estado: «En línea · en el celular», «Ausente…» o «Desconectado · visto hace…». */
 export function AdminStatus({ userId, lastSeen }: { userId: string; lastSeen: string | null }) {
   const { online, leftAt } = usePresence();
-  // En el servidor no hay hora de referencia: el texto relativo aparece al hidratar.
+  // En el servidor no hay hora de referencia: el «visto hace» aparece al hidratar.
   const now = useSyncExternalStore(subscribeClock, getClock, () => null);
   const admin = online[userId];
 
   if (admin) {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-medium">
-        <span
-          aria-hidden
-          className={cn(
-            "size-2 rounded-full",
-            admin.status === "online" ? "bg-success" : "bg-warning",
-          )}
-        />
-        {STATUS_LABEL[admin.status]}
+      <span
+        className={cn(
+          "text-xs font-medium",
+          admin.status === "online" ? "text-success" : "text-warning",
+        )}
+      >
+        {presenceLabel(admin)}
       </span>
     );
   }
 
   const seen = [leftAt[userId], lastSeen].filter(Boolean).sort().at(-1);
-  if (!seen || now === null) return null;
-  return <span className="text-xs text-muted-foreground">{formatLastSeen(seen, now)}</span>;
+  return (
+    <span className="text-xs text-muted-foreground">
+      {STATUS_LABEL.offline}
+      {seen && now !== null && ` · ${formatLastSeen(seen, now).replace("Visto", "visto")}`}
+    </span>
+  );
+}
+
+const ORDER: Record<PresenceStatus | "offline", number> = { online: 0, away: 1, offline: 2 };
+
+/**
+ * Equipo en el encabezado del panel (también en el celular): los avatares con su
+ * estado y, al tocarlos, la lista con desde dónde está cada uno o cuándo se vio.
+ */
+export function TeamPresence() {
+  const { team, online, selfId, connection } = usePresence();
+  const others = team.filter((member) => member.id !== selfId);
+  const active = others.filter((member) => online[member.id]).length;
+  const sorted = [...team].sort(
+    (a, b) =>
+      ORDER[online[a.id]?.status ?? "offline"] - ORDER[online[b.id]?.status ?? "offline"] ||
+      Number(b.id === selfId) - Number(a.id === selfId),
+  );
+
+  return (
+    <Popover.Root>
+      <Popover.Trigger
+        aria-label={`Equipo: ${active} de ${others.length} conectados`}
+        className="flex items-center gap-2 rounded-full border bg-background py-1 pr-3 pl-1 text-xs font-medium transition-colors outline-none hover:bg-secondary focus-visible:ring-3 focus-visible:ring-ring/40"
+      >
+        <span className="flex -space-x-1.5" aria-hidden>
+          {sorted.slice(0, 3).map((member) => (
+            <span
+              key={member.id}
+              className="relative grid size-7 place-items-center rounded-full bg-secondary text-[0.6875rem] font-semibold ring-2 ring-background [--presence-ring:var(--background)]"
+            >
+              {member.initials}
+              <PresenceDot userId={member.id} className="size-2.5" />
+            </span>
+          ))}
+        </span>
+        <span className="hidden sm:inline">
+          {active ? (
+            `${active} ${active === 1 ? "conectado" : "conectados"}`
+          ) : (
+            <UsersIcon className="size-4" aria-hidden />
+          )}
+        </span>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content
+          align="end"
+          sideOffset={8}
+          className="z-50 grid w-72 gap-3 rounded-xl border bg-popover p-3 text-popover-foreground shadow-raised data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
+        >
+          <p className="px-1 text-eyebrow text-muted-foreground">Administradores · {team.length}</p>
+          <ul className="grid gap-1">
+            {sorted.map((member) => (
+              <li key={member.id} className="flex items-center gap-3 rounded-lg px-1 py-1.5">
+                <span className="relative grid size-9 shrink-0 place-items-center rounded-full bg-background text-sm font-semibold [--presence-ring:var(--popover)]">
+                  {member.initials}
+                  <PresenceDot userId={member.id} />
+                </span>
+                <span className="grid min-w-0 gap-0.5">
+                  <span className="truncate text-sm font-semibold">
+                    {member.name}
+                    {member.id === selfId && (
+                      <span className="font-normal text-muted-foreground"> (tú)</span>
+                    )}
+                  </span>
+                  <AdminStatus userId={member.id} lastSeen={member.lastSeen} />
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="flex items-center gap-1.5 border-t px-1 pt-2.5 text-xs text-muted-foreground">
+            <span
+              aria-hidden
+              className={cn(
+                "size-1.5 rounded-full",
+                connection === "live" ? "bg-success" : "bg-warning",
+              )}
+            />
+            {connection === "live"
+              ? "Conectado en tiempo real"
+              : connection === "connecting"
+                ? "Conectando…"
+                : "Sin conexión en tiempo real. Reintentando…"}
+          </p>
+          <Popover.Arrow className="fill-popover" />
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  );
 }

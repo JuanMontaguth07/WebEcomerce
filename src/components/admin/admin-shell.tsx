@@ -6,24 +6,27 @@ import { ThemeSwitch } from "@/components/layout/theme-switch";
 import { signOut } from "@/features/auth/actions";
 import type { AdminUser } from "@/features/auth/session";
 import { initials } from "@/features/account/initials";
+import type { TeamMember } from "@/features/account/team";
 import { cn } from "@/lib/utils";
 import { AdminNav } from "./admin-nav";
-import { AdminPresenceProvider, OnlineAdmins, PresenceDot } from "./admin-presence";
+import { AdminPresenceProvider, PresenceDot, TeamPresence } from "./admin-presence";
 import { CommandPalette } from "./command-palette";
 
 export function AdminShell({
   admin,
+  team,
   pendingOrders,
   children,
 }: {
   admin: AdminUser;
+  team: TeamMember[];
   pendingOrders: number;
   children: React.ReactNode;
 }) {
   const name = admin.fullName ?? "Administrador";
   return (
     // El acento y la fuente salen de «Mi cuenta» (globals.css: data-admin-*).
-    <AdminPresenceProvider self={{ id: admin.id, name, initials: initials(admin) }}>
+    <AdminPresenceProvider self={{ id: admin.id, name, initials: initials(admin) }} team={team}>
       <div
         data-admin-accent={admin.accent}
         data-admin-font={admin.font}
@@ -48,9 +51,9 @@ export function AdminShell({
                 href="/admin/cuenta"
                 className="flex min-w-0 items-center gap-3 rounded-lg p-2 transition-colors hover:bg-secondary"
               >
-                <span className="relative grid size-9 shrink-0 place-items-center rounded-full bg-primary font-semibold text-primary-foreground">
+                <span className="relative grid size-9 shrink-0 place-items-center rounded-full bg-primary font-semibold text-primary-foreground [--presence-ring:var(--sidebar)]">
                   {initials(admin)}
-                  <PresenceDot userId={admin.id} className="ring-sidebar" />
+                  <PresenceDot userId={admin.id} />
                 </span>
                 <span className="grid min-w-0 gap-0.5">
                   <span className="truncate text-sm font-semibold">{name}</span>
@@ -75,7 +78,7 @@ export function AdminShell({
           <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b bg-card/90 px-4 backdrop-blur md:px-6">
             <CommandPalette />
             <div className="ml-auto flex items-center gap-3">
-              <OnlineAdmins />
+              <TeamPresence />
               <ThemeSwitch />
             </div>
             <Link
