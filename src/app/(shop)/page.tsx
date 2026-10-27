@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AboutSection } from "@/components/shop/about-section";
 import { Benefits } from "@/components/shop/benefits";
-import { CategoryGrid } from "@/components/shop/category-grid";
+import { CategoryBento } from "@/components/shop/category-bento";
 import { Hero } from "@/components/shop/hero";
 import { HomeBannerCard } from "@/components/shop/home-banner";
 import { HomeSection } from "@/components/shop/home-section";
@@ -15,6 +15,7 @@ import type { HomeBanner } from "@/features/banners/types";
 import {
   getBestSellers,
   getCategories,
+  getCategoryProductCounts,
   getHomeCollection,
   getProductBySlug,
   getUniqueProducts,
@@ -36,9 +37,12 @@ export const metadata: Metadata = {
 };
 
 async function HomeHero() {
-  const [featured, prebuilt] = await Promise.all([
+  const [featured, prebuilt, deals, categories, counts] = await Promise.all([
     getHomeCollection("featured", 8),
     getHomeCollection("prebuilt", 4),
+    getHomeCollection("deals", 4),
+    getCategories(),
+    getCategoryProductCounts(),
   ]);
   // Prioriza un equipo armado destacado y disponible; si no hay, el primero disponible.
   const candidate =
@@ -46,7 +50,18 @@ async function HomeHero() {
     prebuilt.find((product) => product.stock > 0) ??
     prebuilt[0];
   const product = candidate ? await getProductBySlug(candidate.slug) : null;
-  return <Hero product={product} prebuiltHref={prebuiltCategoryHref(prebuilt)} />;
+  const stats = {
+    products: Object.values(counts).reduce((sum, count) => sum + count, 0),
+    categories: categories.filter((category) => !category.parentId).length,
+  };
+  return (
+    <Hero
+      product={product}
+      prebuiltHref={prebuiltCategoryHref(prebuilt)}
+      hasDeals={deals.length > 0}
+      stats={stats}
+    />
+  );
 }
 
 /** Categoría de los equipos armados según los datos (null si aún no hay ninguno). */
@@ -56,8 +71,22 @@ function prebuiltCategoryHref(prebuilt: ProductSummary[]): AppHref | null {
 }
 
 async function HomeCategories() {
-  const categories = (await getCategories()).filter((category) => !category.parentId);
-  return <CategoryGrid categories={categories.map(({ name, slug }) => ({ name, slug }))} />;
+  const [categories, counts] = await Promise.all([getCategories(), getCategoryProductCounts()]);
+  return (
+    <CategoryBento
+      categories={categories
+        .filter((category) => !category.parentId)
+        .map((parent) => ({
+          name: parent.name,
+          slug: parent.slug,
+          imagePath: parent.imagePath,
+          count: counts[parent.id] ?? 0,
+          children: categories
+            .filter((child) => child.parentId === parent.id)
+            .map((child) => child.name),
+        }))}
+    />
+  );
 }
 
 async function HomeCollections() {

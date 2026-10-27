@@ -38,6 +38,8 @@ export type Category = {
   description: string | null;
   seoTitle: string | null;
   seoDescription: string | null;
+  /** Foto subida desde el panel; sin ella se usa la ilustración. */
+  imagePath: string | null;
 };
 
 export type Brand = { id: string; name: string; slug: string; description: string | null };

@@ -42,6 +42,7 @@ export default async function EditCategoryPage({ params }: PageProps<"/admin/cat
           isActive: category.is_active,
           seoTitle: category.seo_title ?? "",
           seoDescription: category.seo_description ?? "",
+          imagePath: category.image_path,
         }}
       />
       <section aria-labelledby="ficha" className="grid gap-4 rounded-xl border bg-card p-5 sm:p-6">

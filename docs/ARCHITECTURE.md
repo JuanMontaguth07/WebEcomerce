@@ -136,7 +136,7 @@ profiles (1:1 auth.users) ── orders.user_id (opcional)
 | Tabla                  | Notas                                                                         |
 | ---------------------- | ----------------------------------------------------------------------------- |
 | `profiles`             | Rol `customer`/`admin`. El rol solo cambia por SQL.                           |
-| `categories`           | Jerárquica (`parent_id`), campos SEO propios.                                 |
+| `categories`           | Jerárquica (`parent_id`), campos SEO propios y foto opcional (`categories/`). |
 | `brands`               | Nombre y slug únicos.                                                         |
 | `products`             | `stock` no editable por la API; `search_vector` mantenido por triggers.       |
 | `product_images`       | Posición única por producto (diferible para reordenar).                       |
@@ -154,12 +154,13 @@ profiles (1:1 auth.users) ── orders.user_id (opcional)
 
 ### Funciones del catálogo (RPC, `security invoker`)
 
-| Función                    | Uso                                                                                                                                     |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `catalog_search(...)`      | Listado paginado con texto, categoría (incluye subcategorías), marcas, precio, disponibilidad, ofertas y orden. Devuelve `total_count`. |
-| `catalog_facets(...)`      | Marcas con conteo y rango de precios para los filtros.                                                                                  |
-| `search_suggestions(q)`    | Sugerencias del buscador por prefijo, SKU y similitud; incluye categorías y marcas.                                                     |
-| `best_selling_products(n)` | Más vendidos (90 días). `security definer`: solo expone IDs y unidades.                                                                 |
+| Función                     | Uso                                                                                                                                     |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `catalog_search(...)`       | Listado paginado con texto, categoría (incluye subcategorías), marcas, precio, disponibilidad, ofertas y orden. Devuelve `total_count`. |
+| `catalog_facets(...)`       | Marcas con conteo y rango de precios para los filtros.                                                                                  |
+| `search_suggestions(q)`     | Sugerencias del buscador por prefijo, SKU y similitud; incluye categorías y marcas.                                                     |
+| `best_selling_products(n)`  | Más vendidos (90 días). `security definer`: solo expone IDs y unidades.                                                                 |
+| `category_product_counts()` | Productos visibles por categoría principal (suma subcategorías) para el bento de la portada.                                            |
 
 ### Funciones de negocio (RPC)
 

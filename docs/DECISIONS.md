@@ -368,3 +368,24 @@ repite en el layout del panel y en cada Server Action.
 - **Menú móvil**: accesos con ícono, categorías desplegables con sus subcategorías e interruptor de
   tema. La página de ingreso también usa el interruptor.
 - El enlace «Arma tu PC» se agrega cuando exista Kova Architect (sin enlaces a páginas vacías).
+
+## D27 — Módulo 3: hero asimétrico y categorías en bento (2026-10-27)
+
+- **Hero asimétrico**: titular a la izquierda con «Explorar catálogo», «Ver ofertas» (solo si hay
+  ofertas) y «Ver computadores», más el conteo real de productos y categorías. A la derecha, el
+  equipo destacado con su foto (o la ilustración) y hasta 3 tarjetas flotantes con especificaciones
+  de su ficha: GPU, CPU y consumo frente a la fuente; si falta alguna, RAM o almacenamiento.
+- **Sin equipos publicados** (como producción hoy) el panel muestra el servicio «Armamos tu PC» con
+  el mismo texto del anuncio de la tienda; las tarjetas flotantes pasan a ser decorativas, sin datos,
+  y solo se ven en escritorio.
+- **Paralaje con el cursor**: un componente cliente publica `--px`/`--py` y cada capa se desplaza
+  según su `--depth` con la propiedad `translate`, para no chocar con los `transform` de Tailwind ni
+  con la animación de entrada. Solo con cursor fino y sin movimiento reducido; nada se mueve en
+  bucle. El titular no se anima porque es el LCP.
+- **Bento de categorías**: tamaños según los productos visibles de cada categoría principal (suma
+  sus subcategorías) con `category_product_counts()` (`security invoker`: cuenta lo que ve el
+  visitante). La de más productos ocupa 2 × 2 y la siguiente 2 × 1; la celda «Ver todo» se estira
+  para cerrar la última fila. La lógica está en `features/catalog/bento.ts` con pruebas.
+- **Foto opcional por categoría** desde el panel (`categories.image_path`, que ya existía sin uso,
+  ahora validada a `categories/<uuid>.<ext>`). Se borra del bucket al cambiarla, quitarla o eliminar
+  la categoría. Sin foto se usa la ilustración.

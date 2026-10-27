@@ -1030,6 +1030,13 @@ export type Database = {
           total_count: number
         }[]
       }
+      category_product_counts: {
+        Args: never
+        Returns: {
+          category_id: string
+          product_count: number
+        }[]
+      }
       create_order: {
         Args: { p_customer: Json; p_items: Json }
         Returns: {

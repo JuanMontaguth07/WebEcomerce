@@ -336,6 +336,7 @@ function toCategoryRow(values: z.output<typeof categorySchema>) {
     is_active: values.isActive,
     seo_title: values.seoTitle ?? null,
     seo_description: values.seoDescription ?? null,
+    image_path: values.imagePath,
   };
 }
 
@@ -386,8 +387,17 @@ export const updateCategory = adminAction(
   z.object({ id: z.uuid(), values: categorySchema }),
   async ({ id, values }, { supabase }) => {
     await assertValidParent(supabase, id, values.parentId);
+    const { data: previous } = await supabase
+      .from("categories")
+      .select("image_path")
+      .eq("id", id)
+      .maybeSingle();
     const { error } = await supabase.from("categories").update(toCategoryRow(values)).eq("id", id);
     if (error) translateDbError(error, { uniqueFields: CATEGORY_UNIQUE });
+    // La foto reemplazada o quitada ya no la usa nadie.
+    if (previous?.image_path && previous.image_path !== values.imagePath) {
+      await removeFiles(supabase, [previous.image_path]);
+    }
     revalidateCatalog({ categories: true });
     return { id };
   },
@@ -396,12 +406,18 @@ export const updateCategory = adminAction(
 export const deleteCategory = adminAction(
   z.object({ id: z.uuid() }),
   async ({ id }, { supabase }) => {
-    const { error } = await supabase.from("categories").delete().eq("id", id);
+    const { data, error } = await supabase
+      .from("categories")
+      .delete()
+      .eq("id", id)
+      .select("image_path")
+      .maybeSingle();
     if (error) {
       translateDbError(error, {
         inUse: "La categoría tiene productos o subcategorías. Muévelos o desactiva la categoría.",
       });
     }
+    if (data?.image_path) await removeFiles(supabase, [data.image_path]);
     revalidateCatalog({ categories: true });
     return { id };
   },

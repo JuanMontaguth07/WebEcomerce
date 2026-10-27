@@ -558,6 +558,29 @@
   }
 }
 
+/* Hero: las capas se desplazan con el cursor según su profundidad (--depth en px)
+   y las tarjetas flotantes entran una tras otra. El titular no se anima: es el LCP. */
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+  .parallax-layer {
+    translate: calc(var(--px, 0) * var(--depth, 6) * 1px) calc(var(--py, 0) * var(--depth, 6) * 1px);
+    transition: translate 0.9s var(--expo-out);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-float-in {
+    animation: hero-float-in 0.9s var(--expo-out) both;
+    animation-delay: var(--delay, 0ms);
+  }
+}
+
+@keyframes hero-float-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.97);
+  }
+}
+
 /* Barra de anuncio: un reflejo cruza el fondo de vez en cuando. */
 .announcement-shine {
   background:

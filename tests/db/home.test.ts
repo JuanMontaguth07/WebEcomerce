@@ -106,3 +106,47 @@ describe("piezas únicas", () => {
     ).rejects.toThrow(/check constraint/);
   });
 });
+
+describe("categorías en bento", () => {
+  it("cuenta los productos visibles por categoría principal, sumando subcategorías", async () => {
+    await asAdmin(async () => {
+      const parent = await one<{ id: string }>(
+        db,
+        `select id from public.categories where slug = 'graficas'`,
+      );
+      const child = await one<{ id: string }>(
+        db,
+        `insert into public.categories (name, slug, parent_id) values ('NVIDIA', 'nvidia', $1) returning id`,
+        [parent.id],
+      );
+      await db.query(
+        `insert into public.products (name, slug, sku, price, category_id, is_active) values
+           ('GPU NVIDIA DEMO', 'gpu-nvidia-demo', 'DEMO-GPU-N', 3000000, $1, true),
+           ('GPU OCULTA DEMO', 'gpu-oculta-demo', 'DEMO-GPU-H', 3000000, $1, false)`,
+        [child.id],
+      );
+    });
+    const rows = await asRole(db, "anon", null, () =>
+      db.query<{ slug: string; product_count: number }>(
+        `select c.slug, x.product_count
+           from public.category_product_counts() x
+           join public.categories c on c.id = x.category_id`,
+      ),
+    );
+    expect(rows.rows).toEqual([{ slug: "graficas", product_count: 2 }]);
+  });
+
+  it("la foto de la categoría solo acepta rutas de su carpeta", async () => {
+    const path = "categories/0f8fad5b-d9cb-469f-a165-70867728950e.webp";
+    await asAdmin(() =>
+      db.query(`update public.categories set image_path = $1 where slug = 'graficas'`, [path]),
+    );
+    await expect(
+      asAdmin(() =>
+        db.query(
+          `update public.categories set image_path = 'banners/x.webp' where slug = 'graficas'`,
+        ),
+      ),
+    ).rejects.toThrow(/check constraint/);
+  });
+});

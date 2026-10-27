@@ -117,7 +117,7 @@ export async function getCategories(): Promise<Category[]> {
 
   const { data, error } = await createPublicClient({ retry: true })
     .from("categories")
-    .select("id, parent_id, name, slug, description, seo_title, seo_description")
+    .select("id, parent_id, name, slug, description, seo_title, seo_description, image_path")
     .eq("is_active", true)
     .order("position")
     .order("name");
@@ -131,7 +131,19 @@ export async function getCategories(): Promise<Category[]> {
     description: row.description,
     seoTitle: row.seo_title,
     seoDescription: row.seo_description,
+    imagePath: row.image_path,
   }));
+}
+
+/** Productos visibles por categoría principal (incluye sus subcategorías). */
+export async function getCategoryProductCounts(): Promise<Record<string, number>> {
+  "use cache";
+  cacheTag(CATALOG_TAGS.products, CATALOG_TAGS.categories);
+  cacheLife("minutes");
+
+  const { data, error } = await createPublicClient({ retry: true }).rpc("category_product_counts");
+  if (error) fail("getCategoryProductCounts", error);
+  return Object.fromEntries(data.map((row) => [row.category_id, row.product_count]));
 }
 
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
