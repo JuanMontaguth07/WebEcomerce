@@ -291,7 +291,7 @@ export function ProductForm({
         <CheckboxField
           name="isFeatured"
           label="Destacado"
-          hint="Aparece en «Productos destacados» de la página de inicio."
+          hint="Aparece en «Selección Kova» de la página de inicio."
           checked={values.isFeatured}
           onCheckedChange={(checked) => update("isFeatured", checked)}
         />

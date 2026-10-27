@@ -197,11 +197,11 @@ export async function getBrands(): Promise<Brand[]> {
 
   const { data, error } = await createPublicClient({ retry: true })
     .from("brands")
-    .select("id, name, slug, description")
+    .select("id, name, slug, description, logo_path")
     .eq("is_active", true)
     .order("name");
   if (error) fail("getBrands", error);
-  return data;
+  return data.map(({ logo_path, ...brand }) => ({ ...brand, logoPath: logo_path }));
 }
 
 export async function getBrandBySlug(slug: string): Promise<Brand | null> {

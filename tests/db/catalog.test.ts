@@ -205,3 +205,15 @@ describe("especificaciones en la tarjeta", () => {
     ).rejects.toThrow(/CARD_SPECS_LIMIT/);
   });
 });
+
+describe("logos de marca", () => {
+  it("solo aceptan imágenes de la carpeta de marcas", async () => {
+    await db.query(
+      `update public.brands set logo_path = 'brands/0f8fad5b-d9cb-469f-a165-70867728950e.png'
+        where slug = 'kairos'`,
+    );
+    await expect(
+      db.query(`update public.brands set logo_path = 'categories/x.png' where slug = 'kairos'`),
+    ).rejects.toThrow(/check constraint/);
+  });
+});

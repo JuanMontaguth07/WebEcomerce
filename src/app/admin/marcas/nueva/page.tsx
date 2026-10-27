@@ -10,7 +10,9 @@ export default async function NewBrandPage() {
   return (
     <div className="grid max-w-3xl gap-6">
       <AdminPageHeader title="Nueva marca" back={{ href: "/admin/marcas", label: "Marcas" }} />
-      <BrandForm initial={{ name: "", slug: "", description: "", isActive: true }} />
+      <BrandForm
+        initial={{ name: "", slug: "", description: "", isActive: true, logoPath: null }}
+      />
     </div>
   );
 }

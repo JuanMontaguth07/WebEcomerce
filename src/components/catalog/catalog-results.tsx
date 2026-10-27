@@ -120,7 +120,11 @@ export async function CatalogResults({
               <>
                 {/* Las tarjetas usan h3: este h2 mantiene el orden de títulos. */}
                 <h2 className="sr-only">Productos</h2>
-                <ProductGrid products={items} priorityCount={filters.page === 1 ? 4 : 0} />
+                <ProductGrid
+                  products={items}
+                  priorityCount={filters.page === 1 ? 4 : 0}
+                  animateChanges
+                />
                 <Pagination filters={filters} basePath={basePath} pageCount={pageCount} />
               </>
             ) : (

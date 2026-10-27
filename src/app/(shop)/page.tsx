@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AboutSection } from "@/components/shop/about-section";
+import { BrandStrip } from "@/components/shop/brand-strip";
 import { Benefits } from "@/components/shop/benefits";
 import { CategoryBento } from "@/components/shop/category-bento";
 import { Hero } from "@/components/shop/hero";
@@ -14,6 +15,8 @@ import { getHomeBanners } from "@/features/banners/queries";
 import type { HomeBanner } from "@/features/banners/types";
 import {
   getBestSellers,
+  getBrands,
+  getCatalogFacets,
   getCategories,
   getCategoryProductCounts,
   getHomeCollection,
@@ -89,6 +92,21 @@ async function HomeCategories() {
   );
 }
 
+/** Marcas con productos publicados, las de más productos primero (máximo 12). */
+async function HomeBrands() {
+  const [brands, facets] = await Promise.all([
+    getBrands(),
+    getCatalogFacets({ q: null, category: null, inStock: false, onSale: false }),
+  ]);
+  const counts = new Map(facets.brands.map((brand) => [brand.slug, brand.count]));
+  const strip = brands
+    .map((brand) => ({ ...brand, count: counts.get(brand.slug) ?? 0 }))
+    .filter((brand) => brand.count > 0)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 12);
+  return <BrandStrip brands={strip} />;
+}
+
 async function HomeCollections() {
   const [featured, deals, prebuilt, newest, bestSellers, unique, banners] = await Promise.all([
     getHomeCollection("featured", 8),
@@ -110,8 +128,8 @@ async function HomeCollections() {
       <HomeSection
         key="destacados"
         id="destacados"
-        title="Productos destacados"
-        description="Selección de componentes y equipos recomendados."
+        title="Selección Kova"
+        description="Los componentes y equipos que recomendamos."
         href="/productos"
         linkLabel="Ver catálogo"
         products={featuredRows}
@@ -195,6 +213,7 @@ export default function HomePage() {
       <AboutSection />
       <Benefits />
       <HomeCategories />
+      <HomeBrands />
       <Suspense fallback={<ProductGridSkeleton className="container-page" />}>
         <HomeCollections />
       </Suspense>

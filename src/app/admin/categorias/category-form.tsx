@@ -1,10 +1,8 @@
 "use client";
 
-import { ImagePlusIcon, XIcon } from "lucide-react";
 import type { Route } from "next";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
   CheckboxField,
@@ -12,22 +10,13 @@ import {
   TextAreaField,
   TextField,
 } from "@/components/admin/form-helpers";
+import { ImageUploadField, useImageUpload } from "@/components/admin/image-upload-field";
 import { CategoryIllustration } from "@/components/shop/category-illustration";
 import { Button } from "@/components/ui/button";
 import { createCategory, updateCategory } from "@/features/admin/catalog-actions";
 import { slugify } from "@/lib/format";
-import { CATALOG_BUCKET, storageImageUrl } from "@/lib/images";
-import { createClient } from "@/lib/supabase/client";
 
 type Errors = Partial<Record<string, string[]>>;
-
-const ACCEPTED: Record<string, string> = {
-  "image/webp": "webp",
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/avif": "avif",
-};
-const MAX_BYTES = 2 * 1024 * 1024;
 
 export type CategoryFormValues = {
   name: string;
@@ -67,14 +56,7 @@ export function CategoryForm({
   const [slugTouched, setSlugTouched] = useState(Boolean(categoryId));
   const [errors, setErrors] = useState<Errors>({});
   const [pending, startTransition] = useTransition();
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!preview) return;
-    return () => URL.revokeObjectURL(preview);
-  }, [preview]);
+  const image = useImageUpload("categories");
 
   const set = (key: keyof CategoryFormValues, value: string | boolean | null) => {
     setValues((current) => ({
@@ -91,58 +73,23 @@ export function CategoryForm({
     ) => set(key, event.target.value),
   });
 
-  function pickFile(picked: File | undefined) {
-    if (!picked) return;
-    if (!ACCEPTED[picked.type]) {
-      toast.error("Usa una imagen WebP, JPG, PNG o AVIF.");
-      return;
-    }
-    if (picked.size > MAX_BYTES) {
-      toast.error("La imagen pesa más de 2 MB. Redúcela antes de subirla.");
-      return;
-    }
-    setFile(picked);
-    setPreview(URL.createObjectURL(picked));
-  }
-
-  function removeImage() {
-    setFile(null);
-    setPreview(null);
-    set("imagePath", null);
-    if (fileRef.current) fileRef.current.value = "";
-  }
-
   function submit(event: React.FormEvent) {
     event.preventDefault();
     startTransition(async () => {
-      let imagePath = values.imagePath;
-      let uploaded: string | null = null;
-      const supabase = createClient();
-      if (file) {
-        uploaded = `categories/${crypto.randomUUID()}.${ACCEPTED[file.type]}`;
-        const { error } = await supabase.storage
-          .from(CATALOG_BUCKET)
-          .upload(uploaded, file, { contentType: file.type, cacheControl: "31536000" });
-        if (error) {
-          toast.error(`No se pudo subir la imagen (${error.message}).`);
-          return;
-        }
-        imagePath = uploaded;
-      }
-
-      const next = { ...values, imagePath };
+      const uploaded = await image.upload();
+      if (!uploaded.ok) return;
+      const next = { ...values, imagePath: uploaded.path ?? values.imagePath };
       const result = categoryId
         ? await updateCategory({ id: categoryId, values: next })
         : await createCategory(next);
       if (!result.ok) {
-        if (uploaded) await supabase.storage.from(CATALOG_BUCKET).remove([uploaded]);
+        await image.discard(uploaded.path);
         setErrors(result.error.fieldErrors ?? {});
         toast.error(result.error.message);
         return;
       }
       setValues(next);
-      setFile(null);
-      setPreview(null);
+      image.reset();
       toast.success(categoryId ? "Categoría guardada" : "Categoría creada");
       if (categoryId) router.refresh();
       else router.push(`/admin/categorias/${result.data.id}` as Route);
@@ -219,56 +166,16 @@ export function CategoryForm({
         />
       </div>
       {!values.parentId && (
-        <fieldset className="grid gap-3">
-          <legend className="mb-2 text-sm font-semibold">
-            Foto para la portada{" "}
-            <span className="font-normal text-muted-foreground">(opcional)</span>
-          </legend>
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="relative grid aspect-4/3 w-40 shrink-0 place-items-center overflow-hidden rounded-lg border bg-background text-muted-foreground">
-              {preview || values.imagePath ? (
-                <Image
-                  src={preview ?? storageImageUrl(values.imagePath as string)}
-                  alt=""
-                  fill
-                  sizes="160px"
-                  unoptimized={Boolean(preview)}
-                  className="object-cover"
-                />
-              ) : (
-                <CategoryIllustration categorySlug={values.slug} className="w-24" />
-              )}
-            </div>
-            <div className="grid gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <input
-                  ref={fileRef}
-                  id="category-image"
-                  type="file"
-                  accept={Object.keys(ACCEPTED).join(",")}
-                  className="sr-only"
-                  onChange={(event) => pickFile(event.target.files?.[0])}
-                />
-                <Button asChild variant="secondary" size="sm">
-                  <label htmlFor="category-image" className="cursor-pointer">
-                    <ImagePlusIcon aria-hidden />
-                    {values.imagePath || file ? "Cambiar foto" : "Subir foto"}
-                  </label>
-                </Button>
-                {(values.imagePath || file) && (
-                  <Button type="button" variant="ghost" size="sm" onClick={removeImage}>
-                    <XIcon aria-hidden />
-                    Usar ilustración
-                  </Button>
-                )}
-              </div>
-              <p className="max-w-md text-xs text-muted-foreground">
-                Se muestra en «Compra por categoría» de la portada. Foto horizontal (ideal 1200 ×
-                900), máximo 2 MB. Sin foto se usa el dibujo de la categoría.
-              </p>
-            </div>
-          </div>
-        </fieldset>
+        <ImageUploadField
+          id="category-image"
+          legend="Foto para la portada"
+          hint="Se muestra en «Compra por categoría» de la portada. Foto horizontal (ideal 1200 × 900), máximo 2 MB. Sin foto se usa el dibujo de la categoría."
+          image={image}
+          currentPath={values.imagePath}
+          onRemove={() => set("imagePath", null)}
+          removeLabel="Usar ilustración"
+          fallback={<CategoryIllustration categorySlug={values.slug} className="w-24" />}
+        />
       )}
       <CheckboxField
         name="isActive"

@@ -26,7 +26,7 @@ const BENEFITS = [
 
 export function Benefits() {
   return (
-    <section aria-labelledby="beneficios" className="container-page">
+    <section aria-labelledby="beneficios" className="reveal container-page">
       <h2 id="beneficios" className="sr-only">
         Por qué comprar aquí
       </h2>

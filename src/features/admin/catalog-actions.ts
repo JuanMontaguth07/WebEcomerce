@@ -493,6 +493,7 @@ function toBrandRow(values: z.output<typeof brandSchema>) {
     slug: values.slug,
     description: values.description ?? null,
     is_active: values.isActive,
+    logo_path: values.logoPath,
   };
 }
 
@@ -510,20 +511,35 @@ export const createBrand = adminAction(brandSchema, async (values, { supabase })
 export const updateBrand = adminAction(
   z.object({ id: z.uuid(), values: brandSchema }),
   async ({ id, values }, { supabase }) => {
+    const { data: previous } = await supabase
+      .from("brands")
+      .select("logo_path")
+      .eq("id", id)
+      .maybeSingle();
     const { error } = await supabase.from("brands").update(toBrandRow(values)).eq("id", id);
     if (error) translateDbError(error, { uniqueFields: BRAND_UNIQUE });
+    // El logo reemplazado o quitado ya no lo usa nadie.
+    if (previous?.logo_path && previous.logo_path !== values.logoPath) {
+      await removeFiles(supabase, [previous.logo_path]);
+    }
     revalidateCatalog({ brands: true });
     return { id };
   },
 );
 
 export const deleteBrand = adminAction(z.object({ id: z.uuid() }), async ({ id }, { supabase }) => {
-  const { error } = await supabase.from("brands").delete().eq("id", id);
+  const { data, error } = await supabase
+    .from("brands")
+    .delete()
+    .eq("id", id)
+    .select("logo_path")
+    .maybeSingle();
   if (error) {
     translateDbError(error, {
       inUse: "La marca tiene productos asociados. Cámbiales la marca o desactívala.",
     });
   }
+  if (data?.logo_path) await removeFiles(supabase, [data.logo_path]);
   revalidateCatalog({ brands: true });
   return { id };
 });

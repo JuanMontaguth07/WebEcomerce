@@ -25,7 +25,7 @@ export function HomeSection({
   if (!products.length) return null;
 
   return (
-    <section aria-labelledby={id} className="container-page grid gap-6">
+    <section aria-labelledby={id} className="reveal container-page grid gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="grid gap-1">
           <h2 id={id} className="flex items-center gap-3 text-2xl font-bold md:text-3xl">

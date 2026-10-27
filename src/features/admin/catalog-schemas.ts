@@ -104,11 +104,14 @@ export const categorySchema = z.object({
 
 export type CategoryInput = z.input<typeof categorySchema>;
 
+export const BRAND_LOGO_PATH = /^brands\/[0-9a-f-]{36}\.(webp|png|jpg|jpeg|avif)$/;
+
 export const brandSchema = z.object({
   name: z.string().trim().min(1, "Escribe el nombre.").max(80),
   slug,
   description: optionalText(2000),
   isActive: z.boolean(),
+  logoPath: z.string().regex(BRAND_LOGO_PATH, "Imagen inválida.").nullable().default(null),
 });
 
 export type BrandInput = z.input<typeof brandSchema>;

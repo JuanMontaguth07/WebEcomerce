@@ -34,7 +34,7 @@ export function AboutSection() {
   const [intro, , turningPoint] = ABOUT.paragraphs;
 
   return (
-    <section aria-labelledby="nosotros" className="container-page">
+    <section aria-labelledby="nosotros" className="reveal container-page">
       <div className="relative overflow-hidden rounded-3xl border bg-card shadow-card">
         {/* Franja roja y resplandor de marca */}
         <span aria-hidden className="absolute inset-y-0 left-0 w-1.5 bg-primary" />

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { CheckboxField, TextAreaField, TextField } from "@/components/admin/form-helpers";
+import { ImageUploadField, useImageUpload } from "@/components/admin/image-upload-field";
 import { Button } from "@/components/ui/button";
 import { createBrand, updateBrand } from "@/features/admin/catalog-actions";
 import { slugify } from "@/lib/format";
@@ -16,6 +17,7 @@ export type BrandFormValues = {
   slug: string;
   description: string;
   isActive: boolean;
+  logoPath: string | null;
 };
 
 export function BrandForm({ brandId, initial }: { brandId?: string; initial: BrandFormValues }) {
@@ -24,8 +26,9 @@ export function BrandForm({ brandId, initial }: { brandId?: string; initial: Bra
   const [slugTouched, setSlugTouched] = useState(Boolean(brandId));
   const [errors, setErrors] = useState<Errors>({});
   const [pending, startTransition] = useTransition();
+  const logo = useImageUpload("brands");
 
-  const set = (key: keyof BrandFormValues, value: string | boolean) => {
+  const set = (key: keyof BrandFormValues, value: string | boolean | null) => {
     setValues((current) => ({
       ...current,
       [key]: value,
@@ -37,14 +40,20 @@ export function BrandForm({ brandId, initial }: { brandId?: string; initial: Bra
   function submit(event: React.FormEvent) {
     event.preventDefault();
     startTransition(async () => {
+      const uploaded = await logo.upload();
+      if (!uploaded.ok) return;
+      const next = { ...values, logoPath: uploaded.path ?? values.logoPath };
       const result = brandId
-        ? await updateBrand({ id: brandId, values })
-        : await createBrand(values);
+        ? await updateBrand({ id: brandId, values: next })
+        : await createBrand(next);
       if (!result.ok) {
+        await logo.discard(uploaded.path);
         setErrors(result.error.fieldErrors ?? {});
         toast.error(result.error.message);
         return;
       }
+      setValues(next);
+      logo.reset();
       toast.success(brandId ? "Marca guardada" : "Marca creada");
       if (brandId) router.refresh();
       else router.push("/admin/marcas" as Route);
@@ -81,6 +90,19 @@ export function BrandForm({ brandId, initial }: { brandId?: string; initial: Bra
         errors={errors}
         value={values.description}
         onChange={(e) => set("description", e.target.value)}
+      />
+      <ImageUploadField
+        id="brand-logo"
+        legend="Logo"
+        hint="Se muestra en «Compra por marca» de la portada. Usa el logo oficial que te autorice la marca, idealmente PNG o WebP con fondo transparente, máximo 2 MB. Sin logo se muestra el nombre."
+        image={logo}
+        currentPath={values.logoPath}
+        onRemove={() => set("logoPath", null)}
+        removeLabel="Quitar logo"
+        fit="contain"
+        fallback={
+          <span className="px-3 text-center text-sm font-semibold">{values.name || "Marca"}</span>
+        }
       />
       <CheckboxField
         name="isActive"

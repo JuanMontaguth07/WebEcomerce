@@ -7,7 +7,7 @@ export function UniqueShowcase({ items }: { items: UniqueProduct[] }) {
   if (!items.length) return null;
 
   return (
-    <section aria-labelledby="piezas-unicas" className="container-page grid gap-6">
+    <section aria-labelledby="piezas-unicas" className="reveal container-page grid gap-6">
       <div className="grid gap-1">
         <h2 id="piezas-unicas" className="flex items-center gap-3 text-2xl font-bold md:text-3xl">
           <span aria-hidden className="h-7 w-1.5 shrink-0 rounded-full bg-primary" />

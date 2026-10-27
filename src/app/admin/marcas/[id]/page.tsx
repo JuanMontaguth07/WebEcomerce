@@ -28,6 +28,7 @@ export default async function EditBrandPage({ params }: PageProps<"/admin/marcas
           slug: brand.slug,
           description: brand.description ?? "",
           isActive: brand.is_active,
+          logoPath: brand.logo_path,
         }}
       />
       <section className="grid gap-3 rounded-xl border bg-card p-5 sm:p-6">

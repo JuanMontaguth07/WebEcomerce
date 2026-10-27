@@ -48,7 +48,14 @@ export type Category = {
   imagePath: string | null;
 };
 
-export type Brand = { id: string; name: string; slug: string; description: string | null };
+export type Brand = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  /** Logo subido desde el panel; sin él se muestra el nombre. */
+  logoPath: string | null;
+};
 
 export type ProductSpec = {
   key: string;

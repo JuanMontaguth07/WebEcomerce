@@ -422,3 +422,21 @@ repite en el layout del panel y en cada Server Action.
   encima, y no en las rarezas (ya tienen la suya).
 - **Rarezas en pausa fuera de pantalla**: el mismo componente observa las `.rarity-card` (también las
   que llegan al filtrar o navegar) y les pone `data-offscreen`, que detiene sus animaciones.
+
+## D30 — Módulo 5: secciones comerciales y microinteracciones (2026-10-27)
+
+- **Selección Kova**: así se llama ahora la sección de destacados (la casilla «Destacado» del
+  producto sigue igual).
+- **Compra por marca**: franja con las marcas que tienen productos publicados (máximo 12, las de más
+  productos primero), con el conteo de `catalog_facets`, sin consulta nueva. El logo lo sube el admin
+  en la marca (`brands.logo_path`, que ya existía sin uso, ahora validada a `brands/<uuid>.<ext>`) y
+  va sobre una placa clara para que cualquier logo se lea en ambos temas. Sin logo se muestra el
+  nombre. No se incluyen logos de terceros en el proyecto.
+- **Subida de imágenes del panel** unificada en `ImageUploadField` + `useImageUpload` (categorías y
+  marcas): validación de tipo y peso, vista previa, subida al guardar y limpieza si el guardado falla.
+- **Revelado al hacer scroll** (`.reveal`) en las secciones de la portada con `animation-timeline:
+view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
+- **Esqueletos con brillo** (`.skeleton-shimmer`) en lugar del parpadeo.
+- **Reordenado animado** en el catálogo: `ReorderList` aplica FLIP con la Web Animations API; las
+  tarjetas que siguen se deslizan a su lugar y las nuevas aparecen. Sin dependencias y sin animación
+  con movimiento reducido.

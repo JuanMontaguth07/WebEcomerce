@@ -42,7 +42,7 @@ export function CategoryBento({ categories }: { categories: BentoCategory[] }) {
   const total = categories.reduce((sum, category) => sum + category.count, 0);
 
   return (
-    <section aria-labelledby="categorias" className="container-page grid gap-6">
+    <section aria-labelledby="categorias" className="reveal container-page grid gap-6">
       <h2 id="categorias" className="flex items-center gap-3 text-2xl font-bold md:text-3xl">
         <span aria-hidden className="h-7 w-1.5 shrink-0 rounded-full bg-primary" />
         Compra por categoría

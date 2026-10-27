@@ -2,28 +2,30 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { ProductSummary } from "@/features/catalog/types";
 import { cn } from "@/lib/utils";
 import { ProductCard } from "./product-card";
+import { ReorderList } from "./reorder-list";
 
 const GRID = "grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4";
 
 export function ProductGrid({
   products,
   priorityCount = 0,
+  animateChanges = false,
   className,
 }: {
   products: ProductSummary[];
   /** Cuántas tarjetas iniciales cargan su imagen con prioridad. */
   priorityCount?: number;
+  /** Desliza las tarjetas al filtrar u ordenar (catálogo). */
+  animateChanges?: boolean;
   className?: string;
 }) {
-  return (
-    <ul className={cn(GRID, className)}>
-      {products.map((product, index) => (
-        <li key={product.id} className="flex">
-          <ProductCard product={product} priority={index < priorityCount} className="w-full" />
-        </li>
-      ))}
-    </ul>
-  );
+  const items = products.map((product, index) => (
+    <li key={product.id} data-key={product.id} className="flex">
+      <ProductCard product={product} priority={index < priorityCount} className="w-full" />
+    </li>
+  ));
+  if (animateChanges) return <ReorderList className={cn(GRID, className)}>{items}</ReorderList>;
+  return <ul className={cn(GRID, className)}>{items}</ul>;
 }
 
 export function ProductGridSkeleton({
