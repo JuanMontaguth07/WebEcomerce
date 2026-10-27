@@ -500,3 +500,24 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
 - **Estado de la conexión** al pie de la lista («Conectado en tiempo real» o «Reintentando…»), y un
   aviso en la consola si Realtime rechaza el canal, para diagnosticar.
 - `getAdminTeam()` arma la lista (perfil y última vez visto) para el panel y Mi cuenta.
+
+## D34 — Kova Architect M8: modo guiado (2026-10-27)
+
+- **Arma tu PC abre en modo guiado** («Guiado / Libre» arriba). Seis preguntas: uso, presupuesto
+  (de $ 2 a $ 25 millones), resolución (solo si es para jugar), marca preferida, prioridad y si
+  necesita monitor o periféricos (se aparta un 15 % o un 22 % del presupuesto).
+- **Reparto del presupuesto** por uso (para jugar, la gráfica se lleva la mayor parte; para trabajar
+  o estudiar, el procesador), ajustado por resolución y prioridad. Lo que una pieza no usa pasa a
+  las siguientes y lo que se pasa se les descuenta.
+- **Elección pieza por pieza** en un orden que respeta la compatibilidad (procesador, placa,
+  memoria, gráfica, gabinete, refrigeración, almacenamiento y, al final, la fuente según el consumo
+  estimado del equipo armado). Dentro de cada parte gana la opción compatible con mejores
+  especificaciones; el precio desempata.
+- **Sin gráfica dedicada** para trabajar o estudiar si el procesador trae gráficos integrados; su
+  parte va al almacenamiento. Si el procesador no lo informa, se agrega una gráfica y se dice.
+- **Honesto con el presupuesto**: si no alcanza ni con lo más económico que encaja, se usa eso y se
+  dice cuánto cuesta. Si la marca preferida no tiene piezas que encajen, también se dice.
+- **Cada pieza explica su porqué** con datos de la ficha («Se lleva el 34 % del presupuesto porque
+  para jugar la gráfica es lo que más pesa. Tiene 12 GB de memoria de video…») y ofrece una
+  alternativa más económica y otra mejor. No se prometen FPS: no hay datos que los respalden.
+- «Ajustar en modo libre» abre el resultado en los tres paneles con el presupuesto de la torre.

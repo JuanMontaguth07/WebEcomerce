@@ -31,11 +31,13 @@ import { formatCOP } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { BuildSummary } from "./build-summary";
 import { CompareSheet } from "./compare-sheet";
+import { GuidedWizard } from "./guided-wizard";
 import { PartPicker } from "./part-picker";
 import { SlotList } from "./slot-list";
 import { StatusDot } from "./status";
 
 type Source = "catalog" | "demo";
+type Mode = "guided" | "free";
 
 export const piecesLabel = (count: number) => `${count} ${count === 1 ? "pieza" : "piezas"}`;
 
@@ -53,6 +55,7 @@ export function Configurator({
 }) {
   const router = useRouter();
   const { items, add } = useCart();
+  const [mode, setMode] = useState<Mode>("guided");
   const [source, setSource] = useState<Source>(catalogParts.length ? "catalog" : "demo");
   const [selection, setSelection] = useState<Selection>(EMPTY_SELECTION);
   const [active, setActive] = useState<PartKind>("cpu");
@@ -148,31 +151,46 @@ export function Configurator({
   );
 
   return (
-    <div className="grid gap-5 pb-24 xl:pb-0">
+    <div className={cn("grid gap-5", mode === "free" && "pb-24 xl:pb-0")}>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div role="group" aria-label="Piezas" className="inline-flex rounded-xl border bg-card p-1">
-          {(
-            [
-              ["catalog", `Catálogo (${catalogParts.length})`],
-              ["demo", "Piezas demo"],
-            ] as const
-          ).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={source === value}
-              disabled={value === "catalog" && !catalogParts.length}
-              onClick={() => switchSource(value)}
-              className={cn(
-                "rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-                source === value
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-2">
+          <Segmented
+            label="Modo"
+            value={mode}
+            onChange={setMode}
+            options={[
+              ["guided", "Guiado"],
+              ["free", "Libre"],
+            ]}
+          />
+          <div
+            role="group"
+            aria-label="Piezas"
+            className="inline-flex rounded-xl border bg-card p-1"
+          >
+            {(
+              [
+                ["catalog", `Catálogo (${catalogParts.length})`],
+                ["demo", "Piezas demo"],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={source === value}
+                disabled={value === "catalog" && !catalogParts.length}
+                onClick={() => switchSource(value)}
+                className={cn(
+                  "rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+                  source === value
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
         {!catalogParts.length && (
           <p className="text-xs text-muted-foreground">
@@ -191,110 +209,165 @@ export function Configurator({
         </p>
       )}
 
-      <div className="grid gap-5 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[15rem_minmax(0,1fr)_21rem]">
-        <div className="lg:sticky lg:top-24 lg:self-start">
-          <SlotList
-            selection={selection}
-            index={index}
-            results={results}
-            active={active}
-            onSelect={selectKind}
-          />
-        </div>
-
-        <div className="grid content-start gap-4">
-          <PartPicker
-            kind={active}
-            parts={parts}
-            selection={selection}
-            index={index}
-            compare={compare}
-            onChoose={choose}
-            onRemove={(kind, position) =>
-              setSelection((current) => removePart(current, kind, position))
-            }
-            onToggleCompare={toggleCompare}
-          />
-          {compare.length > 0 && (
-            <div className="sticky bottom-24 z-10 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-popover/95 p-3 shadow-raised backdrop-blur xl:bottom-4">
-              <span className="text-sm">
-                {compare.length === 1
-                  ? "Marca otra opción para comparar."
-                  : `Comparar ${comparing.map((part) => part.name).join(" y ")}`}
-              </span>
-              <span className="flex gap-2">
-                <Button type="button" variant="ghost" size="sm" onClick={() => setCompare([])}>
-                  <XIcon aria-hidden />
-                  Limpiar
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={comparing.length < 2}
-                  onClick={() => setCompareOpen(true)}
-                >
-                  <ScaleIcon aria-hidden />
-                  Comparar
-                </Button>
-              </span>
-            </div>
-          )}
-        </div>
-
-        <aside aria-label="Resumen del equipo" className="hidden xl:block">
-          <div className="sticky top-24 rounded-2xl border bg-card p-5">{summary}</div>
-        </aside>
-      </div>
-
-      {/* Celular y tablet: el resumen va en una barra fija y se abre como panel. */}
-      <div
-        data-architect-bar
-        className="fixed inset-x-0 bottom-0 z-40 border-t bg-card/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur xl:hidden"
-      >
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
-          <span className="grid gap-0.5">
-            <span className="font-heading text-lg font-bold font-stretch-112% tabular-nums">
-              {formatCOP(total)}
-            </span>
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <StatusDot status={status} />
-              {status ? STATUS_LABELS[status] : piecesLabel(count)}
-              {usage && ` · ${usage.percent} % del presupuesto`}
-            </span>
-          </span>
-          <Button type="button" onClick={() => setSummaryOpen(true)}>
-            Ver resumen
-          </Button>
-        </div>
-      </div>
-      <Sheet open={summaryOpen} onOpenChange={setSummaryOpen}>
-        <SheetContent
-          side="bottom"
-          className="max-h-[88dvh] gap-0 overflow-y-auto rounded-t-2xl p-0"
-          // Sin enfocar el presupuesto: en el celular abriría el teclado.
-          onOpenAutoFocus={(event) => {
-            event.preventDefault();
-            (event.currentTarget as HTMLElement).focus();
+      {mode === "guided" ? (
+        <GuidedWizard
+          key={source}
+          parts={parts}
+          onApply={(next, towerBudget) => {
+            setSelection(next);
+            setBudget(towerBudget);
+            setCompare([]);
+            setActive("cpu");
+            setMode("free");
+            window.scrollTo({ top: 0, behavior: "smooth" });
           }}
-        >
-          <SheetHeader className="border-b p-5">
-            <SheetTitle className="font-heading font-stretch-112%">Resumen del equipo</SheetTitle>
-            <SheetDescription>Presupuesto, total y compatibilidad de tus piezas.</SheetDescription>
-          </SheetHeader>
-          <div className="p-5">{summary}</div>
-        </SheetContent>
-      </Sheet>
+        />
+      ) : (
+        <>
+          <div className="grid gap-5 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[15rem_minmax(0,1fr)_21rem]">
+            <div className="lg:sticky lg:top-24 lg:self-start">
+              <SlotList
+                selection={selection}
+                index={index}
+                results={results}
+                active={active}
+                onSelect={selectKind}
+              />
+            </div>
 
-      <CompareSheet
-        parts={
-          comparing.length === 2
-            ? ([comparing[0], comparing[1]] as [ArchitectPart, ArchitectPart])
-            : null
-        }
-        open={compareOpen}
-        onOpenChange={setCompareOpen}
-        onChoose={choose}
-      />
+            <div className="grid content-start gap-4">
+              <PartPicker
+                kind={active}
+                parts={parts}
+                selection={selection}
+                index={index}
+                compare={compare}
+                onChoose={choose}
+                onRemove={(kind, position) =>
+                  setSelection((current) => removePart(current, kind, position))
+                }
+                onToggleCompare={toggleCompare}
+              />
+              {compare.length > 0 && (
+                <div className="sticky bottom-24 z-10 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-popover/95 p-3 shadow-raised backdrop-blur xl:bottom-4">
+                  <span className="text-sm">
+                    {compare.length === 1
+                      ? "Marca otra opción para comparar."
+                      : `Comparar ${comparing.map((part) => part.name).join(" y ")}`}
+                  </span>
+                  <span className="flex gap-2">
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setCompare([])}>
+                      <XIcon aria-hidden />
+                      Limpiar
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={comparing.length < 2}
+                      onClick={() => setCompareOpen(true)}
+                    >
+                      <ScaleIcon aria-hidden />
+                      Comparar
+                    </Button>
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <aside aria-label="Resumen del equipo" className="hidden xl:block">
+              <div className="sticky top-24 rounded-2xl border bg-card p-5">{summary}</div>
+            </aside>
+          </div>
+
+          {/* Celular y tablet: el resumen va en una barra fija y se abre como panel. */}
+          <div
+            data-architect-bar
+            className="fixed inset-x-0 bottom-0 z-40 border-t bg-card/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur xl:hidden"
+          >
+            <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
+              <span className="grid gap-0.5">
+                <span className="font-heading text-lg font-bold font-stretch-112% tabular-nums">
+                  {formatCOP(total)}
+                </span>
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <StatusDot status={status} />
+                  {status ? STATUS_LABELS[status] : piecesLabel(count)}
+                  {usage && ` · ${usage.percent} % del presupuesto`}
+                </span>
+              </span>
+              <Button type="button" onClick={() => setSummaryOpen(true)}>
+                Ver resumen
+              </Button>
+            </div>
+          </div>
+          <Sheet open={summaryOpen} onOpenChange={setSummaryOpen}>
+            <SheetContent
+              side="bottom"
+              className="max-h-[88dvh] gap-0 overflow-y-auto rounded-t-2xl p-0"
+              // Sin enfocar el presupuesto: en el celular abriría el teclado.
+              onOpenAutoFocus={(event) => {
+                event.preventDefault();
+                (event.currentTarget as HTMLElement).focus();
+              }}
+            >
+              <SheetHeader className="border-b p-5">
+                <SheetTitle className="font-heading font-stretch-112%">
+                  Resumen del equipo
+                </SheetTitle>
+                <SheetDescription>
+                  Presupuesto, total y compatibilidad de tus piezas.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="p-5">{summary}</div>
+            </SheetContent>
+          </Sheet>
+
+          <CompareSheet
+            parts={
+              comparing.length === 2
+                ? ([comparing[0], comparing[1]] as [ArchitectPart, ArchitectPart])
+                : null
+            }
+            open={compareOpen}
+            onOpenChange={setCompareOpen}
+            onChoose={choose}
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+/** Botones de opción única (modo, origen de las piezas). */
+function Segmented<T extends string>({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: T;
+  onChange: (value: T) => void;
+  options: [T, string][];
+}) {
+  return (
+    <div role="group" aria-label={label} className="inline-flex rounded-xl border bg-card p-1">
+      {options.map(([option, text]) => (
+        <button
+          key={option}
+          type="button"
+          aria-pressed={value === option}
+          onClick={() => onChange(option)}
+          className={cn(
+            "rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors",
+            value === option
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {text}
+        </button>
+      ))}
     </div>
   );
 }

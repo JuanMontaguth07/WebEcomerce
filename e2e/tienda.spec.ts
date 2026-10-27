@@ -77,6 +77,7 @@ test("arma tu PC: avisa la incompatibilidad y no vende piezas demo", async ({ pa
   await expect(page.getByRole("heading", { level: 1, name: "Arma tu PC" })).toBeVisible();
   const demo = page.getByRole("button", { name: "Piezas demo" });
   if ((await demo.getAttribute("aria-pressed")) !== "true") await demo.click();
+  await page.getByRole("button", { name: "Libre", exact: true }).click();
 
   const slots = page.getByRole("navigation", { name: "Piezas del equipo" });
   const choose = async (slot: RegExp, name: string) => {
@@ -95,4 +96,22 @@ test("arma tu PC: avisa la incompatibilidad y no vende piezas demo", async ({ pa
     .or(page.getByRole("complementary", { name: "Resumen del equipo" }));
   await expect(summary.getByText("El procesador usa socket LGA1851 y la placa AM5")).toBeVisible();
   await expect(summary.getByRole("button", { name: "Agregar todo al carrito" })).toBeDisabled();
+});
+
+test("arma tu PC guiado: recomienda un equipo y lo abre en modo libre", async ({ page }) => {
+  await page.goto("/arma-tu-pc");
+  const demo = page.getByRole("button", { name: "Piezas demo" });
+  if ((await demo.getAttribute("aria-pressed")) !== "true") await demo.click();
+
+  await page.getByText("Jugar", { exact: true }).click();
+  const next = page.getByRole("button", { name: "Siguiente" });
+  // Uso elegido; presupuesto, resolución, marca y prioridad con sus valores por defecto.
+  for (let step = 0; step < 5; step += 1) await next.click();
+  await page.getByText("No, solo la torre").click();
+  await page.getByRole("button", { name: "Ver mi recomendación" }).click();
+
+  await expect(page.getByRole("heading", { name: "Tu equipo recomendado" })).toBeVisible();
+  await expect(page.getByText(/Se lleva el \d+ % del presupuesto porque para jugar/)).toBeVisible();
+  await page.getByRole("button", { name: "Ajustar en modo libre" }).click();
+  await expect(page.getByRole("navigation", { name: "Piezas del equipo" })).toContainText("8 de 8");
 });
