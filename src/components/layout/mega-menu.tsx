@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRightIcon, ChevronDownIcon, SparklesIcon, TagIcon } from "lucide-react";
+import { ArrowRightIcon, ChevronDownIcon, CpuIcon, SparklesIcon, TagIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -18,6 +18,7 @@ export type MenuCategory = {
 export type MenuBrand = { name: string; slug: string };
 
 const QUICK_LINKS = [
+  { href: "/arma-tu-pc", label: "Arma tu PC", Icon: CpuIcon, sale: false },
   { href: "/productos?oferta=1", label: "Ofertas", Icon: TagIcon, sale: true },
   { href: "/productos?orden=newest", label: "Recién agregados", Icon: SparklesIcon, sale: false },
   { href: "/productos", label: "Todo el catálogo", Icon: ArrowRightIcon, sale: false },

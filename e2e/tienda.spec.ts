@@ -71,3 +71,28 @@ test("el checkout pide la ciudad para calcular el envío", async ({ page }) => {
   // Con o sin tarifa configurada, deja de pedir la ciudad.
   await expect(shipping).not.toHaveText(/Elige tu ciudad|Calculando/, { timeout: 10_000 });
 });
+
+test("arma tu PC: avisa la incompatibilidad y no vende piezas demo", async ({ page }) => {
+  await page.goto("/arma-tu-pc");
+  await expect(page.getByRole("heading", { level: 1, name: "Arma tu PC" })).toBeVisible();
+  const demo = page.getByRole("button", { name: "Piezas demo" });
+  if ((await demo.getAttribute("aria-pressed")) !== "true") await demo.click();
+
+  const slots = page.getByRole("navigation", { name: "Piezas del equipo" });
+  const choose = async (slot: RegExp, name: string) => {
+    await slots.getByRole("button", { name: slot }).click();
+    await page.getByRole("article", { name }).getByRole("button", { name: "Elegir" }).click();
+  };
+  await choose(/Procesador/, "Procesador demo 20 núcleos LGA1851");
+  await page.getByRole("checkbox", { name: "Solo compatibles" }).click();
+  await choose(/Placa madre/, "Placa demo X870 ATX");
+
+  // En escritorio el resumen está a la vista; en celular se abre desde la barra.
+  const bar = page.getByRole("button", { name: "Ver resumen" });
+  if (await bar.isVisible()) await bar.click();
+  const summary = page
+    .getByRole("dialog", { name: "Resumen del equipo" })
+    .or(page.getByRole("complementary", { name: "Resumen del equipo" }));
+  await expect(summary.getByText("El procesador usa socket LGA1851 y la placa AM5")).toBeVisible();
+  await expect(summary.getByRole("button", { name: "Agregar todo al carrito" })).toBeDisabled();
+});

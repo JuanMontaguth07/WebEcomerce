@@ -25,6 +25,7 @@ async function getMenuCategories(): Promise<MenuCategory[]> {
 function HeaderLinks({ Item }: { Item: typeof HeaderLink }) {
   return (
     <div className="flex items-center gap-0.5">
+      <Item href="/arma-tu-pc">Arma tu PC</Item>
       <Item href="/productos?oferta=1" tone="sale">
         Ofertas
       </Item>

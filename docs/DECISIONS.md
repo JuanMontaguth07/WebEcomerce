@@ -465,3 +465,24 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
 - **Piezas demo en código** (`features/architect/demo-parts.ts`): ficticias, marcadas «demo», con
   precios de ejemplo y no comprables. Sirven para probar el motor y para que el configurador funcione
   aunque el catálogo no tenga productos con ficha.
+
+## D32 — Kova Architect M7: modo libre y comparador (2026-10-27)
+
+- **Ruta `/arma-tu-pc`** («Arma tu PC» en el encabezado, el mega menú y el menú móvil, y en el
+  sitemap). La estructura se prerenderiza y las piezas llegan en `Suspense`.
+- **Piezas del catálogo**: productos activos de las categorías con pieza de Architect (una
+  subcategoría sin pieza propia usa la de su principal), con la ficha completa
+  (`getArchitectParts`, caché por `products` y `categories`).
+- **Catálogo o piezas demo**: un selector cambia entre ambos y reinicia el equipo. Si el catálogo
+  no tiene piezas con ficha (como producción hoy), abre en demo. Las demo se muestran siempre
+  marcadas, con «Precio de ejemplo», y no se pueden agregar al carrito.
+- **Tres paneles**: piezas del equipo con su estado; opciones de la pieza activa con la
+  compatibilidad que tendrían al elegirlas («Solo compatibles» oculta las que no encajan y dice
+  cuántas); resumen con presupuesto opcional, total, consumo estimado y cada comprobación explicada.
+- **Comparar dos opciones** del mismo tipo lado a lado, con la diferencia escrita («2 más»,
+  «$ 720.000 menos»).
+- **Agregar todo al carrito**: solo piezas reales con stock, sin pasar el stock de lo que ya está en
+  el carrito; avisa si hay piezas incompatibles.
+- **Celular y tablet**: las piezas son una fila deslizable y el resumen va en una barra fija que se
+  abre como panel. El botón de WhatsApp sube para no taparla.
+- Guardar, compartir y cotizar llegan en el M9: no hay botones que todavía no hagan nada.

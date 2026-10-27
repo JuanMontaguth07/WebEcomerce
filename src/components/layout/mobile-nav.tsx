@@ -2,6 +2,7 @@
 
 import {
   ChevronDownIcon,
+  CpuIcon,
   HeadsetIcon,
   InfoIcon,
   LayoutGridIcon,
@@ -28,6 +29,7 @@ import type { MenuCategory } from "./mega-menu";
 import { ThemeSwitch } from "./theme-switch";
 
 const QUICK_LINKS = [
+  { href: "/arma-tu-pc", label: "Arma tu PC", Icon: CpuIcon, sale: false },
   { href: "/productos?oferta=1", label: "Ofertas", Icon: TagIcon, sale: true },
   { href: "/productos?orden=newest", label: "Recién agregados", Icon: SparklesIcon, sale: false },
   { href: "/productos", label: "Todo el catálogo", Icon: LayoutGridIcon, sale: false },

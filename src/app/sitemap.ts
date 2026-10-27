@@ -5,6 +5,7 @@ import { absoluteUrl } from "@/lib/seo";
 const STATIC_PAGES = [
   "/",
   "/productos",
+  "/arma-tu-pc",
   "/nosotros",
   "/soporte",
   "/terminos",

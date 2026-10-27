@@ -707,6 +707,14 @@
   }
 }
 
+/* Con la barra fija del resumen de Kova Architect (celular y tablet), el botón de
+   WhatsApp sube para no taparla. */
+@media (width < 80rem) {
+  body:has([data-architect-bar]) .whatsapp-float {
+    bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 4.75rem);
+  }
+}
+
 /* Barra de anuncio: un reflejo cruza el fondo de vez en cuando. */
 .announcement-shine {
   background:
