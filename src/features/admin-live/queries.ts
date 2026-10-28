@@ -8,6 +8,8 @@ export type AdminLiveData = {
   messages: ChatMessage[];
   alertsReadAt: string | null;
   chatReadAt: string | null;
+  /** Hasta cuándo leyó el chat cada admin, para el «Visto». */
+  teamChatReads: Record<string, string>;
 };
 
 const isAlertKind = (value: string): value is AlertKind =>
@@ -27,20 +29,19 @@ export async function getAdminLiveData(userId: string): Promise<AdminLiveData> {
       .select("id, author_id, body, created_at")
       .order("created_at", { ascending: false })
       .limit(100),
-    supabase
-      .from("admin_reads")
-      .select("alerts_read_at, chat_read_at")
-      .eq("user_id", userId)
-      .maybeSingle(),
+    // La RLS deja a cada admin ver las lecturas de todo el equipo.
+    supabase.from("admin_reads").select("user_id, alerts_read_at, chat_read_at"),
   ]);
   if (alerts.error) throw alerts.error;
   if (messages.error) throw messages.error;
   if (reads.error) throw reads.error;
+  const own = reads.data.find((row) => row.user_id === userId);
 
   return {
     alerts: alerts.data.filter((row) => isAlertKind(row.kind)).map(toAlert),
     messages: messages.data.reverse().map(toMessage),
-    alertsReadAt: reads.data?.alerts_read_at ?? null,
-    chatReadAt: reads.data?.chat_read_at ?? null,
+    alertsReadAt: own?.alerts_read_at ?? null,
+    chatReadAt: own?.chat_read_at ?? null,
+    teamChatReads: Object.fromEntries(reads.data.map((row) => [row.user_id, row.chat_read_at])),
   };
 }

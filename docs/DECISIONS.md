@@ -602,3 +602,17 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
   enviar y envío optimista. Solo se escribe como uno mismo y lo enviado no se edita.
 - `admin_reads` guarda hasta cuándo leyó cada admin las alertas y el chat (`mark_admin_read`).
 - Ambas tablas están en la publicación de Realtime; la RLS limita la lectura a administradores.
+
+## D39 — Chat del equipo: visto, mensajes nuevos y colores (2026-10-28)
+
+- **«Visto»** bajo el último mensaje propio («Visto», «Visto por Ana», «Visto por todos», con los
+  avatares de quienes lo vieron). Sale de `admin_reads.chat_read_at` al cargar y, en vivo, de la
+  presencia: cada admin anuncia la hora (de la base) del último mensaje que tuvo delante, sin
+  migración ni tráfico extra en la base. Lo anunciado se conserva aunque el otro cierre la pestaña.
+- **Mensajes nuevos**: al abrir el chat aparece un separador antes del primer mensaje sin leer y la
+  lista arranca ahí. Si se está leyendo más arriba, lo que llega ya no arrastra hacia abajo: un
+  botón «↓ N nuevos» lleva al final. Con el chat abierto en otra pestaña, lo nuevo se da por leído
+  al volver.
+- **Color de cada admin**: avatares y nombres usan el acento que cada uno eligió en «Mi cuenta»
+  (mismos tonos probados en claro y oscuro), también en el panel «Equipo» del encabezado.
+- Las horas se comparan por instante, no como texto: la base escribe «+00:00» y el navegador «Z».

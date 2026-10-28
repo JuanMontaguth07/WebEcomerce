@@ -15,7 +15,9 @@ import { toAlert, toMessage } from "@/features/admin-live/mappers";
 import type { AdminLiveData } from "@/features/admin-live/queries";
 import { ALERT_KINDS, type ChatMessage, type LiveAlert } from "@/features/admin-live/types";
 import type { TeamMember } from "@/features/account/team";
+import { latest } from "@/features/account/presence";
 import { createClient } from "@/lib/supabase/client";
+import { usePresence } from "../admin-presence";
 import { playChime } from "./chime";
 
 /** Cuánto queda a la vista cada notificación flotante (se pausa con el cursor encima). */
@@ -34,6 +36,10 @@ type LiveValue = {
   unreadChat: number;
   chatOpen: boolean;
   setChatOpen: (open: boolean) => void;
+  /** Lectura anterior a abrir el chat: marca dónde empiezan los mensajes nuevos. */
+  unreadSince: string | null;
+  /** Hasta cuándo leyó el chat cada admin (base + lo anunciado en esta visita). */
+  chatReads: Record<string, string>;
   sendMessage: (body: string) => Promise<boolean>;
   toasts: LiveAlert[];
   dismissToast: (id: string) => void;
@@ -111,6 +117,13 @@ export function AdminLiveProvider({
   const [chatReadAt, setChatReadAt] = useState(initial.chatReadAt);
   const [toasts, setToasts] = useState<LiveAlert[]>([]);
   const [chatOpen, setChatOpenState] = useState(false);
+  const [unreadSince, setUnreadSince] = useState<string | null>(null);
+  const { chatReads: announcedReads, announceChatRead } = usePresence();
+  const chatReadRef = useRef(initial.chatReadAt);
+  const messagesRef = useRef(messages);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
   const [connected, setConnected] = useState(false);
   const sound = useSyncExternalStore(subscribeSound, readSound, () => false);
   const chatOpenRef = useRef(false);
@@ -147,24 +160,50 @@ export function AdminLiveProvider({
   const markRead = useCallback((what: "alerts" | "chat") => {
     const now = new Date().toISOString();
     if (what === "alerts") setAlertsReadAt(now);
-    else setChatReadAt(now);
+    else {
+      chatReadRef.current = now;
+      setChatReadAt(now);
+    }
     void createClient().rpc("mark_admin_read", { p_what: what });
   }, []);
 
   const markAlertsRead = useCallback(() => markRead("alerts"), [markRead]);
 
+  // Los demás ven «Visto» hasta el último mensaje que este admin tuvo delante.
+  // Se anuncia la hora de ese mensaje (de la base), no la del reloj del equipo.
+  const markChatRead = useCallback(
+    (upTo?: string) => {
+      markRead("chat");
+      // Los propios aún sin confirmar llevan la hora del equipo: no cuentan.
+      const shown = messagesRef.current.findLast((message) => !message.pending);
+      const read = latest([upTo, shown?.createdAt]);
+      if (read) announceChatRead(read);
+    },
+    [markRead, announceChatRead],
+  );
+
   const setChatOpen = useCallback(
     (open: boolean) => {
+      if (open && !chatOpenRef.current) setUnreadSince(chatReadRef.current);
       chatOpenRef.current = open;
       setChatOpenState(open);
       if (open) {
-        markRead("chat");
+        markChatRead();
         // Al abrir el chat se van sus avisos flotantes.
         setToasts((current) => current.filter((item) => item.kind !== "chat"));
       }
     },
-    [markRead],
+    [markChatRead],
   );
+
+  // Con el chat abierto en una pestaña de fondo, lo nuevo se da por leído al volver.
+  useEffect(() => {
+    const onVisible = () => {
+      if (chatOpenRef.current && document.visibilityState === "visible") markChatRead();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [markChatRead]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -219,7 +258,7 @@ export function AdminLiveProvider({
             if (message.authorId === selfId) return;
             const visible = chatOpenRef.current && document.visibilityState === "visible";
             if (visible) {
-              markRead("chat");
+              markChatRead(message.createdAt);
             } else {
               pushToast({
                 id: `chat-${message.id}`,
@@ -246,7 +285,7 @@ export function AdminLiveProvider({
       cancelled = true;
       if (channel) void supabase.removeChannel(channel);
     };
-  }, [selfId, pushToast, markRead]);
+  }, [selfId, pushToast, markChatRead]);
 
   const sendMessage = useCallback(
     async (body: string) => {
@@ -277,6 +316,12 @@ export function AdminLiveProvider({
   );
 
   const unreadChat = chatOpen ? 0 : unreadMessages(messages, selfId, chatReadAt);
+  const chatReads = Object.fromEntries(
+    team.flatMap((member) => {
+      const read = latest([initial.teamChatReads[member.id], announcedReads[member.id]]);
+      return read ? [[member.id, read]] : [];
+    }),
+  );
   const unreadAlertCount = unreadAlerts(alerts, selfId, alertsReadAt);
 
   // El número de pendientes también en la pestaña del navegador: «(3) Admin · …».
@@ -307,6 +352,8 @@ export function AdminLiveProvider({
         unreadChat,
         chatOpen,
         setChatOpen,
+        unreadSince,
+        chatReads,
         sendMessage,
         toasts,
         dismissToast,

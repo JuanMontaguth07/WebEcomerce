@@ -102,3 +102,49 @@ export function isContinuation(previous: ChatMessage | undefined, message: ChatM
     new Date(message.createdAt).getTime() - new Date(previous.createdAt).getTime() < 5 * MINUTE
   );
 }
+
+const at = (iso: string) => new Date(iso).getTime();
+
+/** Quiénes leyeron ya un mensaje, según hasta cuándo leyó el chat cada uno. */
+export function seenBy<T extends { id: string }>(
+  people: T[],
+  reads: Record<string, string>,
+  message: ChatMessage,
+): T[] {
+  return people.filter((person) => {
+    const read = reads[person.id];
+    return read !== undefined && at(read) >= at(message.createdAt);
+  });
+}
+
+/** «Visto», «Visto por Ana», «Visto por Ana y Luis» o «Visto por todos». */
+export function seenLabel(names: string[], others: number): string {
+  if (others === 1 && names.length === 1) return "Visto";
+  if (others > 1 && names.length === others) return "Visto por todos";
+  const first = names.map((name) => name.split(" ")[0]);
+  const list =
+    first.length > 1 ? `${first.slice(0, -1).join(", ")} y ${first.at(-1)}` : (first[0] ?? "");
+  return `Visto por ${list}`;
+}
+
+/** Primer mensaje de otro admin posterior a la última lectura (el separador «Nuevos»). */
+export function firstUnread(
+  messages: ChatMessage[],
+  selfId: string,
+  readAt: string | null,
+): ChatMessage | undefined {
+  const since = readAt ? at(readAt) : 0;
+  return messages.find((message) => message.authorId !== selfId && at(message.createdAt) > since);
+}
+
+/** Mensajes de otros que llegaron después de un punto (los que hay más abajo sin ver). */
+export function arrivedAfter(
+  messages: ChatMessage[],
+  selfId: string,
+  after: string | null,
+): number {
+  if (!after) return 0;
+  return messages.filter(
+    (message) => message.authorId !== selfId && at(message.createdAt) > at(after),
+  ).length;
+}

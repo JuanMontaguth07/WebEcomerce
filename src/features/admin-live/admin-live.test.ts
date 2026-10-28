@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  arrivedAfter,
   dayLabel,
+  firstUnread,
   groupByDay,
   isContinuation,
   mergeMessage,
+  seenBy,
+  seenLabel,
   timeAgo,
   unreadAlerts,
   unreadMessages,
@@ -84,5 +88,33 @@ describe("mensajes", () => {
     expect(isContinuation(message("a", "yo", 10 * 60_000), message("b", "yo", 0))).toBe(false);
     expect(isContinuation(message("a", "otra", 1000), message("b", "yo", 0))).toBe(false);
     expect(isContinuation(undefined, message("b", "yo", 0))).toBe(false);
+  });
+
+  it("sabe quién vio un mensaje aunque las horas vengan en formatos distintos", () => {
+    const sent = { ...message("a", "yo", 60_000), createdAt: "2026-10-27T19:59:00.123456+00:00" };
+    const people = [{ id: "ana" }, { id: "luis" }, { id: "eva" }];
+    const reads = { ana: "2026-10-27T19:59:00.123456+00:00", luis: "2026-10-27T19:58:00Z" };
+    expect(seenBy(people, reads, sent).map((person) => person.id)).toEqual(["ana"]);
+  });
+
+  it("dice Visto, por quién o por todos", () => {
+    expect(seenLabel(["Ana Ruiz"], 1)).toBe("Visto");
+    expect(seenLabel(["Ana Ruiz"], 3)).toBe("Visto por Ana");
+    expect(seenLabel(["Ana Ruiz", "Luis Mora"], 3)).toBe("Visto por Ana y Luis");
+    expect(seenLabel(["Ana", "Luis", "Eva"], 3)).toBe("Visto por todos");
+  });
+
+  it("encuentra el primer mensaje nuevo de otro y cuenta los que llegaron después", () => {
+    const list = [
+      message("a", "otra", 5000),
+      message("b", "yo", 4000),
+      message("c", "otra", 2000),
+      message("d", "otra", 1000),
+    ];
+    expect(firstUnread(list, "yo", ago(4500))?.id).toBe("c");
+    expect(firstUnread(list, "yo", null)?.id).toBe("a");
+    expect(firstUnread(list, "yo", ago(0))).toBeUndefined();
+    expect(arrivedAfter(list, "yo", ago(3000))).toBe(2);
+    expect(arrivedAfter(list, "yo", null)).toBe(0);
   });
 });

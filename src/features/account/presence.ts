@@ -12,6 +12,8 @@ export type PresenceMeta = {
   device: PresenceDevice;
   /** Está escribiendo en el chat. */
   typing?: boolean;
+  /** Hasta qué mensaje leyó el chat (la hora de ese mensaje, según la base). */
+  chatReadAt?: string;
 };
 
 export type OnlineAdmin = PresenceMeta & { id: string };
@@ -34,6 +36,19 @@ export function detectDevice(navigator: {
 }
 
 /**
+ * La más reciente de varias horas ISO (las que falten se ignoran). Compara el
+ * instante y no el texto: la base escribe «+00:00» y el navegador «Z».
+ */
+export function latest(values: (string | null | undefined)[]): string | undefined {
+  let best: string | undefined;
+  for (const value of values) {
+    if (typeof value !== "string" || Number.isNaN(Date.parse(value))) continue;
+    if (best === undefined || Date.parse(value) > Date.parse(best)) best = value;
+  }
+  return best;
+}
+
+/**
  * Un admin puede tener el panel abierto en varias pestañas o equipos: está en
  * línea si alguna está activa y ausente si todas están en segundo plano. Como en
  * Discord, se muestra «celular» solo si no está activo en un computador.
@@ -50,6 +65,7 @@ export function mergePresence(id: string, metas: PresenceMeta[]): OnlineAdmin | 
     status: active.length ? "online" : "away",
     device: relevant.some((meta) => meta.device !== "mobile") ? "desktop" : "mobile",
     typing: metas.some((meta) => meta.typing === true),
+    chatReadAt: latest(metas.map((meta) => meta.chatReadAt)),
   };
 }
 

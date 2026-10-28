@@ -22,10 +22,12 @@ import {
   type OnlineAdmin,
   type PresenceMeta,
   type PresenceStatus,
+  latest,
 } from "@/features/account/presence";
 import type { TeamMember } from "@/features/account/team";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { MemberAvatar } from "./member-avatar";
 
 /** Sin tocar el teclado ni el mouse durante este tiempo, el admin pasa a «ausente». */
 const AWAY_AFTER_MS = 5 * 60_000;
@@ -47,6 +49,10 @@ type PresenceValue = {
   connection: Connection;
   /** Anuncia a los demás que este admin está escribiendo en el chat. */
   setTyping: (typing: boolean) => void;
+  /** Hasta qué mensaje leyó el chat cada admin durante esta visita (lo que anuncian). */
+  chatReads: Record<string, string>;
+  /** Anuncia hasta qué mensaje leyó el chat este admin. */
+  announceChatRead: (readAt: string) => void;
 };
 
 const PresenceContext = createContext<PresenceValue | null>(null);
@@ -76,6 +82,14 @@ export function AdminPresenceProvider({
   const [connection, setConnection] = useState<Connection>("connecting");
   const typingControl = useRef<(typing: boolean) => void>(() => {});
   const setTyping = useCallback((typing: boolean) => typingControl.current(typing), []);
+  const [chatReads, setChatReads] = useState<Record<string, string>>({});
+  const chatReadRef = useRef<string | undefined>(undefined);
+  const retrack = useRef<() => void>(() => {});
+  const announceChatRead = useCallback((readAt: string) => {
+    if (latest([chatReadRef.current, readAt]) === chatReadRef.current) return;
+    chatReadRef.current = readAt;
+    retrack.current();
+  }, []);
   const { id, name, initials } = self;
 
   useEffect(() => {
@@ -90,9 +104,17 @@ export function AdminPresenceProvider({
     let typing = false;
 
     const track = () => {
-      const meta: PresenceMeta = { name, initials, status, device, typing };
+      const meta: PresenceMeta = {
+        name,
+        initials,
+        status,
+        device,
+        typing,
+        chatReadAt: chatReadRef.current,
+      };
       void channel?.track(meta);
     };
+    retrack.current = track;
     const setStatus = (next: PresenceStatus) => {
       if (next === status) return;
       status = next;
@@ -141,6 +163,19 @@ export function AdminPresenceProvider({
             if (admin) next[key] = admin;
           }
           setOnline(next);
+          // Lo leído se conserva aunque el admin cierre después su pestaña.
+          setChatReads((current) => {
+            let changed = false;
+            const merged = { ...current };
+            for (const admin of Object.values(next)) {
+              const read = latest([current[admin.id], admin.chatReadAt]);
+              if (read && read !== current[admin.id]) {
+                merged[admin.id] = read;
+                changed = true;
+              }
+            }
+            return changed ? merged : current;
+          });
         })
         .on("presence", { event: "leave" }, ({ key }) => {
           setLeftAt((current) => ({ ...current, [key]: new Date().toISOString() }));
@@ -186,7 +221,18 @@ export function AdminPresenceProvider({
   }, [id, name, initials]);
 
   return (
-    <PresenceContext value={{ selfId: id, team, online, leftAt, connection, setTyping }}>
+    <PresenceContext
+      value={{
+        selfId: id,
+        team,
+        online,
+        leftAt,
+        connection,
+        setTyping,
+        chatReads,
+        announceChatRead,
+      }}
+    >
       {children}
     </PresenceContext>
   );
@@ -314,13 +360,13 @@ export function TeamPresence() {
       >
         <span className="flex -space-x-1.5" aria-hidden>
           {sorted.slice(0, 3).map((member) => (
-            <span
+            <MemberAvatar
               key={member.id}
-              className="relative grid size-7 place-items-center rounded-full bg-secondary text-[0.6875rem] font-semibold ring-2 ring-background [--presence-ring:var(--background)]"
+              member={member}
+              className="size-7 text-[0.6875rem] ring-2 ring-background [--presence-ring:var(--background)]"
             >
-              {member.initials}
               <PresenceDot userId={member.id} className="size-2.5" />
-            </span>
+            </MemberAvatar>
           ))}
         </span>
         <span className="hidden sm:inline">
@@ -341,10 +387,12 @@ export function TeamPresence() {
           <ul className="grid gap-1">
             {sorted.map((member) => (
               <li key={member.id} className="flex items-center gap-3 rounded-lg px-1 py-1.5">
-                <span className="relative grid size-9 shrink-0 place-items-center rounded-full bg-background text-sm font-semibold [--presence-ring:var(--popover)]">
-                  {member.initials}
+                <MemberAvatar
+                  member={member}
+                  className="size-9 text-sm [--presence-ring:var(--popover)]"
+                >
                   <PresenceDot userId={member.id} />
-                </span>
+                </MemberAvatar>
                 <span className="grid min-w-0 gap-0.5">
                   <span className="truncate text-sm font-semibold">
                     {member.name}

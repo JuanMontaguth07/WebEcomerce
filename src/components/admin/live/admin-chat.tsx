@@ -1,16 +1,35 @@
 "use client";
 
-import { ArrowUpIcon, MessageCircleIcon, XIcon } from "lucide-react";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  CheckCheckIcon,
+  CheckIcon,
+  MessageCircleIcon,
+  XIcon,
+} from "lucide-react";
 import { AnimatePresence, m } from "motion/react";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import { groupByDay, isContinuation, messageTime } from "@/features/admin-live/format";
+import type { TeamMember } from "@/features/account/team";
+import {
+  arrivedAfter,
+  firstUnread,
+  groupByDay,
+  isContinuation,
+  messageTime,
+  seenBy,
+  seenLabel,
+} from "@/features/admin-live/format";
 import { cn } from "@/lib/utils";
 import { PresenceDot, usePresence } from "../admin-presence";
+import { MemberAvatar } from "../member-avatar";
 import { useLive } from "./live-provider";
 import { useNow } from "./use-now";
 
 /** Se deja de anunciar «escribiendo…» tras este tiempo sin teclear. */
 const TYPING_IDLE_MS = 2500;
+/** A menos de esta distancia del final se considera que se está leyendo lo último. */
+const BOTTOM_SLACK_PX = 48;
 
 /** Chat entre los administradores: botón flotante y ventana de mensajes. */
 export function AdminChat() {
@@ -54,10 +73,16 @@ export function AdminChat() {
 }
 
 function ChatWindow({ onClose }: { onClose: () => void }) {
-  const { messages, sendMessage, selfId, team } = useLive();
+  const { messages, sendMessage, selfId, team, unreadSince, chatReads } = useLive();
   const { online, setTyping } = usePresence();
   const [draft, setDraft] = useState("");
+  // Si se está leyendo lo último, los mensajes nuevos bajan solos; si no, se avisa.
+  const [atBottom, setAtBottom] = useState(true);
+  const [seenUpTo, setSeenUpTo] = useState<string | null>(null);
+  const atBottomRef = useRef(true);
+  const opened = useRef(false);
   const listRef = useRef<HTMLDivElement>(null);
+  const dividerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const typingTimer = useRef<number | undefined>(undefined);
   const id = useId();
@@ -66,6 +91,12 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
   const others = team.filter((member) => member.id !== selfId);
   const typing = others.filter((member) => online[member.id]?.typing);
   const member = (authorId: string) => team.find((item) => item.id === authorId);
+  const divider = firstUnread(messages, selfId, unreadSince);
+  const last = messages.at(-1);
+  const lastId = last?.id;
+  const lastMine = last?.authorId === selfId;
+  const below = atBottom ? 0 : arrivedAfter(messages, selfId, seenUpTo);
+  const seen = last && lastMine && !last.pending ? seenBy(others, chatReads, last) : [];
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -80,11 +111,34 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
     };
   }, [onClose, setTyping]);
 
-  // Baja al último mensaje cuando llega uno nuevo (o alguien escribe).
   useLayoutEffect(() => {
     const list = listRef.current;
-    if (list) list.scrollTop = list.scrollHeight;
-  }, [messages.length, typing.length]);
+    if (!list) return;
+    // Al abrir: desde el primer mensaje nuevo, o al final si no hay.
+    if (!opened.current) {
+      opened.current = true;
+      const mark = dividerRef.current;
+      list.scrollTop = mark ? mark.offsetTop - 12 : list.scrollHeight;
+      return;
+    }
+    // Después, solo se baja si ya se estaba abajo o si el mensaje es propio.
+    if (atBottomRef.current || lastMine) list.scrollTop = list.scrollHeight;
+  }, [lastId, lastMine, typing.length]);
+
+  function onScroll() {
+    const list = listRef.current;
+    if (!list) return;
+    const near = list.scrollHeight - list.scrollTop - list.clientHeight < BOTTOM_SLACK_PX;
+    // Lo que había hasta salir de abajo ya se vio; lo que llegue después se cuenta.
+    if (near || atBottomRef.current) setSeenUpTo(last?.createdAt ?? null);
+    atBottomRef.current = near;
+    setAtBottom(near);
+  }
+
+  function jumpToEnd() {
+    const list = listRef.current;
+    list?.scrollTo({ top: list.scrollHeight, behavior: "smooth" });
+  }
 
   function onInput(value: string) {
     setDraft(value);
@@ -115,13 +169,13 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
       <header className="flex items-center gap-3 border-b px-4 py-3">
         <span className="flex -space-x-2">
           {others.slice(0, 3).map((item) => (
-            <span
+            <MemberAvatar
               key={item.id}
-              className="relative grid size-8 place-items-center rounded-full bg-background text-[0.6875rem] font-semibold ring-2 ring-popover [--presence-ring:var(--popover)]"
+              member={item}
+              className="size-8 text-[0.6875rem] ring-2 ring-popover [--presence-ring:var(--popover)]"
             >
-              {item.initials}
               <PresenceDot userId={item.id} className="size-2.5" />
-            </span>
+            </MemberAvatar>
           ))}
         </span>
         <span className="grid min-w-0 flex-1">
@@ -142,104 +196,168 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
         </button>
       </header>
 
-      <div ref={listRef} className="overflow-y-auto px-3 py-3" aria-live="polite">
-        {messages.length && now !== null ? (
-          groupByDay(messages, now).map((group) => (
-            <section key={group.label} aria-label={group.label} className="grid gap-1">
-              <p className="sticky top-0 z-10 mx-auto my-2 w-fit rounded-full bg-secondary/90 px-3 py-1 text-[0.6875rem] font-medium text-muted-foreground backdrop-blur">
-                {group.label}
-              </p>
-              {group.items.map((message, index) => {
-                const mine = message.authorId === selfId;
-                const continued = isContinuation(group.items[index - 1], message);
-                const next = group.items[index + 1];
-                const last = !next || !isContinuation(message, next);
-                const author = member(message.authorId);
-                return (
-                  <m.div
-                    key={message.id}
-                    initial={{ opacity: 0, y: 8, scale: 0.97 }}
-                    animate={{ opacity: message.pending ? 0.6 : 1, y: 0, scale: 1 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 34 }}
-                    className={cn(
-                      "flex items-end gap-2",
-                      mine ? "flex-row-reverse" : "flex-row",
-                      !continued && "mt-2",
-                    )}
-                  >
-                    {!mine && (
-                      <span
-                        aria-hidden
+      <div className="relative min-h-0">
+        <div
+          ref={listRef}
+          onScroll={onScroll}
+          className="relative h-full overflow-y-auto px-3 py-3"
+          aria-live="polite"
+        >
+          {messages.length && now !== null ? (
+            groupByDay(messages, now).map((group) => (
+              <section key={group.label} aria-label={group.label} className="grid gap-1">
+                <p className="sticky top-0 z-10 mx-auto my-2 w-fit rounded-full border bg-popover/95 px-3 py-1 text-[0.6875rem] font-medium text-muted-foreground shadow-[0_4px_12px_-6px_rgb(0_0_0/0.35)] backdrop-blur">
+                  {group.label}
+                </p>
+                {group.items.map((message, index) => {
+                  const mine = message.authorId === selfId;
+                  const continued = isContinuation(group.items[index - 1], message);
+                  const next = group.items[index + 1];
+                  const lastOfRun = !next || !isContinuation(message, next);
+                  const author = member(message.authorId);
+                  const newest = message.id === lastId;
+                  return (
+                    <div key={message.id} className="grid gap-1">
+                      {message.id === divider?.id && (
+                        <div
+                          ref={dividerRef}
+                          role="separator"
+                          aria-label="Mensajes nuevos"
+                          className="my-2 flex items-center gap-2 text-[0.6875rem] font-semibold text-primary"
+                        >
+                          <span className="h-px flex-1 bg-primary/40" aria-hidden />
+                          Mensajes nuevos
+                          <span className="h-px flex-1 bg-primary/40" aria-hidden />
+                        </div>
+                      )}
+                      <m.div
+                        initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                        animate={{ opacity: message.pending ? 0.6 : 1, y: 0, scale: 1 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 34 }}
                         className={cn(
-                          "grid size-7 shrink-0 place-items-center rounded-full bg-background text-[0.625rem] font-semibold",
-                          !last && "invisible",
+                          "flex items-end gap-2",
+                          mine ? "flex-row-reverse" : "flex-row",
+                          !continued && "mt-2",
                         )}
                       >
-                        {author?.initials ?? "?"}
-                      </span>
-                    )}
-                    <div className={cn("grid max-w-[78%] gap-0.5", mine && "justify-items-end")}>
-                      {!mine && !continued && (
-                        <span className="px-1 text-[0.6875rem] font-medium text-muted-foreground">
-                          {author?.name ?? "Otro admin"}
-                        </span>
-                      )}
-                      <p
-                        className={cn(
-                          "rounded-[1.15rem] px-3 py-2 text-sm leading-snug break-words whitespace-pre-wrap",
-                          mine
-                            ? "bg-[linear-gradient(145deg,var(--primary),color-mix(in_oklab,var(--primary)_80%,black))] text-primary-foreground"
-                            : "bg-secondary text-secondary-foreground",
-                          mine ? (last ? "rounded-br-md" : "") : last ? "rounded-bl-md" : "",
+                        {!mine && (
+                          <MemberAvatar
+                            member={author}
+                            className={cn("size-7 text-[0.625rem]", !lastOfRun && "invisible")}
+                          />
                         )}
-                      >
-                        <span className="sr-only">
-                          {mine ? "Tú" : (author?.name ?? "Otro admin")}:{" "}
-                        </span>
-                        {message.body}
-                      </p>
-                      {last && (
-                        <span className="px-1 text-[0.625rem] text-muted-foreground">
-                          {message.pending ? "Enviando…" : messageTime(message.createdAt)}
-                        </span>
-                      )}
+                        <div
+                          className={cn("grid max-w-[78%] gap-0.5", mine && "justify-items-end")}
+                        >
+                          {!mine && !continued && (
+                            <span
+                              data-admin-accent={author?.accent}
+                              className={cn(
+                                "px-1 text-[0.6875rem] font-semibold",
+                                author ? "text-primary" : "text-muted-foreground",
+                              )}
+                            >
+                              {author?.name ?? "Otro admin"}
+                            </span>
+                          )}
+                          <p
+                            className={cn(
+                              "rounded-[1.15rem] px-3 py-2 text-sm leading-snug break-words whitespace-pre-wrap",
+                              mine
+                                ? "bg-[linear-gradient(145deg,var(--primary),color-mix(in_oklab,var(--primary)_80%,black))] text-primary-foreground"
+                                : "bg-secondary text-secondary-foreground",
+                              mine
+                                ? lastOfRun
+                                  ? "rounded-br-md"
+                                  : ""
+                                : lastOfRun
+                                  ? "rounded-bl-md"
+                                  : "",
+                            )}
+                          >
+                            <span className="sr-only">
+                              {mine ? "Tú" : (author?.name ?? "Otro admin")}:{" "}
+                            </span>
+                            {message.body}
+                          </p>
+                          {lastOfRun &&
+                            (mine && newest && !message.pending ? (
+                              <Receipt
+                                time={message.createdAt}
+                                seen={seen}
+                                others={others.length}
+                              />
+                            ) : (
+                              <span className="px-1 text-[0.625rem] text-muted-foreground">
+                                {message.pending ? "Enviando…" : messageTime(message.createdAt)}
+                              </span>
+                            ))}
+                        </div>
+                      </m.div>
                     </div>
-                  </m.div>
-                );
-              })}
-            </section>
-          ))
-        ) : (
-          <div className="grid h-full content-center justify-items-center gap-2 px-6 text-center">
-            <span className="grid size-12 place-items-center rounded-2xl bg-[linear-gradient(145deg,#c4b5fd,#7c3aed)] text-white">
-              <MessageCircleIcon className="size-5" aria-hidden />
-            </span>
-            <p className="text-sm font-semibold">Empieza la conversación</p>
-            <p className="text-xs text-muted-foreground">
-              Los mensajes llegan al instante a los demás administradores.
-            </p>
-          </div>
-        )}
-        <AnimatePresence>
-          {typing.length > 0 && (
-            <m.p
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"
-            >
-              <span className="inline-flex gap-1 rounded-full bg-secondary px-3 py-2" aria-hidden>
-                {[0, 1, 2].map((dot) => (
-                  <span
-                    key={dot}
-                    className="size-1.5 rounded-full bg-muted-foreground motion-safe:animate-[typing-dot_1.2s_ease-in-out_infinite]"
-                    style={{ animationDelay: `${dot * 0.15}s` }}
-                  />
-                ))}
+                  );
+                })}
+              </section>
+            ))
+          ) : (
+            <div className="grid h-full content-center justify-items-center gap-2 px-6 text-center">
+              <span className="grid size-12 place-items-center rounded-2xl bg-[linear-gradient(145deg,#c4b5fd,#7c3aed)] text-white">
+                <MessageCircleIcon className="size-5" aria-hidden />
               </span>
-              {typing.map((item) => item.name.split(" ")[0]).join(" y ")}{" "}
-              {typing.length === 1 ? "está escribiendo…" : "están escribiendo…"}
-            </m.p>
+              <p className="text-sm font-semibold">Empieza la conversación</p>
+              <p className="text-xs text-muted-foreground">
+                Los mensajes llegan al instante a los demás administradores.
+              </p>
+            </div>
+          )}
+          <AnimatePresence>
+            {typing.length > 0 && (
+              <m.p
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"
+              >
+                <span className="inline-flex gap-1 rounded-full bg-secondary px-3 py-2" aria-hidden>
+                  {[0, 1, 2].map((dot) => (
+                    <span
+                      key={dot}
+                      className="size-1.5 rounded-full bg-muted-foreground motion-safe:animate-[typing-dot_1.2s_ease-in-out_infinite]"
+                      style={{ animationDelay: `${dot * 0.15}s` }}
+                    />
+                  ))}
+                </span>
+                {typing.map((item) => item.name.split(" ")[0]).join(" y ")}{" "}
+                {typing.length === 1 ? "está escribiendo…" : "están escribiendo…"}
+              </m.p>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <AnimatePresence>
+          {!atBottom && (
+            <m.button
+              type="button"
+              onClick={jumpToEnd}
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              aria-label={
+                below
+                  ? `Ir al final: ${below} ${below === 1 ? "mensaje nuevo" : "mensajes nuevos"}`
+                  : "Ir al último mensaje"
+              }
+              className={cn(
+                "absolute inset-x-0 bottom-3 z-20 mx-auto flex h-9 w-fit items-center gap-1.5 rounded-full border shadow-[0_10px_24px_-10px_rgb(0_0_0/0.5)] backdrop-blur-xl",
+                below
+                  ? "border-transparent bg-primary px-3.5 text-xs font-semibold text-primary-foreground"
+                  : "bg-popover/90 px-2.5 text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <ArrowDownIcon className="size-4" aria-hidden />
+              {below > 0 && (below === 1 ? "1 nuevo" : `${below > 99 ? "99+" : below} nuevos`)}
+            </m.button>
           )}
         </AnimatePresence>
       </div>
@@ -280,5 +398,45 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
         </button>
       </form>
     </m.section>
+  );
+}
+
+/** Bajo el último mensaje propio: la hora y si ya lo vieron (con sus avatares). */
+function Receipt({ time, seen, others }: { time: string; seen: TeamMember[]; others: number }) {
+  const read = seen.length > 0;
+  return (
+    <m.span
+      key={read ? "visto" : "enviado"}
+      initial={{ opacity: 0, y: -3 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex items-center gap-1 px-1 text-[0.625rem] text-muted-foreground"
+    >
+      {messageTime(time)} ·
+      {read ? (
+        <>
+          <CheckCheckIcon className="size-3 text-primary" aria-hidden />
+          {seenLabel(
+            seen.map((person) => person.name),
+            others,
+          )}
+          {others > 1 && (
+            <span className="ml-0.5 flex -space-x-1" aria-hidden>
+              {seen.slice(0, 4).map((person) => (
+                <MemberAvatar
+                  key={person.id}
+                  member={person}
+                  className="size-3.5 text-[0.4rem] ring-1 ring-popover"
+                />
+              ))}
+            </span>
+          )}
+        </>
+      ) : (
+        <>
+          <CheckIcon className="size-3" aria-hidden />
+          Enviado
+        </>
+      )}
+    </m.span>
   );
 }
