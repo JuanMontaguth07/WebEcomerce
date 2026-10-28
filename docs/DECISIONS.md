@@ -584,3 +584,21 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
   según su categoría, derivado del slug, para que una grilla sin fotos no se vea uniforme.
 - La columna de `<main>` en la portada es `minmax(0, 1fr)`: sin eso, el ancho de la marquesina
   ensanchaba toda la página.
+
+## D38 — Alertas en tiempo real y chat entre admins (2026-10-28)
+
+- **La base genera las alertas** (`admin_alerts`, triggers): pedido nuevo (al confirmar la
+  transacción, con sus productos ya guardados), cambio de estado de un pedido (con el estado
+  anterior; si venció solo, lo dice), stock que baja del mínimo y producto agotado, una vez por
+  cruce. `actor_id` guarda quién lo causó: un admin no recibe alertas de lo que él mismo hizo. Se
+  borran a los 60 días (pg_cron, si existe).
+- **En el panel** (`components/admin/live`): notificaciones flotantes al estilo iOS (vidrio, ícono
+  de color por tipo, pila que se despliega al pasar el cursor, se descartan deslizando, se van solas
+  a los 7 s con pausa al pasar el cursor), campana con el historial por día, sonido opcional
+  generado con Web Audio (preferencia en este navegador) y el número de pendientes en el título de
+  la pestaña. Al reconectarse se piden las alertas que pudieron perderse.
+- **Chat entre admins** (`admin_messages`): botón flotante con contador, ventana con burbujas
+  agrupadas por autor y por día, «escribiendo…» (viaja en la presencia de cada admin), Enter para
+  enviar y envío optimista. Solo se escribe como uno mismo y lo enviado no se edita.
+- `admin_reads` guarda hasta cuándo leyó cada admin las alertas y el chat (`mark_admin_read`).
+- Ambas tablas están en la publicación de Realtime; la RLS limita la lectura a administradores.

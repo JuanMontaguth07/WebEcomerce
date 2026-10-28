@@ -10,6 +10,8 @@ export type PresenceMeta = {
   initials: string;
   status: PresenceStatus;
   device: PresenceDevice;
+  /** Está escribiendo en el chat. */
+  typing?: boolean;
 };
 
 export type OnlineAdmin = PresenceMeta & { id: string };
@@ -47,6 +49,7 @@ export function mergePresence(id: string, metas: PresenceMeta[]): OnlineAdmin | 
     initials: first.initials,
     status: active.length ? "online" : "away",
     device: relevant.some((meta) => meta.device !== "mobile") ? "desktop" : "mobile",
+    typing: metas.some((meta) => meta.typing === true),
   };
 }
 

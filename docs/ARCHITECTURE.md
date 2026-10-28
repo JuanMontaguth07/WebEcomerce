@@ -152,6 +152,9 @@ profiles (1:1 auth.users) ── orders.user_id (opcional)
 | `admin_last_seen`      | Última vez que cada admin tuvo el panel abierto; solo la escribe `touch_admin_seen()`.                                     |
 | `builds`               | Configuraciones de Kova Architect (inmutables; versiones con `parent_id`).                                                 |
 | `build_components`     | Piezas de cada configuración con copia de nombre, SKU y precio.                                                            |
+| `admin_alerts`         | Alertas del panel que genera la base (pedidos y stock); en Realtime.                                                       |
+| `admin_messages`       | Chat entre administradores; en Realtime.                                                                                   |
+| `admin_reads`          | Hasta cuándo leyó cada admin las alertas y el chat.                                                                        |
 | `audit_log`            | Historial general inmutable (triggers y funciones); solo lo lee el admin.                                                  |
 | `payments`             | Vacía en el MVP; la llenarán los adaptadores de pasarela.                                                                  |
 

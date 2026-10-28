@@ -10,7 +10,7 @@ describe("mergePresence", () => {
         { ...meta, status: "away", device: "desktop" },
         { ...meta, status: "online", device: "desktop" },
       ]),
-    ).toEqual({ id: "1", ...meta, status: "online", device: "desktop" });
+    ).toEqual({ id: "1", ...meta, status: "online", device: "desktop", typing: false });
   });
 
   it("queda ausente si todas sus pestañas están en segundo plano", () => {
@@ -96,5 +96,18 @@ describe("formatLastSeen", () => {
 
   it("una hora levemente en el futuro (relojes desfasados) cuenta como ahora", () => {
     expect(formatLastSeen(ago(-30_000), now)).toBe("Visto hace un momento");
+  });
+});
+
+describe("escribiendo en el chat", () => {
+  it("se muestra si alguna pestaña del admin está escribiendo", () => {
+    const base = {
+      name: "Ana",
+      initials: "A",
+      status: "online" as const,
+      device: "desktop" as const,
+    };
+    expect(mergePresence("1", [base, { ...base, typing: true }])?.typing).toBe(true);
+    expect(mergePresence("1", [base])?.typing).toBe(false);
   });
 });

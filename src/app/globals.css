@@ -789,6 +789,45 @@
   bottom: 0;
 }
 
+/* Campana de alertas: se mece cuando llega algo nuevo. */
+@utility animate-bell-ring {
+  transform-origin: 50% 10%;
+  animation: bell-ring 0.9s var(--expo-out);
+}
+
+@keyframes bell-ring {
+  0%,
+  100% {
+    rotate: 0deg;
+  }
+  15% {
+    rotate: 16deg;
+  }
+  35% {
+    rotate: -13deg;
+  }
+  55% {
+    rotate: 8deg;
+  }
+  75% {
+    rotate: -4deg;
+  }
+}
+
+/* Puntos de «escribiendo…» del chat. */
+@keyframes typing-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.35;
+    translate: 0 0;
+  }
+  30% {
+    opacity: 1;
+    translate: 0 -3px;
+  }
+}
+
 /* Esqueletos de carga: un brillo suave los recorre mientras llega el contenido. */
 .skeleton-shimmer {
   background:

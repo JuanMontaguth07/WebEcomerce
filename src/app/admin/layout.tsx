@@ -4,6 +4,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { siteConfig } from "@/config/site";
 import { getAdminTeam } from "@/features/account/team";
+import { getAdminLiveData } from "@/features/admin-live/queries";
 import { getPendingOrderCount } from "@/features/admin/orders";
 import { requireAdmin } from "@/features/auth/session";
 
@@ -17,9 +18,13 @@ export const metadata: Metadata = {
 /** Verifica en el servidor que el usuario sea administrador antes de mostrar el panel. */
 async function AdminGate({ children }: { children: React.ReactNode }) {
   const admin = await requireAdmin();
-  const [pendingOrders, team] = await Promise.all([getPendingOrderCount(), getAdminTeam()]);
+  const [pendingOrders, team, live] = await Promise.all([
+    getPendingOrderCount(),
+    getAdminTeam(),
+    getAdminLiveData(admin.id),
+  ]);
   return (
-    <AdminShell admin={admin} team={team} pendingOrders={pendingOrders}>
+    <AdminShell admin={admin} team={team} live={live} pendingOrders={pendingOrders}>
       {children}
     </AdminShell>
   );

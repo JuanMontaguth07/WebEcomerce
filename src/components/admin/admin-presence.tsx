@@ -3,7 +3,15 @@
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { SmartphoneIcon, UsersIcon } from "lucide-react";
 import { Popover } from "radix-ui";
-import { createContext, use, useEffect, useState, useSyncExternalStore } from "react";
+import {
+  createContext,
+  use,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import {
   detectDevice,
   formatLastSeen,
@@ -37,6 +45,8 @@ type PresenceValue = {
   /** Hora en que cada admin cerró su última pestaña durante esta visita. */
   leftAt: Record<string, string>;
   connection: Connection;
+  /** Anuncia a los demás que este admin está escribiendo en el chat. */
+  setTyping: (typing: boolean) => void;
 };
 
 const PresenceContext = createContext<PresenceValue | null>(null);
@@ -64,6 +74,8 @@ export function AdminPresenceProvider({
   const [online, setOnline] = useState<Record<string, OnlineAdmin>>({});
   const [leftAt, setLeftAt] = useState<Record<string, string>>({});
   const [connection, setConnection] = useState<Connection>("connecting");
+  const typingControl = useRef<(typing: boolean) => void>(() => {});
+  const setTyping = useCallback((typing: boolean) => typingControl.current(typing), []);
   const { id, name, initials } = self;
 
   useEffect(() => {
@@ -75,9 +87,10 @@ export function AdminPresenceProvider({
     let idleTimer: number | undefined;
     let retry: number | undefined;
     let lastActivity = 0;
+    let typing = false;
 
     const track = () => {
-      const meta: PresenceMeta = { name, initials, status, device };
+      const meta: PresenceMeta = { name, initials, status, device, typing };
       void channel?.track(meta);
     };
     const setStatus = (next: PresenceStatus) => {
@@ -103,6 +116,12 @@ export function AdminPresenceProvider({
       } else {
         setStatus("away");
       }
+    };
+
+    typingControl.current = (next) => {
+      if (next === typing) return;
+      typing = next;
+      track();
     };
 
     const join = async () => {
@@ -167,7 +186,7 @@ export function AdminPresenceProvider({
   }, [id, name, initials]);
 
   return (
-    <PresenceContext value={{ selfId: id, team, online, leftAt, connection }}>
+    <PresenceContext value={{ selfId: id, team, online, leftAt, connection, setTyping }}>
       {children}
     </PresenceContext>
   );

@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_alerts: {
+        Row: {
+          actor_id: string | null
+          body: string | null
+          created_at: string
+          href: string | null
+          id: string
+          kind: string
+          title: string
+        }
+        Insert: {
+          actor_id?: string | null
+          body?: string | null
+          created_at?: string
+          href?: string | null
+          id?: string
+          kind: string
+          title: string
+        }
+        Update: {
+          actor_id?: string | null
+          body?: string | null
+          created_at?: string
+          href?: string | null
+          id?: string
+          kind?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_alerts_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_last_seen: {
         Row: {
           seen_at: string
@@ -30,6 +68,61 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "admin_last_seen_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_messages: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          author_id?: string
+          body: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_messages_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_reads: {
+        Row: {
+          alerts_read_at: string
+          chat_read_at: string
+          user_id: string
+        }
+        Insert: {
+          alerts_read_at?: string
+          chat_read_at?: string
+          user_id: string
+        }
+        Update: {
+          alerts_read_at?: string
+          chat_read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_reads_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
@@ -1202,6 +1295,7 @@ export type Database = {
       }
       immutable_unaccent: { Args: { value: string }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
+      mark_admin_read: { Args: { p_what: string }; Returns: undefined }
       normalize_place: { Args: { value: string }; Returns: string }
       reorder_product_images: {
         Args: { p_image_ids: string[]; p_product_id: string }

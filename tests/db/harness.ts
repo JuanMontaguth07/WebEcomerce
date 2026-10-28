@@ -43,6 +43,7 @@ const SUPABASE_STUB = `
   create function realtime.topic() returns text language sql stable as
     $$ select nullif(current_setting('realtime.topic', true), '') $$;
   grant execute on function realtime.topic() to anon, authenticated;
+  create publication supabase_realtime;
   grant usage on schema public to anon, authenticated, service_role;
   alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
   alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
