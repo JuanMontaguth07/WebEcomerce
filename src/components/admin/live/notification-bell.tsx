@@ -1,11 +1,11 @@
 "use client";
 
-import { BellIcon, Volume2Icon, VolumeXIcon } from "lucide-react";
+import { BellIcon, MessageCirclePlusIcon, Volume2Icon, VolumeXIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { Popover } from "radix-ui";
 import { useState } from "react";
-import { groupByDay, timeAgo } from "@/features/admin-live/format";
+import { chatSeedFor, groupByDay, timeAgo } from "@/features/admin-live/format";
 import { ALERT_META } from "@/features/admin-live/types";
 import { cn } from "@/lib/utils";
 import { AppIcon } from "./app-icon";
@@ -14,8 +14,17 @@ import { useNow } from "./use-now";
 
 /** Campana del encabezado: cuántas alertas faltan por ver y el historial por día. */
 export function NotificationBell() {
-  const { alerts, unreadAlerts, markAlertsRead, sound, setSound, selfId, connected, clearToasts } =
-    useLive();
+  const {
+    alerts,
+    unreadAlerts,
+    markAlertsRead,
+    sound,
+    setSound,
+    selfId,
+    connected,
+    clearToasts,
+    composeInChat,
+  } = useLive();
   const [open, setOpen] = useState(false);
   const now = useNow();
   // Lo que hizo uno mismo no es una novedad para uno mismo.
@@ -82,31 +91,51 @@ export function NotificationBell() {
                     {group.label}
                   </p>
                   <ul className="grid gap-1">
-                    {group.items.map((alert) => (
-                      <li key={alert.id}>
-                        <Link
-                          href={(alert.href ?? "/admin") as Route}
-                          onClick={() => setOpen(false)}
-                          className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 rounded-2xl p-2 transition-colors hover:bg-foreground/5 focus-visible:bg-foreground/5 focus-visible:outline-none"
-                        >
-                          <AppIcon kind={alert.kind} />
-                          <span className="grid min-w-0 gap-0.5">
-                            <span className="flex items-baseline justify-between gap-2 text-[0.6875rem] font-medium tracking-wide text-muted-foreground uppercase">
-                              {ALERT_META[alert.kind].app}
-                              <span className="shrink-0 tracking-normal normal-case">
-                                {timeAgo(alert.createdAt, now)}
-                              </span>
-                            </span>
-                            <span className="truncate text-sm font-semibold">{alert.title}</span>
-                            {alert.body && (
-                              <span className="line-clamp-2 text-[0.8125rem] leading-snug text-muted-foreground">
-                                {alert.body}
-                              </span>
+                    {group.items.map((alert) => {
+                      const seed = chatSeedFor(alert);
+                      return (
+                        <li key={alert.id} className="group/alert relative">
+                          <Link
+                            href={(alert.href ?? "/admin") as Route}
+                            onClick={() => setOpen(false)}
+                            className={cn(
+                              "grid grid-cols-[auto_minmax(0,1fr)] gap-3 rounded-2xl p-2 transition-colors hover:bg-foreground/5 focus-visible:bg-foreground/5 focus-visible:outline-none",
+                              seed && "pr-11",
                             )}
-                          </span>
-                        </Link>
-                      </li>
-                    ))}
+                          >
+                            <AppIcon kind={alert.kind} />
+                            <span className="grid min-w-0 gap-0.5">
+                              <span className="flex items-baseline justify-between gap-2 text-[0.6875rem] font-medium tracking-wide text-muted-foreground uppercase">
+                                {ALERT_META[alert.kind].app}
+                                <span className="shrink-0 tracking-normal normal-case">
+                                  {timeAgo(alert.createdAt, now)}
+                                </span>
+                              </span>
+                              <span className="truncate text-sm font-semibold">{alert.title}</span>
+                              {alert.body && (
+                                <span className="line-clamp-2 text-[0.8125rem] leading-snug text-muted-foreground">
+                                  {alert.body}
+                                </span>
+                              )}
+                            </span>
+                          </Link>
+                          {seed && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOpen(false);
+                                composeInChat(seed);
+                              }}
+                              aria-label={`Comentar en el chat: ${alert.title}`}
+                              title="Comentar en el chat"
+                              className="absolute right-2 bottom-2 grid size-8 place-items-center rounded-full border bg-popover text-muted-foreground shadow-sm transition-[opacity,color] outline-none group-hover/alert:opacity-100 hover:text-foreground focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring [@media(hover:hover)]:opacity-0"
+                            >
+                              <MessageCirclePlusIcon className="size-4" aria-hidden />
+                            </button>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </section>
               ))

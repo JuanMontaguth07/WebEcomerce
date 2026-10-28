@@ -1,4 +1,12 @@
-import type { AlertKind, ChatMessage, ChatReaction, LiveAlert, MessageReaction } from "./types";
+import type {
+  AlertKind,
+  ChatMessage,
+  ChatReaction,
+  LiveAlert,
+  MessageReaction,
+  OrderRef,
+  ProductRef,
+} from "./types";
 
 /** Filas de la base (consulta inicial o Realtime) al formato del panel. */
 export function toAlert(row: {
@@ -26,6 +34,8 @@ export function toMessage(row: {
   author_id: string;
   body: string;
   reply_to?: string | null;
+  product_id?: string | null;
+  mentions?: string[] | null;
   created_at: string;
 }): ChatMessage {
   return {
@@ -33,6 +43,8 @@ export function toMessage(row: {
     authorId: row.author_id,
     body: row.body,
     replyTo: row.reply_to ?? null,
+    productId: row.product_id ?? null,
+    mentions: row.mentions ?? [],
     createdAt: row.created_at,
   };
 }
@@ -48,5 +60,44 @@ export function toReaction(row: {
     messageId: row.message_id,
     userId: row.user_id,
     emoji: row.emoji as ChatReaction,
+  };
+}
+
+export function toOrderRef(row: {
+  id: string;
+  order_number: number;
+  status: OrderRef["status"];
+  customer_name: string;
+  total: number;
+}): OrderRef {
+  return {
+    id: row.id,
+    number: row.order_number,
+    status: row.status,
+    customer: row.customer_name,
+    total: row.total,
+  };
+}
+
+export function toProductRef(row: {
+  id: string;
+  name: string;
+  sku: string;
+  price: number;
+  stock: number;
+  low_stock_threshold: number;
+  is_active: boolean;
+  product_images?: { storage_path: string; alt_text: string | null }[] | null;
+}): ProductRef {
+  const image = row.product_images?.[0];
+  return {
+    id: row.id,
+    name: row.name,
+    sku: row.sku,
+    price: row.price,
+    stock: row.stock,
+    lowStockThreshold: row.low_stock_threshold,
+    active: row.is_active,
+    image: image ? { path: image.storage_path, alt: image.alt_text } : null,
   };
 }

@@ -151,7 +151,7 @@ describe("chat entre administradores", () => {
       asRole(db, "authenticated", ADMIN, () =>
         db.query(`insert into public.admin_messages (body) values ('   ')`),
       ),
-    ).rejects.toThrow(/check constraint/);
+    ).rejects.toThrow(/EMPTY_MESSAGE/);
     await expect(
       asRole(db, "authenticated", ADMIN, () =>
         db.query(`update public.admin_messages set body = 'x'`),
@@ -247,6 +247,51 @@ describe("chat entre administradores", () => {
         ),
       ),
     ).rejects.toThrow(/row-level security/);
+  });
+
+  it("comparte un producto sin texto y el mensaje sobrevive si el producto se borra", async () => {
+    const shared = await asRole(db, "authenticated", ADMIN, async () => {
+      const category = await one<{ id: string }>(db, "select id from public.categories limit 1");
+      const product = await one<{ id: string }>(
+        db,
+        `insert into public.products (name, slug, sku, price, category_id)
+         values ('RAM DEMO', 'ram-demo', 'DEMO-RAM', 200000, $1) returning id`,
+        [category.id],
+      );
+      const message = await one<{ id: string }>(
+        db,
+        `insert into public.admin_messages (body, product_id) values ('', $1) returning id`,
+        [product.id],
+      );
+      await db.query("delete from public.products where id = $1", [product.id]);
+      return message.id;
+    });
+    const row = await asRole(db, "authenticated", OTHER, () =>
+      one<{ body: string; product_id: string | null }>(
+        db,
+        "select body, product_id from public.admin_messages where id = $1",
+        [shared],
+      ),
+    );
+    expect(row).toEqual({ body: "", product_id: null });
+  });
+
+  it("solo se menciona a administradores, sin repetir", async () => {
+    const row = await asRole(db, "authenticated", ADMIN, () =>
+      one<{ mentions: string[] }>(
+        db,
+        `insert into public.admin_messages (body, mentions) values ('@Otra mira esto', $1) returning mentions`,
+        [[OTHER, OTHER]],
+      ),
+    );
+    expect(row.mentions).toEqual([OTHER]);
+    await expect(
+      asRole(db, "authenticated", ADMIN, () =>
+        db.query(`insert into public.admin_messages (body, mentions) values ('hola', $1)`, [
+          [CUSTOMER],
+        ]),
+      ),
+    ).rejects.toThrow(/INVALID_MENTION/);
   });
 
   it("marcar como leído guarda la hora de cada cosa por separado", async () => {

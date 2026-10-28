@@ -120,6 +120,8 @@ export type Database = {
           body: string
           created_at: string
           id: string
+          mentions: string[]
+          product_id: string | null
           reply_to: string | null
         }
         Insert: {
@@ -127,6 +129,8 @@ export type Database = {
           body: string
           created_at?: string
           id?: string
+          mentions?: string[]
+          product_id?: string | null
           reply_to?: string | null
         }
         Update: {
@@ -134,6 +138,8 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          mentions?: string[]
+          product_id?: string | null
           reply_to?: string | null
         }
         Relationships: [
@@ -142,6 +148,13 @@ export type Database = {
             columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_messages_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
           {

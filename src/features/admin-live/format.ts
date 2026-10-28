@@ -195,3 +195,100 @@ export function snippet(body: string, max = 90): string {
   const line = body.replace(/\s+/g, " ").trim();
   return line.length > max ? `${line.slice(0, max - 1).trimEnd()}…` : line;
 }
+
+/** Números de pedido citados con # (sin repetir, como mucho 5). */
+export function orderNumbers(body: string): number[] {
+  const found = [...body.matchAll(/(?<![\p{L}\p{N}&])#(\d{3,9})(?!\d)/gu)].map((match) =>
+    Number(match[1]),
+  );
+  return [...new Set(found)].slice(0, 5);
+}
+
+/**
+ * Cómo se menciona a cada admin: su primer nombre, o el nombre completo si dos
+ * comparten el primero.
+ */
+export function mentionHandles(
+  team: { id: string; name: string }[],
+): { userId: string; handle: string }[] {
+  const first = (name: string) => name.trim().split(/\s+/)[0] ?? name;
+  return team.map((member) => {
+    const shared = team.filter(
+      (other) => first(other.name).toLowerCase() === first(member.name).toLowerCase(),
+    );
+    return {
+      userId: member.id,
+      handle: shared.length > 1 ? member.name.trim() : first(member.name),
+    };
+  });
+}
+
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+export type MessageToken =
+  | { type: "text"; text: string }
+  | { type: "order"; text: string; number: number }
+  | { type: "mention"; text: string; userId: string };
+
+/** Parte el texto en trozos: texto, pedidos (#1042) y menciones (@Ana). */
+export function tokenize(
+  body: string,
+  handles: { userId: string; handle: string }[],
+): MessageToken[] {
+  const sorted = [...handles].sort((a, b) => b.handle.length - a.handle.length);
+  const names = sorted.map((item) => escapeRegExp(item.handle)).join("|");
+  const pattern = new RegExp(
+    `${names ? `@(${names})(?![\\p{L}\\p{N}])|` : ""}(?<![\\p{L}\\p{N}&])#(\\d{3,9})(?!\\d)`,
+    "giu",
+  );
+  const tokens: MessageToken[] = [];
+  let cursor = 0;
+  for (const match of body.matchAll(pattern)) {
+    const start = match.index ?? 0;
+    if (start > cursor) tokens.push({ type: "text", text: body.slice(cursor, start) });
+    if (match[1] !== undefined) {
+      const handle = match[1].toLowerCase();
+      const userId = sorted.find((item) => item.handle.toLowerCase() === handle)?.userId ?? "";
+      tokens.push({ type: "mention", text: match[0], userId });
+    } else {
+      tokens.push({ type: "order", text: match[0], number: Number(match[2]) });
+    }
+    cursor = start + match[0].length;
+  }
+  if (cursor < body.length) tokens.push({ type: "text", text: body.slice(cursor) });
+  return tokens;
+}
+
+/** Admins mencionados en un texto (para guardarlos con el mensaje). */
+export function mentionsIn(body: string, handles: { userId: string; handle: string }[]): string[] {
+  return [
+    ...new Set(
+      tokenize(body, handles).flatMap((token) => (token.type === "mention" ? [token.userId] : [])),
+    ),
+  ];
+}
+
+/** Si el cursor está escribiendo una mención («hola @an|»), dónde empieza y qué se busca. */
+export function mentionQuery(text: string, caret: number): { start: number; query: string } | null {
+  const before = text.slice(0, caret);
+  const match = /(^|\s)@([\p{L}\p{N}]{0,20})$/u.exec(before);
+  if (!match) return null;
+  return { start: before.length - match[2]!.length - 1, query: match[2]! };
+}
+
+/** Qué se lleva al chat al comentar una alerta: el pedido (#1042) o el producto. */
+export function chatSeedFor(
+  alert: Pick<LiveAlert, "title" | "href">,
+): { text: string; productId: string | null } | null {
+  const product = /^\/admin\/productos\/([0-9a-f-]{36})$/.exec(alert.href ?? "");
+  if (product) return { text: "", productId: product[1]! };
+  const order = /#(\d{3,9})/.exec(alert.title);
+  return order ? { text: `#${order[1]} `, productId: null } : null;
+}
+
+/** Id del pedido o producto al que apunta una alerta (para refrescar su tarjeta). */
+export function alertTarget(href: string | null): { kind: "order" | "product"; id: string } | null {
+  const match = /^\/admin\/(pedidos|productos)\/([0-9a-f-]{36})$/.exec(href ?? "");
+  if (!match) return null;
+  return { kind: match[1] === "pedidos" ? "order" : "product", id: match[2]! };
+}

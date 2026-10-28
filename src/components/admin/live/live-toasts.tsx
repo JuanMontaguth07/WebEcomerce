@@ -40,7 +40,7 @@ export function LiveToasts() {
 
   const open = (toast: LiveAlert) => {
     dismissToast(toast.id);
-    if (toast.kind === "chat") setChatOpen(true);
+    if (toast.kind === "chat" || toast.kind === "mention") setChatOpen(true);
     else if (toast.href) router.push(toast.href as Route);
   };
 

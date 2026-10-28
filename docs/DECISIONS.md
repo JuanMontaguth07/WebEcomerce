@@ -630,3 +630,21 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
 - **Acciones del mensaje**: barra con las reacciones y «Responder» al pasar el cursor; en pantallas
   táctiles al tocar el mensaje; con el teclado, Enter sobre el mensaje y Escape para salir. Escape
   en el campo de texto cancela la respuesta antes de cerrar el chat. Envío y reacciones optimistas.
+
+## D41 — Chat del equipo conectado con la tienda (2026-10-28)
+
+- **Pedidos con #**: escribir `#1042` lo vuelve enlace al pedido y añade una mini-tarjeta con
+  estado, cliente y total (hasta dos por mensaje). No necesita columna: se lee del texto.
+- **Productos compartidos** (`admin_messages.product_id`, migración
+  `20261110120000_admin_chat_refs`): el botón del paquete busca por nombre o SKU y adjunta la
+  tarjeta (foto, precio, SKU y stock con color). Un mensaje puede ir solo con el producto; eso se
+  valida con un trigger al escribir, no con un check, para que borrar el producto (que deja
+  `product_id` en null) no choque con el mensaje.
+- **@menciones** (`admin_messages.mentions`): al escribir @ salen sugerencias (flechas, Enter o
+  Tab, Escape); se menciona por el primer nombre o por el completo si dos lo comparten. La base
+  solo acepta administradores y quita repetidos. A quien mencionan le llega un aviso rosado
+  («Ana te mencionó») y el botón del chat muestra «@».
+- **Comentar en el chat**: desde cada alerta de la campana, la página de un pedido o la de un
+  producto; abre el chat con `#1042` escrito o el producto ya adjunto.
+- Las tarjetas se piden desde el navegador (RLS de admin) y se guardan mientras dura la visita;
+  cuando llega una alerta de ese pedido o producto, su tarjeta se vuelve a pedir.

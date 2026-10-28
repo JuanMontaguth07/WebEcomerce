@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityFeed } from "@/components/admin/activity-feed";
 import { AdminPageHeader, dateTime, OrderStatusBadge } from "@/components/admin/admin-ui";
+import { CommentInChatButton } from "@/components/admin/live/comment-in-chat";
 import { CopyButton } from "@/components/support/copy-button";
 import { listActivity } from "@/features/activity/queries";
 import { customerMessages, customerWhatsapp } from "@/features/admin/order-messages";
@@ -86,7 +87,12 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/pedid
         title={`Pedido #${order.orderNumber}`}
         description={`Recibido el ${dateTime.format(new Date(order.created_at))} · ${order.customer_name}`}
         back={{ href: "/admin/pedidos", label: "Pedidos" }}
-        actions={<OrderStatusBadge status={order.status} />}
+        actions={
+          <>
+            <OrderStatusBadge status={order.status} />
+            <CommentInChatButton text={`#${order.orderNumber} `} />
+          </>
+        }
       />
 
       <div className="grid items-start gap-6 xl:grid-cols-[1fr_24rem]">

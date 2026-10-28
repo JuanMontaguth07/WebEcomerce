@@ -11,6 +11,9 @@ import {
   useSyncExternalStore,
 } from "react";
 import {
+  alertTarget,
+  mentionHandles,
+  mentionsIn,
   mergeMessage,
   mergeReaction,
   snippet,
@@ -26,7 +29,10 @@ import {
   type ChatReaction,
   type LiveAlert,
   type MessageReaction,
+  type OrderRef,
+  type ProductRef,
 } from "@/features/admin-live/types";
+import { fetchOrders, fetchProducts } from "@/features/admin-live/client-refs";
 import type { TeamMember } from "@/features/account/team";
 import { latest } from "@/features/account/presence";
 import { createClient } from "@/lib/supabase/client";
@@ -53,7 +59,20 @@ type LiveValue = {
   unreadSince: string | null;
   /** Hasta cuándo leyó el chat cada admin (base + lo anunciado en esta visita). */
   chatReads: Record<string, string>;
-  sendMessage: (body: string, replyTo?: string | null) => Promise<boolean>;
+  sendMessage: (
+    body: string,
+    extra?: { replyTo?: string | null; productId?: string | null; product?: ProductRef | null },
+  ) => Promise<boolean>;
+  /** Mensajes sin leer que mencionan a este admin. */
+  unreadMentions: number;
+  /** Pedidos (#número) y productos citados en el chat; null = no existe. */
+  orderRefs: Record<number, OrderRef | null>;
+  productRefs: Record<string, ProductRef | null>;
+  loadRefs: (orderNumbers: number[], productIds: string[]) => Promise<void>;
+  /** Abre el chat con un borrador listo (desde una alerta, un pedido o un producto). */
+  composeInChat: (seed: { text?: string; productId?: string | null }) => void;
+  composeSeed: ComposeSeed | null;
+  clearComposeSeed: () => void;
   reactions: MessageReaction[];
   /** Pone o quita la reacción propia con ese emoji. */
   toggleReaction: (messageId: string, emoji: ChatReaction) => void;
@@ -65,6 +84,8 @@ type LiveValue = {
   setSound: (on: boolean) => void;
   connected: boolean;
 };
+
+export type ComposeSeed = { nonce: number; text: string; productId: string | null };
 
 const LiveContext = createContext<LiveValue | null>(null);
 
@@ -131,6 +152,14 @@ export function AdminLiveProvider({
   const [alerts, setAlerts] = useState(initial.alerts);
   const [messages, setMessages] = useState(initial.messages);
   const [reactions, setReactions] = useState(initial.reactions);
+  const [orderRefs, setOrderRefs] = useState<Record<number, OrderRef | null>>({});
+  const [productRefs, setProductRefs] = useState<Record<string, ProductRef | null>>({});
+  const [composeSeed, setComposeSeed] = useState<ComposeSeed | null>(null);
+  const refsRef = useRef({ orderRefs, productRefs });
+  useEffect(() => {
+    refsRef.current = { orderRefs, productRefs };
+  }, [orderRefs, productRefs]);
+  const loadingRefs = useRef(new Set<string>());
   const reactionsRef = useRef(reactions);
   useEffect(() => {
     reactionsRef.current = reactions;
@@ -169,7 +198,15 @@ export function AdminLiveProvider({
     setToasts((current) =>
       [alert, ...current.filter((item) => item.id !== alert.id)].slice(0, MAX_TOASTS),
     );
-    if (soundRef.current) playChime(alert.kind === "stock_out" ? "red" : "green");
+    if (soundRef.current) {
+      playChime(
+        alert.kind === "stock_out"
+          ? "red"
+          : alert.kind === "chat" || alert.kind === "mention"
+            ? "violet"
+            : "green",
+      );
+    }
   }, []);
 
   const dismissToast = useCallback(
@@ -212,7 +249,9 @@ export function AdminLiveProvider({
       if (open) {
         markChatRead();
         // Al abrir el chat se van sus avisos flotantes.
-        setToasts((current) => current.filter((item) => item.kind !== "chat"));
+        setToasts((current) =>
+          current.filter((item) => item.kind !== "chat" && item.kind !== "mention"),
+        );
       }
     },
     [markChatRead],
@@ -269,6 +308,22 @@ export function AdminLiveProvider({
               [alert, ...current.filter((item) => item.id !== alert.id)].slice(0, 60),
             );
             if (alert.actorId !== selfId) pushToast(alert);
+            // El pedido o el producto cambió: su tarjeta en el chat se vuelve a pedir.
+            const target = alertTarget(alert.href);
+            if (target?.kind === "order") {
+              setOrderRefs((current) =>
+                Object.fromEntries(
+                  Object.entries(current).filter(([, order]) => order?.id !== target.id),
+                ),
+              );
+            }
+            if (target?.kind === "product") {
+              setProductRefs((current) =>
+                target.id in current
+                  ? Object.fromEntries(Object.entries(current).filter(([id]) => id !== target.id))
+                  : current,
+              );
+            }
           },
         )
         .on(
@@ -282,11 +337,14 @@ export function AdminLiveProvider({
             if (visible) {
               markChatRead(message.createdAt);
             } else {
+              const mentioned = message.mentions?.includes(selfId);
               pushToast({
                 id: `chat-${message.id}`,
-                kind: "chat",
-                title: nameOf(message.authorId),
-                body: message.body,
+                kind: mentioned ? "mention" : "chat",
+                title: mentioned
+                  ? `${nameOf(message.authorId)} te mencionó`
+                  : nameOf(message.authorId),
+                body: message.body.trim() ? message.body : "Compartió un producto",
                 href: null,
                 actorId: message.authorId,
                 createdAt: message.createdAt,
@@ -341,9 +399,23 @@ export function AdminLiveProvider({
   }, [selfId, pushToast, markChatRead]);
 
   const sendMessage = useCallback(
-    async (body: string, replyTo: string | null = null) => {
+    async (
+      body: string,
+      {
+        replyTo = null,
+        productId = null,
+        product = null,
+      }: { replyTo?: string | null; productId?: string | null; product?: ProductRef | null } = {},
+    ) => {
       const text = body.trim();
-      if (!text) return false;
+      if (!text && !productId) return false;
+      // El producto elegido en el buscador ya se conoce: su tarjeta sale al instante.
+      if (product && product.id === productId) {
+        setProductRefs((current) => ({ ...current, [product.id]: product }));
+      }
+      const mentions = mentionsIn(text, mentionHandles(teamRef.current)).filter(
+        (id) => id !== selfId,
+      );
       const tempId = `pendiente-${crypto.randomUUID()}`;
       setMessages((current) =>
         mergeMessage(current, {
@@ -351,14 +423,16 @@ export function AdminLiveProvider({
           authorId: selfId,
           body: text,
           replyTo,
+          productId,
+          mentions,
           createdAt: new Date().toISOString(),
           pending: true,
         }),
       );
       const { data, error } = await createClient()
         .from("admin_messages")
-        .insert({ body: text, reply_to: replyTo })
-        .select("id, author_id, body, reply_to, created_at")
+        .insert({ body: text, reply_to: replyTo, product_id: productId, mentions })
+        .select("id, author_id, body, reply_to, product_id, mentions, created_at")
         .single();
       setMessages((current) => {
         const without = current.filter((message) => message.id !== tempId);
@@ -411,7 +485,56 @@ export function AdminLiveProvider({
     [selfId],
   );
 
+  // Pide lo que falta, una sola vez por pedido o producto mientras no cambie.
+  const loadRefs = useCallback(async (orderNumbers: number[], productIds: string[]) => {
+    const { orderRefs: orders, productRefs: products } = refsRef.current;
+    const loading = loadingRefs.current;
+    const numbers = orderNumbers.filter((n) => !(n in orders) && !loading.has(`o${n}`));
+    const ids = productIds.filter((id) => !(id in products) && !loading.has(`p${id}`));
+    if (!numbers.length && !ids.length) return;
+    numbers.forEach((n) => loading.add(`o${n}`));
+    ids.forEach((id) => loading.add(`p${id}`));
+    const [foundOrders, foundProducts] = await Promise.all([
+      fetchOrders(numbers),
+      fetchProducts(ids),
+    ]);
+    numbers.forEach((n) => loading.delete(`o${n}`));
+    ids.forEach((id) => loading.delete(`p${id}`));
+    // Si la consulta falla no se guarda nada: se reintenta en la próxima vista.
+    if (foundOrders) {
+      const byNumber = new Map(foundOrders.map((order) => [order.number, order]));
+      setOrderRefs((current) => ({
+        ...current,
+        ...Object.fromEntries(numbers.map((n) => [n, byNumber.get(n) ?? null])),
+      }));
+    }
+    if (foundProducts) {
+      const byId = new Map(foundProducts.map((product) => [product.id, product]));
+      setProductRefs((current) => ({
+        ...current,
+        ...Object.fromEntries(ids.map((id) => [id, byId.get(id) ?? null])),
+      }));
+    }
+  }, []);
+
+  const composeInChat = useCallback(
+    ({ text = "", productId = null }: { text?: string; productId?: string | null }) => {
+      setComposeSeed({ nonce: Date.now(), text, productId });
+      setChatOpen(true);
+    },
+    [setChatOpen],
+  );
+
+  const clearComposeSeed = useCallback(() => setComposeSeed(null), []);
+
   const unreadChat = chatOpen ? 0 : unreadMessages(messages, selfId, chatReadAt);
+  const unreadMentions = chatOpen
+    ? 0
+    : unreadMessages(
+        messages.filter((message) => message.mentions?.includes(selfId)),
+        selfId,
+        chatReadAt,
+      );
   const chatReads = Object.fromEntries(
     team.flatMap((member) => {
       const read = latest([initial.teamChatReads[member.id], announcedReads[member.id]]);
@@ -451,6 +574,13 @@ export function AdminLiveProvider({
         unreadSince,
         chatReads,
         sendMessage,
+        unreadMentions,
+        orderRefs,
+        productRefs,
+        loadRefs,
+        composeInChat,
+        composeSeed,
+        clearComposeSeed,
         reactions,
         toggleReaction: (messageId, emoji) => void toggleReaction(messageId, emoji),
         toasts,

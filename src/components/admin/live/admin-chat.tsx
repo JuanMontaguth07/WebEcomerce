@@ -2,7 +2,6 @@
 
 import {
   ArrowDownIcon,
-  ArrowUpIcon,
   CheckCheckIcon,
   CheckIcon,
   MessageCircleIcon,
@@ -17,7 +16,9 @@ import {
   firstUnread,
   groupByDay,
   isContinuation,
+  mentionHandles,
   messageTime,
+  orderNumbers,
   reactionSummary,
   seenBy,
   seenLabel,
@@ -32,17 +33,17 @@ import {
 import { cn } from "@/lib/utils";
 import { PresenceDot, usePresence } from "../admin-presence";
 import { MemberAvatar } from "../member-avatar";
+import { CardPlaceholder, MessageText, OrderCard, ProductCard } from "./chat-cards";
+import { ChatComposer } from "./chat-composer";
 import { useLive } from "./live-provider";
 import { useNow } from "./use-now";
 
-/** Se deja de anunciar «escribiendo…» tras este tiempo sin teclear. */
-const TYPING_IDLE_MS = 2500;
 /** A menos de esta distancia del final se considera que se está leyendo lo último. */
 const BOTTOM_SLACK_PX = 48;
 
 /** Chat entre los administradores: botón flotante y ventana de mensajes. */
 export function AdminChat() {
-  const { chatOpen, setChatOpen, unreadChat } = useLive();
+  const { chatOpen, setChatOpen, unreadChat, unreadMentions } = useLive();
 
   return (
     <>
@@ -50,7 +51,13 @@ export function AdminChat() {
         type="button"
         onClick={() => setChatOpen(!chatOpen)}
         aria-expanded={chatOpen}
-        aria-label={unreadChat ? `Chat del equipo: ${unreadChat} sin leer` : "Chat del equipo"}
+        aria-label={
+          unreadChat
+            ? `Chat del equipo: ${unreadChat} sin leer${
+                unreadMentions ? `, ${unreadMentions} te mencionan` : ""
+              }`
+            : "Chat del equipo"
+        }
         className="fixed right-[max(1.25rem,env(safe-area-inset-right))] bottom-[max(1.25rem,env(safe-area-inset-bottom))] z-50 grid size-14 place-items-center rounded-full bg-[linear-gradient(145deg,#c4b5fd,#7c3aed)] text-white shadow-[0_14px_34px_-10px_#7c3aedcc] transition-transform duration-300 ease-out-soft outline-none hover:scale-105 focus-visible:ring-4 focus-visible:ring-violet-400/40 active:scale-95"
       >
         <AnimatePresence mode="wait" initial={false}>
@@ -69,7 +76,15 @@ export function AdminChat() {
           </m.span>
         </AnimatePresence>
         {unreadChat > 0 && !chatOpen && (
-          <span className="absolute -top-0.5 -right-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-[linear-gradient(145deg,#fb7185,#e11d48)] px-1 text-[0.6875rem] font-bold tabular-nums ring-2 ring-background">
+          <span
+            className={cn(
+              "absolute -top-0.5 -right-0.5 grid h-5 min-w-5 place-items-center rounded-full px-1 text-[0.6875rem] font-bold tabular-nums ring-2 ring-background",
+              unreadMentions
+                ? "bg-[linear-gradient(145deg,#f9a8d4,#db2777)] motion-safe:animate-bounce"
+                : "bg-[linear-gradient(145deg,#fb7185,#e11d48)]",
+            )}
+          >
+            {unreadMentions ? "@" : ""}
             {unreadChat > 99 ? "99+" : unreadChat}
           </span>
         )}
@@ -82,10 +97,19 @@ export function AdminChat() {
 }
 
 function ChatWindow({ onClose }: { onClose: () => void }) {
-  const { messages, sendMessage, selfId, team, unreadSince, chatReads, reactions, toggleReaction } =
-    useLive();
-  const { online, setTyping } = usePresence();
-  const [draft, setDraft] = useState("");
+  const {
+    messages,
+    selfId,
+    team,
+    unreadSince,
+    chatReads,
+    reactions,
+    toggleReaction,
+    orderRefs,
+    productRefs,
+    loadRefs,
+  } = useLive();
+  const { online } = usePresence();
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
   // En pantallas táctiles no hay «pasar el cursor»: tocar un mensaje muestra sus acciones.
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -99,7 +123,6 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
   const listRef = useRef<HTMLDivElement>(null);
   const dividerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const typingTimer = useRef<number | undefined>(undefined);
   const id = useId();
   const now = useNow();
 
@@ -116,20 +139,42 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
   const lastMine = last?.authorId === selfId;
   const below = atBottom ? 0 : arrivedAfter(messages, selfId, seenUpTo);
   const seen = last && lastMine && !last.pending ? seenBy(others, chatReads, last) : [];
+  const handles = mentionHandles(team);
+
+  // Pide las tarjetas de los pedidos (#1042) y productos que aparecen y aún no se tienen.
+  const missing = [
+    ...new Set([
+      ...messages
+        .flatMap((message) => orderNumbers(message.body))
+        .filter((number) => !(number in orderRefs))
+        .map((number) => `o${number}`),
+      ...messages
+        .flatMap((message) => (message.productId ? [message.productId] : []))
+        .filter((productId) => !(productId in productRefs))
+        .map((productId) => `p${productId}`),
+    ]),
+  ].join(",");
+  useEffect(() => {
+    if (!missing) return;
+    const keys = missing.split(",");
+    void loadRefs(
+      keys.filter((key) => key.startsWith("o")).map((key) => Number(key.slice(1))),
+      keys.filter((key) => key.startsWith("p")).map((key) => key.slice(1)),
+    );
+  }, [missing, loadRefs]);
 
   useEffect(() => {
     inputRef.current?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      // Si algo de adentro ya usó el Escape (un menú, la respuesta), el chat sigue abierto.
+      if (event.key === "Escape" && !event.defaultPrevented) onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("keydown", onKey);
-      window.clearTimeout(typingTimer.current);
       window.clearTimeout(flashTimer.current);
-      setTyping(false);
     };
-  }, [onClose, setTyping]);
+  }, [onClose]);
 
   useLayoutEffect(() => {
     const list = listRef.current;
@@ -158,28 +203,6 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
   function jumpToEnd() {
     const list = listRef.current;
     list?.scrollTo({ top: list.scrollHeight, behavior: "smooth" });
-  }
-
-  function onInput(value: string) {
-    setDraft(value);
-    setTyping(value.trim().length > 0);
-    window.clearTimeout(typingTimer.current);
-    typingTimer.current = window.setTimeout(() => setTyping(false), TYPING_IDLE_MS);
-  }
-
-  async function send() {
-    const text = draft.trim();
-    if (!text) return;
-    const quoting = replyTo;
-    setDraft("");
-    setReplyTo(null);
-    setTyping(false);
-    const ok = await sendMessage(text, quoting?.id ?? null);
-    if (!ok) {
-      setDraft(text);
-      setReplyTo(quoting);
-    }
-    inputRef.current?.focus();
   }
 
   function startReply(message: ChatMessage) {
@@ -323,7 +346,7 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
                               aria-keyshortcuts="Enter"
                               onPointerUp={(event) => {
                                 if (event.pointerType === "mouse" || message.pending) return;
-                                if ((event.target as Element).closest("button")) return;
+                                if ((event.target as Element).closest("button, a")) return;
                                 setActiveId((current) =>
                                   current === message.id ? null : message.id,
                                 );
@@ -353,6 +376,8 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
                                   : lastOfRun
                                     ? "rounded-bl-md"
                                     : "",
+                                // Con tarjeta de producto, la burbuja no se encoge a lo angosto.
+                                message.productId && "w-[min(16rem,100%)]",
                                 flashId === message.id &&
                                   "ring-2 ring-ring ring-offset-2 ring-offset-popover",
                               )}
@@ -368,7 +393,37 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
                               <span className="sr-only">
                                 {mine ? "Tú" : (author?.name ?? "Otro admin")}:{" "}
                               </span>
-                              {message.body}
+                              {message.body ? (
+                                <MessageText
+                                  body={message.body}
+                                  handles={handles}
+                                  team={team}
+                                  selfId={selfId}
+                                  orders={orderRefs}
+                                  inMine={mine}
+                                />
+                              ) : (
+                                !message.productId && (
+                                  <span className="italic opacity-75">
+                                    Compartió un producto que ya no existe
+                                  </span>
+                                )
+                              )}
+                              {message.productId &&
+                                (productRefs[message.productId] ? (
+                                  <ProductCard product={productRefs[message.productId]!} />
+                                ) : (
+                                  <CardPlaceholder gone={productRefs[message.productId] === null} />
+                                ))}
+                              {orderNumbers(message.body)
+                                .flatMap((number) => {
+                                  const order = orderRefs[number];
+                                  return order ? [order] : [];
+                                })
+                                .slice(0, 2)
+                                .map((order) => (
+                                  <OrderCard key={order.id} order={order} />
+                                ))}
                             </div>
                           </div>
                           {summary.length > 0 && (
@@ -487,87 +542,7 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
         </AnimatePresence>
       </div>
 
-      <div className="border-t">
-        <AnimatePresence initial={false}>
-          {replyTo && (
-            <m.div
-              key="respuesta"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="overflow-hidden"
-            >
-              <div className="flex items-center gap-2 px-3 pt-2.5">
-                <ReplyIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                <span
-                  data-admin-accent={member(replyTo.authorId)?.accent}
-                  className="grid min-w-0 flex-1 border-l-2 border-primary pl-2 text-xs"
-                >
-                  <span className="font-semibold text-primary">
-                    Respondiendo a{" "}
-                    {replyTo.authorId === selfId
-                      ? "ti"
-                      : (member(replyTo.authorId)?.name ?? "Otro admin")}
-                  </span>
-                  <span className="truncate text-muted-foreground">{snippet(replyTo.body)}</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setReplyTo(null);
-                    inputRef.current?.focus();
-                  }}
-                  aria-label="Cancelar la respuesta"
-                  className="grid size-7 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
-                >
-                  <XIcon className="size-3.5" aria-hidden />
-                </button>
-              </div>
-            </m.div>
-          )}
-        </AnimatePresence>
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            void send();
-          }}
-          className="flex items-end gap-2 p-3"
-        >
-          <label htmlFor={`${id}-input`} className="sr-only">
-            Mensaje
-          </label>
-          <textarea
-            ref={inputRef}
-            id={`${id}-input`}
-            rows={1}
-            maxLength={2000}
-            value={draft}
-            placeholder="Escribe un mensaje"
-            onChange={(event) => onInput(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
-                event.preventDefault();
-                void send();
-              }
-              if (event.key === "Escape" && replyTo) {
-                event.preventDefault();
-                event.stopPropagation();
-                setReplyTo(null);
-              }
-            }}
-            className="[field-sizing:content] max-h-32 min-h-10 flex-1 resize-none rounded-[1.25rem] border bg-background px-4 py-2.5 text-sm outline-none focus-visible:border-primary"
-          />
-          <button
-            type="submit"
-            disabled={!draft.trim()}
-            aria-label="Enviar"
-            className="grid size-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground transition-[transform,opacity] duration-200 disabled:scale-90 disabled:opacity-40"
-          >
-            <ArrowUpIcon className="size-5" aria-hidden />
-          </button>
-        </form>
-      </div>
+      <ChatComposer replyTo={replyTo} setReplyTo={setReplyTo} inputRef={inputRef} />
     </m.section>
   );
 }

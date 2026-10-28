@@ -153,7 +153,7 @@ profiles (1:1 auth.users) ── orders.user_id (opcional)
 | `builds`                  | Configuraciones de Kova Architect (inmutables; versiones con `parent_id`).                                                 |
 | `build_components`        | Piezas de cada configuración con copia de nombre, SKU y precio.                                                            |
 | `admin_alerts`            | Alertas del panel que genera la base (pedidos y stock); en Realtime.                                                       |
-| `admin_messages`          | Chat entre administradores; `reply_to` = mensaje citado. En Realtime.                                                      |
+| `admin_messages`          | Chat entre administradores: `reply_to` (cita), `product_id` (producto compartido), `mentions` (@). En Realtime.            |
 | `admin_message_reactions` | Reacciones al chat (lista fija de emojis), cada admin las suyas. En Realtime.                                              |
 | `admin_reads`             | Hasta cuándo leyó cada admin las alertas y el chat.                                                                        |
 | `audit_log`               | Historial general inmutable (triggers y funciones); solo lo lee el admin.                                                  |

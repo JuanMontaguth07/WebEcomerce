@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityFeed } from "@/components/admin/activity-feed";
 import { AdminPageHeader, dateTime } from "@/components/admin/admin-ui";
+import { CommentInChatButton } from "@/components/admin/live/comment-in-chat";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -96,6 +97,7 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
               {product.is_active ? "Visible" : "Oculto"}
             </Badge>
             <DuplicateProductButton productId={product.id} />
+            <CommentInChatButton productId={product.id} />
             {product.is_active && (
               <Button asChild variant="secondary" size="sm">
                 <Link href={`/productos/${product.slug}`} target="_blank">

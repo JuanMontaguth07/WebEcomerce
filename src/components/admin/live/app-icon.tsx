@@ -1,4 +1,5 @@
 import {
+  AtSignIcon,
   MessageCircleIcon,
   PackageXIcon,
   ShoppingBagIcon,
@@ -15,6 +16,7 @@ const ICONS: Record<LiveAlert["kind"], LucideIcon> = {
   stock_low: TrendingDownIcon,
   stock_out: PackageXIcon,
   chat: MessageCircleIcon,
+  mention: AtSignIcon,
 };
 
 /** Degradados de «app» como los íconos de iOS: se ven igual en ambos temas. */
@@ -24,6 +26,7 @@ const TONES: Record<AlertTone, string> = {
   amber: "bg-[linear-gradient(145deg,#fcd34d,#d97706)] shadow-[0_4px_14px_-4px_#d9770699]",
   red: "bg-[linear-gradient(145deg,#fb7185,#e11d48)] shadow-[0_4px_14px_-4px_#e11d4899]",
   violet: "bg-[linear-gradient(145deg,#c4b5fd,#7c3aed)] shadow-[0_4px_14px_-4px_#7c3aed99]",
+  pink: "bg-[linear-gradient(145deg,#f9a8d4,#db2777)] shadow-[0_4px_14px_-4px_#db277799]",
 };
 
 /** Ícono cuadrado redondeado del tipo de alerta, con su color. */
