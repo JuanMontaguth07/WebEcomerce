@@ -6,13 +6,16 @@ import {
   groupByDay,
   isContinuation,
   mergeMessage,
+  mergeReaction,
+  reactionSummary,
   seenBy,
   seenLabel,
+  snippet,
   timeAgo,
   unreadAlerts,
   unreadMessages,
 } from "./format";
-import type { ChatMessage, LiveAlert } from "./types";
+import type { ChatMessage, LiveAlert, MessageReaction } from "./types";
 
 const now = Date.parse("2026-10-27T20:00:00Z"); // 3:00 p. m. en Bogotá
 const ago = (ms: number) => new Date(now - ms).toISOString();
@@ -116,5 +119,46 @@ describe("mensajes", () => {
     expect(firstUnread(list, "yo", ago(0))).toBeUndefined();
     expect(arrivedAfter(list, "yo", ago(3000))).toBe(2);
     expect(arrivedAfter(list, "yo", null)).toBe(0);
+  });
+});
+
+describe("reacciones y citas", () => {
+  const r = (
+    id: string,
+    userId: string,
+    emoji: MessageReaction["emoji"],
+    messageId = "m",
+  ): MessageReaction => ({
+    id,
+    messageId,
+    userId,
+    emoji,
+  });
+
+  it("agrupa por emoji en el orden del selector y marca las propias", () => {
+    const list = [
+      r("1", "ana", "🔥"),
+      r("2", "yo", "👍"),
+      r("3", "ana", "👍"),
+      r("4", "ana", "👍", "otro"),
+    ];
+    expect(reactionSummary(list, "m", "yo")).toEqual([
+      { emoji: "👍", userIds: ["yo", "ana"], mine: true },
+      { emoji: "🔥", userIds: ["ana"], mine: false },
+    ]);
+    expect(reactionSummary(list, "nada", "yo")).toEqual([]);
+  });
+
+  it("la reacción confirmada reemplaza a la provisional sin duplicarla", () => {
+    const pending = { ...r("pendiente-1", "yo", "👍"), pending: true };
+    const list = mergeReaction(mergeReaction([], pending), r("real", "yo", "👍"));
+    expect(list).toEqual([r("real", "yo", "👍")]);
+    expect(mergeReaction(list, r("real", "yo", "👍"))).toHaveLength(1);
+    expect(mergeReaction(list, r("otra", "yo", "🔥"))).toHaveLength(2);
+  });
+
+  it("cita en una línea y recorta lo largo", () => {
+    expect(snippet("Hola\n\n  equipo")).toBe("Hola equipo");
+    expect(snippet("a".repeat(120), 10)).toBe("aaaaaaaaa…");
   });
 });

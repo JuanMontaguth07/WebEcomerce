@@ -18,8 +18,32 @@ export type ChatMessage = {
   id: string;
   authorId: string;
   body: string;
+  /** Mensaje al que responde (cita). */
+  replyTo?: string | null;
   createdAt: string;
   /** Mensaje propio que aún no confirma la base. */
+  pending?: boolean;
+};
+
+/** Reacciones del chat (la base admite solo estas) y cómo las lee un lector de pantalla. */
+export const CHAT_REACTIONS = {
+  "👍": "Me gusta",
+  "❤️": "Me encanta",
+  "😂": "Me da risa",
+  "👀": "Lo estoy viendo",
+  "✅": "Hecho",
+  "🔥": "Genial",
+} as const;
+
+export type ChatReaction = keyof typeof CHAT_REACTIONS;
+export const CHAT_REACTION_KEYS = Object.keys(CHAT_REACTIONS) as ChatReaction[];
+
+export type MessageReaction = {
+  id: string;
+  messageId: string;
+  userId: string;
+  emoji: ChatReaction;
+  /** Propia y aún sin confirmar por la base. */
   pending?: boolean;
 };
 

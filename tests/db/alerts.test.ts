@@ -171,6 +171,84 @@ describe("chat entre administradores", () => {
     expect(rows.rows).toHaveLength(0);
   });
 
+  it("una respuesta cita un mensaje que existe", async () => {
+    const original = await asRole(db, "authenticated", OTHER, () =>
+      one<{ id: string }>(db, "select id from public.admin_messages limit 1"),
+    );
+    const reply = await asRole(db, "authenticated", OTHER, () =>
+      one<{ reply_to: string }>(
+        db,
+        `insert into public.admin_messages (body, reply_to) values ('Sí, ya llegó', $1) returning reply_to`,
+        [original.id],
+      ),
+    );
+    expect(reply.reply_to).toBe(original.id);
+    await expect(
+      asRole(db, "authenticated", OTHER, () =>
+        db.query(`insert into public.admin_messages (body, reply_to) values ('x', $1)`, [CUSTOMER]),
+      ),
+    ).rejects.toThrow(/foreign key/);
+  });
+
+  it("cada admin reacciona como sí mismo, una vez por emoji, y solo quita las suyas", async () => {
+    const message = await asRole(db, "authenticated", ADMIN, () =>
+      one<{ id: string }>(db, "select id from public.admin_messages order by created_at limit 1"),
+    );
+    const react = (user: string, emoji: string) =>
+      asRole(db, "authenticated", user, () =>
+        db.query(
+          `insert into public.admin_message_reactions (message_id, emoji) values ($1, $2) returning id, user_id`,
+          [message.id, emoji],
+        ),
+      );
+    const mine = await react(OTHER, "👍");
+    expect(mine.rows[0]).toMatchObject({ user_id: OTHER });
+    await react(ADMIN, "👍");
+    await expect(react(OTHER, "👍")).rejects.toThrow(/duplicate key/);
+    await expect(react(OTHER, "💩")).rejects.toThrow(/check constraint/);
+    await expect(
+      asRole(db, "authenticated", ADMIN, () =>
+        db.query(
+          `insert into public.admin_message_reactions (message_id, user_id, emoji) values ($1, $2, '🔥')`,
+          [message.id, OTHER],
+        ),
+      ),
+    ).rejects.toThrow(/row-level security/);
+
+    // Borrar la de otro no hace nada; la propia sí se quita.
+    const others = await asRole(db, "authenticated", ADMIN, () =>
+      db.query(`delete from public.admin_message_reactions where user_id = $1`, [OTHER]),
+    );
+    expect(others.affectedRows).toBe(0);
+    const own = await asRole(db, "authenticated", ADMIN, () =>
+      db.query(`delete from public.admin_message_reactions where user_id = $1`, [ADMIN]),
+    );
+    expect(own.affectedRows).toBe(1);
+    await expect(
+      asRole(db, "authenticated", OTHER, () =>
+        db.query(`update public.admin_message_reactions set emoji = '🔥'`),
+      ),
+    ).rejects.toThrow(/permission denied/);
+  });
+
+  it("un cliente no ve ni pone reacciones", async () => {
+    const rows = await asRole(db, "authenticated", CUSTOMER, () =>
+      db.query("select 1 from public.admin_message_reactions"),
+    );
+    expect(rows.rows).toHaveLength(0);
+    const message = await asRole(db, "authenticated", ADMIN, () =>
+      one<{ id: string }>(db, "select id from public.admin_messages limit 1"),
+    );
+    await expect(
+      asRole(db, "authenticated", CUSTOMER, () =>
+        db.query(
+          `insert into public.admin_message_reactions (message_id, emoji) values ($1, '👍')`,
+          [message.id],
+        ),
+      ),
+    ).rejects.toThrow(/row-level security/);
+  });
+
   it("marcar como leído guarda la hora de cada cosa por separado", async () => {
     await asRole(db, "authenticated", ADMIN, () =>
       db.query("select public.mark_admin_read('chat')"),

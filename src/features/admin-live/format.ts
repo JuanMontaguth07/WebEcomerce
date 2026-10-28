@@ -1,4 +1,10 @@
-import type { ChatMessage, LiveAlert } from "./types";
+import {
+  CHAT_REACTION_KEYS,
+  type ChatMessage,
+  type ChatReaction,
+  type LiveAlert,
+  type MessageReaction,
+} from "./types";
 
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
@@ -147,4 +153,45 @@ export function arrivedAfter(
   return messages.filter(
     (message) => message.authorId !== selfId && at(message.createdAt) > at(after),
   ).length;
+}
+
+/** Reacciones de un mensaje agrupadas por emoji, en el orden fijo del selector. */
+export function reactionSummary(
+  reactions: MessageReaction[],
+  messageId: string,
+  selfId: string,
+): { emoji: ChatReaction; userIds: string[]; mine: boolean }[] {
+  const own = reactions.filter((reaction) => reaction.messageId === messageId);
+  return CHAT_REACTION_KEYS.flatMap((emoji) => {
+    const userIds = own.filter((reaction) => reaction.emoji === emoji).map((r) => r.userId);
+    return userIds.length ? [{ emoji, userIds, mine: userIds.includes(selfId) }] : [];
+  });
+}
+
+/**
+ * Agrega una reacción sin duplicarla: la misma persona, mensaje y emoji es una
+ * sola (la confirmada reemplaza a la provisional, llegue por Realtime o no).
+ */
+export function mergeReaction(
+  reactions: MessageReaction[],
+  incoming: MessageReaction,
+): MessageReaction[] {
+  return [
+    ...reactions.filter(
+      (reaction) =>
+        reaction.id !== incoming.id &&
+        !(
+          reaction.messageId === incoming.messageId &&
+          reaction.userId === incoming.userId &&
+          reaction.emoji === incoming.emoji
+        ),
+    ),
+    incoming,
+  ];
+}
+
+/** Texto corto de un mensaje en una sola línea, para citarlo. */
+export function snippet(body: string, max = 90): string {
+  const line = body.replace(/\s+/g, " ").trim();
+  return line.length > max ? `${line.slice(0, max - 1).trimEnd()}…` : line;
 }

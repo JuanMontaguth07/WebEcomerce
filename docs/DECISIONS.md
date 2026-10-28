@@ -616,3 +616,17 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
 - **Color de cada admin**: avatares y nombres usan el acento que cada uno eligió en «Mi cuenta»
   (mismos tonos probados en claro y oscuro), también en el panel «Equipo» del encabezado.
 - Las horas se comparan por instante, no como texto: la base escribe «+00:00» y el navegador «Z».
+
+## D40 — Chat del equipo: reacciones y respuestas citadas (2026-10-28)
+
+- **Reacciones** (`admin_message_reactions`, migración `20261109120000_admin_chat_reactions`):
+  👍 ❤️ 😂 👀 ✅ 🔥, una por admin, mensaje y emoji; cada uno pone y quita solo las suyas. Cada
+  fila tiene su propio `id` porque Realtime no aplica la RLS a los DELETE y solo entrega la clave:
+  así no deja ver de quién ni de qué mensaje era. Si alguien reacciona a un mensaje propio y el chat
+  no está a la vista, llega un aviso flotante.
+- **Responder citando** (`admin_messages.reply_to`): la cita va dentro de la burbuja con el nombre
+  y el comienzo del original; al tocarla lleva al mensaje y lo resalta. Si el original ya no está
+  cargado, dice «Respuesta a un mensaje anterior».
+- **Acciones del mensaje**: barra con las reacciones y «Responder» al pasar el cursor; en pantallas
+  táctiles al tocar el mensaje; con el teclado, Enter sobre el mensaje y Escape para salir. Escape
+  en el campo de texto cancela la respuesta antes de cerrar el chat. Envío y reacciones optimistas.

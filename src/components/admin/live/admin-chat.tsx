@@ -6,6 +6,7 @@ import {
   CheckCheckIcon,
   CheckIcon,
   MessageCircleIcon,
+  ReplyIcon,
   XIcon,
 } from "lucide-react";
 import { AnimatePresence, m } from "motion/react";
@@ -17,9 +18,17 @@ import {
   groupByDay,
   isContinuation,
   messageTime,
+  reactionSummary,
   seenBy,
   seenLabel,
+  snippet,
 } from "@/features/admin-live/format";
+import {
+  CHAT_REACTION_KEYS,
+  CHAT_REACTIONS,
+  type ChatMessage,
+  type ChatReaction,
+} from "@/features/admin-live/types";
 import { cn } from "@/lib/utils";
 import { PresenceDot, usePresence } from "../admin-presence";
 import { MemberAvatar } from "../member-avatar";
@@ -73,9 +82,15 @@ export function AdminChat() {
 }
 
 function ChatWindow({ onClose }: { onClose: () => void }) {
-  const { messages, sendMessage, selfId, team, unreadSince, chatReads } = useLive();
+  const { messages, sendMessage, selfId, team, unreadSince, chatReads, reactions, toggleReaction } =
+    useLive();
   const { online, setTyping } = usePresence();
   const [draft, setDraft] = useState("");
+  const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
+  // En pantallas táctiles no hay «pasar el cursor»: tocar un mensaje muestra sus acciones.
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [flashId, setFlashId] = useState<string | null>(null);
+  const flashTimer = useRef<number | undefined>(undefined);
   // Si se está leyendo lo último, los mensajes nuevos bajan solos; si no, se avisa.
   const [atBottom, setAtBottom] = useState(true);
   const [seenUpTo, setSeenUpTo] = useState<string | null>(null);
@@ -91,6 +106,10 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
   const others = team.filter((member) => member.id !== selfId);
   const typing = others.filter((member) => online[member.id]?.typing);
   const member = (authorId: string) => team.find((item) => item.id === authorId);
+  const byId = new Map(messages.map((message) => [message.id, message]));
+  const messageDom = (messageId: string) => `${id}-m-${messageId}`;
+  const firstName = (userId: string) =>
+    userId === selfId ? "Tú" : (member(userId)?.name.split(" ")[0] ?? "Otro admin");
   const divider = firstUnread(messages, selfId, unreadSince);
   const last = messages.at(-1);
   const lastId = last?.id;
@@ -107,6 +126,7 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
     return () => {
       window.removeEventListener("keydown", onKey);
       window.clearTimeout(typingTimer.current);
+      window.clearTimeout(flashTimer.current);
       setTyping(false);
     };
   }, [onClose, setTyping]);
@@ -150,11 +170,37 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
   async function send() {
     const text = draft.trim();
     if (!text) return;
+    const quoting = replyTo;
     setDraft("");
+    setReplyTo(null);
     setTyping(false);
-    const ok = await sendMessage(text);
-    if (!ok) setDraft(text);
+    const ok = await sendMessage(text, quoting?.id ?? null);
+    if (!ok) {
+      setDraft(text);
+      setReplyTo(quoting);
+    }
     inputRef.current?.focus();
+  }
+
+  function startReply(message: ChatMessage) {
+    setReplyTo(message);
+    setActiveId(null);
+    inputRef.current?.focus();
+  }
+
+  function react(messageId: string, emoji: ChatReaction) {
+    toggleReaction(messageId, emoji);
+    setActiveId(null);
+  }
+
+  // Tocar una cita lleva al mensaje original y lo resalta un momento.
+  function jumpTo(messageId: string) {
+    document
+      .getElementById(messageDom(messageId))
+      ?.scrollIntoView({ block: "center", behavior: "smooth" });
+    setFlashId(messageId);
+    window.clearTimeout(flashTimer.current);
+    flashTimer.current = window.setTimeout(() => setFlashId(null), 1400);
   }
 
   return (
@@ -216,6 +262,7 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
                   const lastOfRun = !next || !isContinuation(message, next);
                   const author = member(message.authorId);
                   const newest = message.id === lastId;
+                  const summary = reactionSummary(reactions, message.id, selfId);
                   return (
                     <div key={message.id} className="grid gap-1">
                       {message.id === divider?.id && (
@@ -235,7 +282,7 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
                         animate={{ opacity: message.pending ? 0.6 : 1, y: 0, scale: 1 }}
                         transition={{ type: "spring", stiffness: 500, damping: 34 }}
                         className={cn(
-                          "flex items-end gap-2",
+                          "group/msg flex items-end gap-2",
                           mine ? "flex-row-reverse" : "flex-row",
                           !continued && "mt-2",
                         )}
@@ -260,26 +307,104 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
                               {author?.name ?? "Otro admin"}
                             </span>
                           )}
-                          <p
-                            className={cn(
-                              "rounded-[1.15rem] px-3 py-2 text-sm leading-snug break-words whitespace-pre-wrap",
-                              mine
-                                ? "bg-[linear-gradient(145deg,var(--primary),color-mix(in_oklab,var(--primary)_80%,black))] text-primary-foreground"
-                                : "bg-secondary text-secondary-foreground",
-                              mine
-                                ? lastOfRun
-                                  ? "rounded-br-md"
-                                  : ""
-                                : lastOfRun
-                                  ? "rounded-bl-md"
-                                  : "",
+                          <div id={messageDom(message.id)} className="relative scroll-my-16">
+                            {!message.pending && (
+                              <MessageActions
+                                mine={mine}
+                                active={activeId === message.id}
+                                summary={summary}
+                                onReact={(emoji) => react(message.id, emoji)}
+                                onReply={() => startReply(message)}
+                                onDismiss={() => setActiveId(null)}
+                              />
                             )}
-                          >
-                            <span className="sr-only">
-                              {mine ? "Tú" : (author?.name ?? "Otro admin")}:{" "}
-                            </span>
-                            {message.body}
-                          </p>
+                            <div
+                              tabIndex={message.pending ? undefined : 0}
+                              aria-keyshortcuts="Enter"
+                              onPointerUp={(event) => {
+                                if (event.pointerType === "mouse" || message.pending) return;
+                                if ((event.target as Element).closest("button")) return;
+                                setActiveId((current) =>
+                                  current === message.id ? null : message.id,
+                                );
+                              }}
+                              onKeyDown={(event) => {
+                                if (event.key !== "Enter" || event.target !== event.currentTarget)
+                                  return;
+                                event.preventDefault();
+                                setActiveId(message.id);
+                                // Al abrirse, el foco pasa a la primera reacción.
+                                const row = event.currentTarget.parentElement;
+                                requestAnimationFrame(() =>
+                                  row
+                                    ?.querySelector<HTMLButtonElement>("[role=toolbar] button")
+                                    ?.focus(),
+                                );
+                              }}
+                              className={cn(
+                                "rounded-[1.15rem] px-3 py-2 text-sm leading-snug break-words whitespace-pre-wrap transition-shadow duration-300 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover",
+                                mine
+                                  ? "bg-[linear-gradient(145deg,var(--primary),color-mix(in_oklab,var(--primary)_80%,black))] text-primary-foreground"
+                                  : "bg-secondary text-secondary-foreground",
+                                mine
+                                  ? lastOfRun
+                                    ? "rounded-br-md"
+                                    : ""
+                                  : lastOfRun
+                                    ? "rounded-bl-md"
+                                    : "",
+                                flashId === message.id &&
+                                  "ring-2 ring-ring ring-offset-2 ring-offset-popover",
+                              )}
+                            >
+                              {message.replyTo && (
+                                <Quote
+                                  target={byId.get(message.replyTo)}
+                                  author={member(byId.get(message.replyTo)?.authorId ?? "")}
+                                  inMine={mine}
+                                  onJump={jumpTo}
+                                />
+                              )}
+                              <span className="sr-only">
+                                {mine ? "Tú" : (author?.name ?? "Otro admin")}:{" "}
+                              </span>
+                              {message.body}
+                            </div>
+                          </div>
+                          {summary.length > 0 && (
+                            <div
+                              className={cn(
+                                "relative z-[1] -mt-2 flex flex-wrap gap-1 px-1",
+                                mine ? "justify-end" : "justify-start",
+                              )}
+                            >
+                              {summary.map((item) => {
+                                const names = item.userIds.map(firstName).join(", ");
+                                return (
+                                  <m.button
+                                    key={item.emoji}
+                                    type="button"
+                                    initial={{ scale: 0.4, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    transition={{ type: "spring", stiffness: 600, damping: 22 }}
+                                    onClick={() => toggleReaction(message.id, item.emoji)}
+                                    aria-pressed={item.mine}
+                                    aria-label={`${CHAT_REACTIONS[item.emoji]}: ${names}`}
+                                    title={names}
+                                    className={cn(
+                                      "inline-flex h-6 items-center gap-1 rounded-full border bg-popover px-1.5 text-xs font-semibold tabular-nums shadow-sm transition-colors hover:bg-secondary",
+                                      item.mine && "border-primary/60 bg-primary-soft",
+                                    )}
+                                  >
+                                    <span aria-hidden>{item.emoji}</span>
+                                    {item.userIds.length > 1 && (
+                                      <span aria-hidden>{item.userIds.length}</span>
+                                    )}
+                                  </m.button>
+                                );
+                              })}
+                            </div>
+                          )}
                           {lastOfRun &&
                             (mine && newest && !message.pending ? (
                               <Receipt
@@ -362,41 +487,87 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
         </AnimatePresence>
       </div>
 
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          void send();
-        }}
-        className="flex items-end gap-2 border-t p-3"
-      >
-        <label htmlFor={`${id}-input`} className="sr-only">
-          Mensaje
-        </label>
-        <textarea
-          ref={inputRef}
-          id={`${id}-input`}
-          rows={1}
-          maxLength={2000}
-          value={draft}
-          placeholder="Escribe un mensaje"
-          onChange={(event) => onInput(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
-              event.preventDefault();
-              void send();
-            }
+      <div className="border-t">
+        <AnimatePresence initial={false}>
+          {replyTo && (
+            <m.div
+              key="respuesta"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="overflow-hidden"
+            >
+              <div className="flex items-center gap-2 px-3 pt-2.5">
+                <ReplyIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                <span
+                  data-admin-accent={member(replyTo.authorId)?.accent}
+                  className="grid min-w-0 flex-1 border-l-2 border-primary pl-2 text-xs"
+                >
+                  <span className="font-semibold text-primary">
+                    Respondiendo a{" "}
+                    {replyTo.authorId === selfId
+                      ? "ti"
+                      : (member(replyTo.authorId)?.name ?? "Otro admin")}
+                  </span>
+                  <span className="truncate text-muted-foreground">{snippet(replyTo.body)}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReplyTo(null);
+                    inputRef.current?.focus();
+                  }}
+                  aria-label="Cancelar la respuesta"
+                  className="grid size-7 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
+                >
+                  <XIcon className="size-3.5" aria-hidden />
+                </button>
+              </div>
+            </m.div>
+          )}
+        </AnimatePresence>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            void send();
           }}
-          className="[field-sizing:content] max-h-32 min-h-10 flex-1 resize-none rounded-[1.25rem] border bg-background px-4 py-2.5 text-sm outline-none focus-visible:border-primary"
-        />
-        <button
-          type="submit"
-          disabled={!draft.trim()}
-          aria-label="Enviar"
-          className="grid size-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground transition-[transform,opacity] duration-200 disabled:scale-90 disabled:opacity-40"
+          className="flex items-end gap-2 p-3"
         >
-          <ArrowUpIcon className="size-5" aria-hidden />
-        </button>
-      </form>
+          <label htmlFor={`${id}-input`} className="sr-only">
+            Mensaje
+          </label>
+          <textarea
+            ref={inputRef}
+            id={`${id}-input`}
+            rows={1}
+            maxLength={2000}
+            value={draft}
+            placeholder="Escribe un mensaje"
+            onChange={(event) => onInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+                event.preventDefault();
+                void send();
+              }
+              if (event.key === "Escape" && replyTo) {
+                event.preventDefault();
+                event.stopPropagation();
+                setReplyTo(null);
+              }
+            }}
+            className="[field-sizing:content] max-h-32 min-h-10 flex-1 resize-none rounded-[1.25rem] border bg-background px-4 py-2.5 text-sm outline-none focus-visible:border-primary"
+          />
+          <button
+            type="submit"
+            disabled={!draft.trim()}
+            aria-label="Enviar"
+            className="grid size-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground transition-[transform,opacity] duration-200 disabled:scale-90 disabled:opacity-40"
+          >
+            <ArrowUpIcon className="size-5" aria-hidden />
+          </button>
+        </form>
+      </div>
     </m.section>
   );
 }
@@ -438,5 +609,113 @@ function Receipt({ time, seen, others }: { time: string; seen: TeamMember[]; oth
         </>
       )}
     </m.span>
+  );
+}
+
+/**
+ * Reacciones rápidas y «Responder». Aparece al pasar el cursor, al tocar el
+ * mensaje en pantallas táctiles o con Enter desde el teclado.
+ */
+function MessageActions({
+  mine,
+  active,
+  summary,
+  onReact,
+  onReply,
+  onDismiss,
+}: {
+  mine: boolean;
+  active: boolean;
+  summary: { emoji: ChatReaction; mine: boolean }[];
+  onReact: (emoji: ChatReaction) => void;
+  onReply: () => void;
+  onDismiss: () => void;
+}) {
+  const tab = active ? 0 : -1;
+  return (
+    <div
+      role="toolbar"
+      aria-label="Reaccionar o responder"
+      onKeyDown={(event) => {
+        if (event.key !== "Escape") return;
+        event.stopPropagation();
+        onDismiss();
+        (event.currentTarget.nextElementSibling as HTMLElement | null)?.focus();
+      }}
+      className={cn(
+        "absolute bottom-[calc(100%-0.375rem)] z-20 flex items-center gap-0.5 rounded-full border bg-popover p-1 shadow-[0_10px_28px_-12px_rgb(0_0_0/0.55)] transition-[opacity,scale] duration-150 ease-out",
+        mine ? "right-0 origin-bottom-right" : "left-0 origin-bottom-left",
+        active
+          ? "scale-100 opacity-100"
+          : "pointer-events-none scale-90 opacity-0 group-hover/msg:pointer-events-auto group-hover/msg:scale-100 group-hover/msg:opacity-100 group-has-[:focus-visible]/msg:pointer-events-auto group-has-[:focus-visible]/msg:scale-100 group-has-[:focus-visible]/msg:opacity-100",
+      )}
+    >
+      {CHAT_REACTION_KEYS.map((emoji) => {
+        const pressed = summary.some((item) => item.emoji === emoji && item.mine);
+        return (
+          <button
+            key={emoji}
+            type="button"
+            tabIndex={tab}
+            onClick={() => onReact(emoji)}
+            aria-pressed={pressed}
+            aria-label={CHAT_REACTIONS[emoji]}
+            title={CHAT_REACTIONS[emoji]}
+            className={cn(
+              "grid size-7 place-items-center rounded-full text-base transition-[scale,background-color] duration-150 outline-none hover:scale-125 hover:bg-foreground/5 focus-visible:ring-2 focus-visible:ring-ring active:scale-95",
+              pressed && "bg-primary-soft",
+            )}
+          >
+            <span aria-hidden>{emoji}</span>
+          </button>
+        );
+      })}
+      <span className="mx-0.5 h-5 w-px bg-border" aria-hidden />
+      <button
+        type="button"
+        tabIndex={tab}
+        onClick={onReply}
+        aria-label="Responder"
+        title="Responder"
+        className="grid size-7 place-items-center rounded-full text-muted-foreground transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <ReplyIcon className="size-4" aria-hidden />
+      </button>
+    </div>
+  );
+}
+
+/** Cita dentro de la burbuja: de quién era y el comienzo del mensaje original. */
+function Quote({
+  target,
+  author,
+  inMine,
+  onJump,
+}: {
+  target: ChatMessage | undefined;
+  author: TeamMember | undefined;
+  inMine: boolean;
+  onJump: (messageId: string) => void;
+}) {
+  const box = cn(
+    "mb-1.5 grid w-full min-w-0 rounded-lg border-l-[3px] px-2 py-1 text-left text-xs leading-snug",
+    inMine ? "border-current/60 bg-black/15" : "border-primary bg-foreground/5",
+  );
+  if (!target) {
+    return <span className={cn(box, "italic opacity-80")}>Respuesta a un mensaje anterior</span>;
+  }
+  return (
+    <button
+      type="button"
+      onClick={() => onJump(target.id)}
+      data-admin-accent={inMine ? undefined : author?.accent}
+      aria-label={`Ir al mensaje citado de ${author?.name ?? "otro admin"}`}
+      className={cn(box, "transition-opacity hover:opacity-80")}
+    >
+      <span className={cn("font-semibold", !inMine && "text-primary")}>
+        {author?.name ?? "Otro admin"}
+      </span>
+      <span className="line-clamp-2 opacity-85">{snippet(target.body, 140)}</span>
+    </button>
   );
 }

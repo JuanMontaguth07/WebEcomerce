@@ -10,10 +10,23 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { mergeMessage, unreadAlerts, unreadMessages } from "@/features/admin-live/format";
-import { toAlert, toMessage } from "@/features/admin-live/mappers";
+import {
+  mergeMessage,
+  mergeReaction,
+  snippet,
+  unreadAlerts,
+  unreadMessages,
+} from "@/features/admin-live/format";
+import { toAlert, toMessage, toReaction } from "@/features/admin-live/mappers";
 import type { AdminLiveData } from "@/features/admin-live/queries";
-import { ALERT_KINDS, type ChatMessage, type LiveAlert } from "@/features/admin-live/types";
+import {
+  ALERT_KINDS,
+  CHAT_REACTIONS,
+  type ChatMessage,
+  type ChatReaction,
+  type LiveAlert,
+  type MessageReaction,
+} from "@/features/admin-live/types";
 import type { TeamMember } from "@/features/account/team";
 import { latest } from "@/features/account/presence";
 import { createClient } from "@/lib/supabase/client";
@@ -40,7 +53,10 @@ type LiveValue = {
   unreadSince: string | null;
   /** Hasta cuándo leyó el chat cada admin (base + lo anunciado en esta visita). */
   chatReads: Record<string, string>;
-  sendMessage: (body: string) => Promise<boolean>;
+  sendMessage: (body: string, replyTo?: string | null) => Promise<boolean>;
+  reactions: MessageReaction[];
+  /** Pone o quita la reacción propia con ese emoji. */
+  toggleReaction: (messageId: string, emoji: ChatReaction) => void;
   toasts: LiveAlert[];
   dismissToast: (id: string) => void;
   /** Recoge todas las flotantes (al abrir la campana, como el centro de notificaciones). */
@@ -93,6 +109,7 @@ export function useLive(): LiveValue {
 }
 
 const isAlertKind = (kind: string) => (ALERT_KINDS as readonly string[]).includes(kind);
+const isReaction = (emoji: string) => Object.hasOwn(CHAT_REACTIONS, emoji);
 
 /**
  * Alertas y chat del panel en tiempo real. Las alertas las genera la base
@@ -113,6 +130,11 @@ export function AdminLiveProvider({
 }) {
   const [alerts, setAlerts] = useState(initial.alerts);
   const [messages, setMessages] = useState(initial.messages);
+  const [reactions, setReactions] = useState(initial.reactions);
+  const reactionsRef = useRef(reactions);
+  useEffect(() => {
+    reactionsRef.current = reactions;
+  }, [reactions]);
   const [alertsReadAt, setAlertsReadAt] = useState(initial.alertsReadAt);
   const [chatReadAt, setChatReadAt] = useState(initial.chatReadAt);
   const [toasts, setToasts] = useState<LiveAlert[]>([]);
@@ -272,6 +294,37 @@ export function AdminLiveProvider({
             }
           },
         )
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "admin_message_reactions" },
+          ({ new: row }) => {
+            const reaction = toReaction(row as Parameters<typeof toReaction>[0]);
+            if (!isReaction(reaction.emoji)) return;
+            setReactions((current) => mergeReaction(current, reaction));
+            // Avisa cuando reaccionan a un mensaje propio y el chat no está a la vista.
+            const target = messagesRef.current.find((item) => item.id === reaction.messageId);
+            const visible = chatOpenRef.current && document.visibilityState === "visible";
+            if (reaction.userId === selfId || target?.authorId !== selfId || visible) return;
+            pushToast({
+              id: `reaccion-${reaction.id}`,
+              kind: "chat",
+              title: `${nameOf(reaction.userId)} reaccionó ${reaction.emoji}`,
+              body: snippet(target.body),
+              href: null,
+              actorId: reaction.userId,
+              createdAt: new Date().toISOString(),
+            });
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "DELETE", schema: "public", table: "admin_message_reactions" },
+          ({ old }) => {
+            // Al borrar, Realtime solo entrega la clave.
+            const id = (old as { id?: string }).id;
+            if (id) setReactions((current) => current.filter((reaction) => reaction.id !== id));
+          },
+        )
         .subscribe((state) => {
           setConnected(state === "SUBSCRIBED");
           if (state === "SUBSCRIBED") {
@@ -288,7 +341,7 @@ export function AdminLiveProvider({
   }, [selfId, pushToast, markChatRead]);
 
   const sendMessage = useCallback(
-    async (body: string) => {
+    async (body: string, replyTo: string | null = null) => {
       const text = body.trim();
       if (!text) return false;
       const tempId = `pendiente-${crypto.randomUUID()}`;
@@ -297,20 +350,63 @@ export function AdminLiveProvider({
           id: tempId,
           authorId: selfId,
           body: text,
+          replyTo,
           createdAt: new Date().toISOString(),
           pending: true,
         }),
       );
       const { data, error } = await createClient()
         .from("admin_messages")
-        .insert({ body: text })
-        .select("id, author_id, body, created_at")
+        .insert({ body: text, reply_to: replyTo })
+        .select("id, author_id, body, reply_to, created_at")
         .single();
       setMessages((current) => {
         const without = current.filter((message) => message.id !== tempId);
         return data ? mergeMessage(without, toMessage(data)) : without;
       });
       return !error;
+    },
+    [selfId],
+  );
+
+  const toggleReaction = useCallback(
+    async (messageId: string, emoji: ChatReaction) => {
+      const supabase = createClient();
+      const existing = reactionsRef.current.find(
+        (reaction) =>
+          reaction.messageId === messageId &&
+          reaction.userId === selfId &&
+          reaction.emoji === emoji,
+      );
+      // Un doble toque mientras la base confirma no hace nada.
+      if (existing?.pending) return;
+      if (existing) {
+        setReactions((current) => current.filter((reaction) => reaction.id !== existing.id));
+        const { error } = await supabase
+          .from("admin_message_reactions")
+          .delete()
+          .eq("id", existing.id);
+        if (error) setReactions((current) => mergeReaction(current, existing));
+        return;
+      }
+      const pending: MessageReaction = {
+        id: `pendiente-${crypto.randomUUID()}`,
+        messageId,
+        userId: selfId,
+        emoji,
+        pending: true,
+      };
+      setReactions((current) => mergeReaction(current, pending));
+      const { data, error } = await supabase
+        .from("admin_message_reactions")
+        .insert({ message_id: messageId, emoji })
+        .select("id, message_id, user_id, emoji")
+        .single();
+      setReactions((current) =>
+        data && !error
+          ? mergeReaction(current, toReaction(data))
+          : current.filter((reaction) => reaction.id !== pending.id),
+      );
     },
     [selfId],
   );
@@ -355,6 +451,8 @@ export function AdminLiveProvider({
         unreadSince,
         chatReads,
         sendMessage,
+        reactions,
+        toggleReaction: (messageId, emoji) => void toggleReaction(messageId, emoji),
         toasts,
         dismissToast,
         clearToasts,

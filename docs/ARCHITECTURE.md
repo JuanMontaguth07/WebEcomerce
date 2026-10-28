@@ -133,30 +133,31 @@ categories ─┬─< products >─── brands
 profiles (1:1 auth.users) ── orders.user_id (opcional)
 ```
 
-| Tabla                  | Notas                                                                                                                      |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `profiles`             | Rol `customer`/`admin`. El rol solo cambia por SQL.                                                                        |
-| `categories`           | Jerárquica (`parent_id`), campos SEO propios y foto opcional (`categories/`) y pieza de Kova Architect (`architect_part`). |
-| `brands`               | Nombre y slug únicos.                                                                                                      |
-| `products`             | `stock` no editable por la API; `search_vector` mantenido por triggers.                                                    |
-| `product_images`       | Posición única por producto (diferible para reordenar).                                                                    |
-| `spec_definitions`     | Especificaciones tipadas por categoría (`text`/`number`/`boolean`).                                                        |
-| `product_specs`        | Valor por producto; un trigger valida categoría y tipo.                                                                    |
-| `orders`               | Snapshot del cliente, totales, token de consulta (hash), vencimiento.                                                      |
-| `order_items`          | Snapshot de nombre, SKU y precio; `product_id` NULL si se eliminó.                                                         |
-| `order_status_history` | Quién cambió qué estado y cuándo.                                                                                          |
-| `inventory_movements`  | Solo inserción; guarda nombre y SKU; `product_id` NULL si se eliminó.                                                      |
-| `rarities`             | Niveles de calidad (color, efecto); `products.rarity_id` opcional.                                                         |
-| `product_flags`        | Banderas de marca (color, logo en `flags/`); `products.flag_id` opcional.                                                  |
-| `home_banners`         | Anuncios propios de la portada (imagen en `banners/` o ilustración incluida).                                              |
-| `admin_last_seen`      | Última vez que cada admin tuvo el panel abierto; solo la escribe `touch_admin_seen()`.                                     |
-| `builds`               | Configuraciones de Kova Architect (inmutables; versiones con `parent_id`).                                                 |
-| `build_components`     | Piezas de cada configuración con copia de nombre, SKU y precio.                                                            |
-| `admin_alerts`         | Alertas del panel que genera la base (pedidos y stock); en Realtime.                                                       |
-| `admin_messages`       | Chat entre administradores; en Realtime.                                                                                   |
-| `admin_reads`          | Hasta cuándo leyó cada admin las alertas y el chat.                                                                        |
-| `audit_log`            | Historial general inmutable (triggers y funciones); solo lo lee el admin.                                                  |
-| `payments`             | Vacía en el MVP; la llenarán los adaptadores de pasarela.                                                                  |
+| Tabla                     | Notas                                                                                                                      |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `profiles`                | Rol `customer`/`admin`. El rol solo cambia por SQL.                                                                        |
+| `categories`              | Jerárquica (`parent_id`), campos SEO propios y foto opcional (`categories/`) y pieza de Kova Architect (`architect_part`). |
+| `brands`                  | Nombre y slug únicos.                                                                                                      |
+| `products`                | `stock` no editable por la API; `search_vector` mantenido por triggers.                                                    |
+| `product_images`          | Posición única por producto (diferible para reordenar).                                                                    |
+| `spec_definitions`        | Especificaciones tipadas por categoría (`text`/`number`/`boolean`).                                                        |
+| `product_specs`           | Valor por producto; un trigger valida categoría y tipo.                                                                    |
+| `orders`                  | Snapshot del cliente, totales, token de consulta (hash), vencimiento.                                                      |
+| `order_items`             | Snapshot de nombre, SKU y precio; `product_id` NULL si se eliminó.                                                         |
+| `order_status_history`    | Quién cambió qué estado y cuándo.                                                                                          |
+| `inventory_movements`     | Solo inserción; guarda nombre y SKU; `product_id` NULL si se eliminó.                                                      |
+| `rarities`                | Niveles de calidad (color, efecto); `products.rarity_id` opcional.                                                         |
+| `product_flags`           | Banderas de marca (color, logo en `flags/`); `products.flag_id` opcional.                                                  |
+| `home_banners`            | Anuncios propios de la portada (imagen en `banners/` o ilustración incluida).                                              |
+| `admin_last_seen`         | Última vez que cada admin tuvo el panel abierto; solo la escribe `touch_admin_seen()`.                                     |
+| `builds`                  | Configuraciones de Kova Architect (inmutables; versiones con `parent_id`).                                                 |
+| `build_components`        | Piezas de cada configuración con copia de nombre, SKU y precio.                                                            |
+| `admin_alerts`            | Alertas del panel que genera la base (pedidos y stock); en Realtime.                                                       |
+| `admin_messages`          | Chat entre administradores; `reply_to` = mensaje citado. En Realtime.                                                      |
+| `admin_message_reactions` | Reacciones al chat (lista fija de emojis), cada admin las suyas. En Realtime.                                              |
+| `admin_reads`             | Hasta cuándo leyó cada admin las alertas y el chat.                                                                        |
+| `audit_log`               | Historial general inmutable (triggers y funciones); solo lo lee el admin.                                                  |
+| `payments`                | Vacía en el MVP; la llenarán los adaptadores de pasarela.                                                                  |
 
 ### Funciones del catálogo (RPC, `security invoker`)
 
