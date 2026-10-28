@@ -119,6 +119,7 @@ export type Database = {
           author_id: string
           body: string
           created_at: string
+          deleted_at: string | null
           id: string
           mentions: string[]
           product_id: string | null
@@ -128,6 +129,7 @@ export type Database = {
           author_id?: string
           body: string
           created_at?: string
+          deleted_at?: string | null
           id?: string
           mentions?: string[]
           product_id?: string | null
@@ -137,6 +139,7 @@ export type Database = {
           author_id?: string
           body?: string
           created_at?: string
+          deleted_at?: string | null
           id?: string
           mentions?: string[]
           product_id?: string | null
@@ -1344,6 +1347,7 @@ export type Database = {
           order_number: number
         }[]
       }
+      delete_admin_message: { Args: { p_id: string }; Returns: undefined }
       delete_product: {
         Args: { p_product_id: string; p_reason?: string }
         Returns: Json

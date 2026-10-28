@@ -36,6 +36,7 @@ export function toMessage(row: {
   reply_to?: string | null;
   product_id?: string | null;
   mentions?: string[] | null;
+  deleted_at?: string | null;
   created_at: string;
 }): ChatMessage {
   return {
@@ -45,6 +46,7 @@ export function toMessage(row: {
     replyTo: row.reply_to ?? null,
     productId: row.product_id ?? null,
     mentions: row.mentions ?? [],
+    deletedAt: row.deleted_at ?? null,
     createdAt: row.created_at,
   };
 }

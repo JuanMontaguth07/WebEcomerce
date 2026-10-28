@@ -5,7 +5,11 @@ import {
   CheckCheckIcon,
   CheckIcon,
   MessageCircleIcon,
+  BanIcon,
+  BellIcon,
+  BellOffIcon,
   ReplyIcon,
+  Trash2Icon,
   XIcon,
 } from "lucide-react";
 import { AnimatePresence, m } from "motion/react";
@@ -58,7 +62,10 @@ export function AdminChat() {
               }`
             : "Chat del equipo"
         }
-        className="fixed right-[max(1.25rem,env(safe-area-inset-right))] bottom-[max(1.25rem,env(safe-area-inset-bottom))] z-50 grid size-14 place-items-center rounded-full bg-[linear-gradient(145deg,#c4b5fd,#7c3aed)] text-white shadow-[0_14px_34px_-10px_#7c3aedcc] transition-transform duration-300 ease-out-soft outline-none hover:scale-105 focus-visible:ring-4 focus-visible:ring-violet-400/40 active:scale-95"
+        className={cn(
+          "fixed right-[max(1.25rem,env(safe-area-inset-right))] bottom-[max(1.25rem,env(safe-area-inset-bottom))] z-50 grid size-14 place-items-center rounded-full bg-[linear-gradient(145deg,#c4b5fd,#7c3aed)] text-white shadow-[0_14px_34px_-10px_#7c3aedcc] transition-transform duration-300 ease-out-soft outline-none hover:scale-105 focus-visible:ring-4 focus-visible:ring-violet-400/40 active:scale-95",
+          chatOpen && "max-sm:hidden",
+        )}
       >
         <AnimatePresence mode="wait" initial={false}>
           <m.span
@@ -108,8 +115,16 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
     orderRefs,
     productRefs,
     loadRefs,
+    deleteMessage,
+    hasOlder,
+    loadingOlder,
+    loadOlder,
+    chatMuted,
+    setChatMuted,
   } = useLive();
   const { online } = usePresence();
+  // Al traer mensajes anteriores, la vista se queda en el mismo mensaje.
+  const keepFrom = useRef<number | null>(null);
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
   // En pantallas táctiles no hay «pasar el cursor»: tocar un mensaje muestra sus acciones.
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -176,6 +191,19 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
     };
   }, [onClose]);
 
+  const firstId = messages[0]?.id;
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!list || keepFrom.current === null) return;
+    list.scrollTop += list.scrollHeight - keepFrom.current;
+    keepFrom.current = null;
+  }, [firstId]);
+
+  function showOlder() {
+    keepFrom.current = listRef.current?.scrollHeight ?? null;
+    loadOlder();
+  }
+
   useLayoutEffect(() => {
     const list = listRef.current;
     if (!list) return;
@@ -233,7 +261,7 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 16, scale: 0.96, transition: { duration: 0.18 } }}
       transition={{ type: "spring", stiffness: 380, damping: 32 }}
-      className="fixed right-[max(1.25rem,env(safe-area-inset-right))] bottom-[calc(max(1.25rem,env(safe-area-inset-bottom))+4.5rem)] z-50 grid h-[min(36rem,calc(100dvh-7.5rem))] w-[min(23rem,calc(100vw-2.5rem))] origin-bottom-right grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-[1.6rem] border bg-popover/90 text-popover-foreground shadow-[0_28px_70px_-24px_rgb(0_0_0/0.65)] backdrop-blur-2xl"
+      className="fixed right-[max(1.25rem,env(safe-area-inset-right))] bottom-[calc(max(1.25rem,env(safe-area-inset-bottom))+4.5rem)] z-50 grid h-[min(36rem,calc(100dvh-7.5rem))] w-[min(23rem,calc(100vw-2.5rem))] origin-bottom-right grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-[1.6rem] border bg-popover/90 text-popover-foreground shadow-[0_28px_70px_-24px_rgb(0_0_0/0.65)] backdrop-blur-2xl max-sm:inset-0 max-sm:h-dvh max-sm:w-full max-sm:rounded-none max-sm:border-0 max-sm:bg-popover max-sm:pt-[env(safe-area-inset-top)] max-sm:pb-[env(safe-area-inset-bottom)]"
     >
       <header className="flex items-center gap-3 border-b px-4 py-3">
         <span className="flex -space-x-2">
@@ -257,6 +285,23 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
         </span>
         <button
           type="button"
+          onClick={() => setChatMuted(!chatMuted)}
+          aria-pressed={chatMuted}
+          aria-label="Silenciar el chat"
+          title={chatMuted ? "Chat silenciado: solo avisan las menciones" : "Silenciar el chat"}
+          className={cn(
+            "grid size-8 place-items-center rounded-full transition-colors hover:bg-foreground/5",
+            chatMuted ? "text-warning" : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {chatMuted ? (
+            <BellOffIcon className="size-4" aria-hidden />
+          ) : (
+            <BellIcon className="size-4" aria-hidden />
+          )}
+        </button>
+        <button
+          type="button"
           onClick={onClose}
           aria-label="Cerrar el chat"
           className="grid size-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
@@ -272,6 +317,16 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
           className="relative h-full overflow-y-auto px-3 py-3"
           aria-live="polite"
         >
+          {hasOlder && messages.length > 0 && (
+            <button
+              type="button"
+              onClick={showOlder}
+              disabled={loadingOlder}
+              className="mx-auto mb-1 flex h-8 items-center gap-1.5 rounded-full border bg-popover px-3 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-60"
+            >
+              {loadingOlder ? "Cargando…" : "Ver mensajes anteriores"}
+            </button>
+          )}
           {messages.length && now !== null ? (
             groupByDay(messages, now).map((group) => (
               <section key={group.label} aria-label={group.label} className="grid gap-1">
@@ -331,8 +386,9 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
                             </span>
                           )}
                           <div id={messageDom(message.id)} className="relative scroll-my-16">
-                            {!message.pending && (
+                            {!message.pending && !message.deletedAt && (
                               <MessageActions
+                                onDelete={mine ? () => deleteMessage(message.id) : undefined}
                                 mine={mine}
                                 active={activeId === message.id}
                                 summary={summary}
@@ -342,10 +398,11 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
                               />
                             )}
                             <div
-                              tabIndex={message.pending ? undefined : 0}
+                              tabIndex={message.pending || message.deletedAt ? undefined : 0}
                               aria-keyshortcuts="Enter"
                               onPointerUp={(event) => {
                                 if (event.pointerType === "mouse" || message.pending) return;
+                                if (message.deletedAt) return;
                                 if ((event.target as Element).closest("button, a")) return;
                                 setActiveId((current) =>
                                   current === message.id ? null : message.id,
@@ -393,7 +450,12 @@ function ChatWindow({ onClose }: { onClose: () => void }) {
                               <span className="sr-only">
                                 {mine ? "Tú" : (author?.name ?? "Otro admin")}:{" "}
                               </span>
-                              {message.body ? (
+                              {message.deletedAt ? (
+                                <span className="flex items-center gap-1.5 italic opacity-70">
+                                  <BanIcon className="size-3.5" aria-hidden />
+                                  Mensaje eliminado
+                                </span>
+                              ) : message.body ? (
                                 <MessageText
                                   body={message.body}
                                   handles={handles}
@@ -598,6 +660,7 @@ function MessageActions({
   onReact,
   onReply,
   onDismiss,
+  onDelete,
 }: {
   mine: boolean;
   active: boolean;
@@ -605,8 +668,13 @@ function MessageActions({
   onReact: (emoji: ChatReaction) => void;
   onReply: () => void;
   onDismiss: () => void;
+  /** Solo en los mensajes propios; pide un segundo toque para confirmar. */
+  onDelete?: () => void;
 }) {
   const tab = active ? 0 : -1;
+  const [confirming, setConfirming] = useState(false);
+  const confirmTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(confirmTimer.current), []);
   return (
     <div
       role="toolbar"
@@ -656,6 +724,32 @@ function MessageActions({
       >
         <ReplyIcon className="size-4" aria-hidden />
       </button>
+      {onDelete && (
+        <button
+          type="button"
+          tabIndex={tab}
+          onClick={() => {
+            if (confirming) {
+              setConfirming(false);
+              onDelete();
+              return;
+            }
+            setConfirming(true);
+            window.clearTimeout(confirmTimer.current);
+            confirmTimer.current = window.setTimeout(() => setConfirming(false), 3000);
+          }}
+          aria-label={confirming ? "Confirmar: borrar el mensaje" : "Borrar el mensaje"}
+          title={confirming ? "Toca otra vez para borrar" : "Borrar"}
+          className={cn(
+            "grid h-7 place-items-center rounded-full transition-[width,background-color,color] outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            confirming
+              ? "bg-destructive/15 px-2 text-xs font-semibold text-destructive ring-1 ring-destructive/40"
+              : "w-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive",
+          )}
+        >
+          {confirming ? "¿Borrar?" : <Trash2Icon className="size-4" aria-hidden />}
+        </button>
+      )}
     </div>
   );
 }
@@ -676,8 +770,12 @@ function Quote({
     "mb-1.5 grid w-full min-w-0 rounded-lg border-l-[3px] px-2 py-1 text-left text-xs leading-snug",
     inMine ? "border-current/60 bg-black/15" : "border-primary bg-foreground/5",
   );
-  if (!target) {
-    return <span className={cn(box, "italic opacity-80")}>Respuesta a un mensaje anterior</span>;
+  if (!target || target.deletedAt) {
+    return (
+      <span className={cn(box, "italic opacity-80")}>
+        {target ? "Mensaje eliminado" : "Respuesta a un mensaje anterior"}
+      </span>
+    );
   }
   return (
     <button

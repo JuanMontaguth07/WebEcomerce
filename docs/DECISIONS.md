@@ -648,3 +648,16 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
   producto; abre el chat con `#1042` escrito o el producto ya adjunto.
 - Las tarjetas se piden desde el navegador (RLS de admin) y se guardan mientras dura la visita;
   cuando llega una alerta de ese pedido o producto, su tarjeta se vuelve a pedir.
+
+## D42 — Chat del equipo: borrar, anteriores, celular, silencio y emojis (2026-10-28)
+
+- **Borrar un mensaje propio** (`delete_admin_message`, migración
+  `20261111120000_admin_chat_delete`): con dos toques en la papelera. La fila se queda (las
+  respuestas la citan) con `deleted_at`, sin texto, producto, menciones ni reacciones; se ve
+  «Mensaje eliminado» y llega a los demás por Realtime (UPDATE).
+- **Mensajes anteriores**: «Ver mensajes anteriores» trae 50 más sin mover la vista.
+- **Celular**: el chat ocupa toda la pantalla (respetando las zonas seguras) y el botón flotante
+  se oculta mientras está abierto.
+- **Silenciar el chat** (campana del encabezado, preferencia en este navegador): los mensajes
+  dejan de avisar; las menciones siguen avisando.
+- **Emojis** para el texto: 40 frecuentes, se insertan donde está el cursor.

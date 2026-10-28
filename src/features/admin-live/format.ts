@@ -92,7 +92,7 @@ export function unreadMessages(
 export function mergeMessage(
   messages: ChatMessage[],
   incoming: ChatMessage,
-  limit = 200,
+  limit = 1000,
 ): ChatMessage[] {
   const without = messages.filter((message) => message.id !== incoming.id);
   return [...without, incoming]

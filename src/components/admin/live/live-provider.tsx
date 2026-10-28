@@ -44,6 +44,11 @@ export const TOAST_MS = 7000;
 /** Notificaciones flotantes como máximo a la vez; las demás quedan en la campana. */
 const MAX_TOASTS = 4;
 const SOUND_KEY = "admin:alert-sound:v1";
+const CHAT_MUTE_KEY = "admin:chat-mute:v1";
+/** Mensajes que se piden cada vez al subir a lo más antiguo. */
+const OLDER_PAGE = 50;
+const MESSAGE_FIELDS =
+  "id, author_id, body, reply_to, product_id, mentions, deleted_at, created_at, admin_message_reactions (id, message_id, user_id, emoji)";
 
 type LiveValue = {
   selfId: string;
@@ -73,6 +78,15 @@ type LiveValue = {
   composeInChat: (seed: { text?: string; productId?: string | null }) => void;
   composeSeed: ComposeSeed | null;
   clearComposeSeed: () => void;
+  /** Borra un mensaje propio (queda «Mensaje eliminado»). */
+  deleteMessage: (messageId: string) => void;
+  /** Hay mensajes más antiguos que los cargados. */
+  hasOlder: boolean;
+  loadingOlder: boolean;
+  loadOlder: () => void;
+  /** Los mensajes del chat no avisan (las menciones sí). */
+  chatMuted: boolean;
+  setChatMuted: (muted: boolean) => void;
   reactions: MessageReaction[];
   /** Pone o quita la reacción propia con ese emoji. */
   toggleReaction: (messageId: string, emoji: ChatReaction) => void;
@@ -89,39 +103,45 @@ export type ComposeSeed = { nonce: number; text: string; productId: string | nul
 
 const LiveContext = createContext<LiveValue | null>(null);
 
-// La preferencia de sonido vive en este navegador (y se sincroniza entre pestañas).
-const soundListeners = new Set<() => void>();
-let soundMemory = false;
-
-function readSound(): boolean {
-  try {
-    return window.localStorage.getItem(SOUND_KEY) === "1";
-  } catch {
-    return soundMemory;
-  }
-}
-
-function writeSound(on: boolean) {
-  soundMemory = on;
-  try {
-    window.localStorage.setItem(SOUND_KEY, on ? "1" : "0");
-  } catch {
-    // Almacenamiento bloqueado: dura solo esta visita.
-  }
-  soundListeners.forEach((notify) => notify());
-}
-
-function subscribeSound(listener: () => void) {
-  soundListeners.add(listener);
-  const onStorage = (event: StorageEvent) => {
-    if (event.key === SOUND_KEY) listener();
+/**
+ * Preferencia de sí/no guardada en este navegador (y sincronizada entre
+ * pestañas): el sonido de las alertas y el chat silenciado.
+ */
+function browserFlag(key: string) {
+  const listeners = new Set<() => void>();
+  let memory = false;
+  const read = (): boolean => {
+    try {
+      return window.localStorage.getItem(key) === "1";
+    } catch {
+      return memory;
+    }
   };
-  window.addEventListener("storage", onStorage);
-  return () => {
-    soundListeners.delete(listener);
-    window.removeEventListener("storage", onStorage);
+  const write = (on: boolean) => {
+    memory = on;
+    try {
+      window.localStorage.setItem(key, on ? "1" : "0");
+    } catch {
+      // Almacenamiento bloqueado: dura solo esta visita.
+    }
+    listeners.forEach((notify) => notify());
   };
+  const subscribe = (listener: () => void) => {
+    listeners.add(listener);
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === key) listener();
+    };
+    window.addEventListener("storage", onStorage);
+    return () => {
+      listeners.delete(listener);
+      window.removeEventListener("storage", onStorage);
+    };
+  };
+  return { read, write, subscribe };
 }
+
+const soundFlag = browserFlag(SOUND_KEY);
+const chatMuteFlag = browserFlag(CHAT_MUTE_KEY);
 
 export function useLive(): LiveValue {
   const value = use(LiveContext);
@@ -176,7 +196,15 @@ export function AdminLiveProvider({
     messagesRef.current = messages;
   }, [messages]);
   const [connected, setConnected] = useState(false);
-  const sound = useSyncExternalStore(subscribeSound, readSound, () => false);
+  const sound = useSyncExternalStore(soundFlag.subscribe, soundFlag.read, () => false);
+  const chatMuted = useSyncExternalStore(chatMuteFlag.subscribe, chatMuteFlag.read, () => false);
+  const chatMutedRef = useRef(chatMuted);
+  useEffect(() => {
+    chatMutedRef.current = chatMuted;
+  }, [chatMuted]);
+  // La carga inicial trae los últimos 100: si llegaron completos, puede haber más atrás.
+  const [hasOlder, setHasOlder] = useState(initial.messages.length >= 100);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const chatOpenRef = useRef(false);
   // La lista llega nueva en cada actualización del servidor: el canal no debe reabrirse por eso.
   const teamRef = useRef(team);
@@ -190,11 +218,13 @@ export function AdminLiveProvider({
 
   const setSound = useCallback((on: boolean) => {
     soundRef.current = on;
-    writeSound(on);
+    soundFlag.write(on);
     if (on) playChime("violet");
   }, []);
 
   const pushToast = useCallback((alert: LiveAlert) => {
+    // Chat silenciado: los mensajes no avisan (las menciones sí).
+    if (alert.kind === "chat" && chatMutedRef.current) return;
     setToasts((current) =>
       [alert, ...current.filter((item) => item.id !== alert.id)].slice(0, MAX_TOASTS),
     );
@@ -349,6 +379,22 @@ export function AdminLiveProvider({
                 actorId: message.authorId,
                 createdAt: message.createdAt,
               });
+            }
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "admin_messages" },
+          ({ new: row }) => {
+            const message = toMessage(row as Parameters<typeof toMessage>[0]);
+            setMessages((current) =>
+              current.some((item) => item.id === message.id)
+                ? mergeMessage(current, message)
+                : current,
+            );
+            if (message.deletedAt) {
+              setReactions((current) => current.filter((item) => item.messageId !== message.id));
+              setToasts((current) => current.filter((item) => item.id !== `chat-${message.id}`));
             }
           },
         )
@@ -527,6 +573,54 @@ export function AdminLiveProvider({
 
   const clearComposeSeed = useCallback(() => setComposeSeed(null), []);
 
+  // Borrar un mensaje propio: se ve al instante y vuelve si la base no lo acepta.
+  const deleteMessage = useCallback(async (messageId: string) => {
+    const before = messagesRef.current.find((message) => message.id === messageId);
+    if (!before) return;
+    setMessages((current) =>
+      mergeMessage(current, {
+        ...before,
+        body: "",
+        productId: null,
+        mentions: [],
+        deletedAt: new Date().toISOString(),
+      }),
+    );
+    const { error } = await createClient().rpc("delete_admin_message", { p_id: messageId });
+    if (error) setMessages((current) => mergeMessage(current, before));
+    else setReactions((current) => current.filter((item) => item.messageId !== messageId));
+  }, []);
+
+  const loadOlder = useCallback(async () => {
+    const oldest = messagesRef.current[0];
+    if (!oldest) return;
+    setLoadingOlder(true);
+    const { data, error } = await createClient()
+      .from("admin_messages")
+      .select(MESSAGE_FIELDS)
+      .lt("created_at", oldest.createdAt)
+      .order("created_at", { ascending: false })
+      .limit(OLDER_PAGE);
+    setLoadingOlder(false);
+    if (error) return;
+    setHasOlder(data.length === OLDER_PAGE);
+    setMessages((current) => {
+      const known = new Set(current.map((message) => message.id));
+      const older = data
+        .map(toMessage)
+        .filter((message) => !known.has(message.id))
+        .reverse();
+      return [...older, ...current];
+    });
+    setReactions((current) =>
+      data
+        .flatMap((row) => row.admin_message_reactions)
+        .filter((row) => isReaction(row.emoji))
+        .map(toReaction)
+        .reduce(mergeReaction, current),
+    );
+  }, []);
+
   const unreadChat = chatOpen ? 0 : unreadMessages(messages, selfId, chatReadAt);
   const unreadMentions = chatOpen
     ? 0
@@ -581,6 +675,12 @@ export function AdminLiveProvider({
         composeInChat,
         composeSeed,
         clearComposeSeed,
+        deleteMessage: (messageId) => void deleteMessage(messageId),
+        hasOlder,
+        loadingOlder,
+        loadOlder: () => void loadOlder(),
+        chatMuted,
+        setChatMuted: chatMuteFlag.write,
         reactions,
         toggleReaction: (messageId, emoji) => void toggleReaction(messageId, emoji),
         toasts,

@@ -26,6 +26,8 @@ export type ChatMessage = {
   productId?: string | null;
   /** Administradores mencionados con @. */
   mentions?: string[];
+  /** Lo borró su autor: se muestra «Mensaje eliminado». */
+  deletedAt?: string | null;
   createdAt: string;
   /** Mensaje propio que aún no confirma la base. */
   pending?: boolean;

@@ -294,6 +294,44 @@ describe("chat entre administradores", () => {
     ).rejects.toThrow(/INVALID_MENTION/);
   });
 
+  it("solo el autor borra su mensaje y queda como eliminado", async () => {
+    const message = await asRole(db, "authenticated", OTHER, () =>
+      one<{ id: string }>(
+        db,
+        `insert into public.admin_messages (body, mentions) values ('Me equivoqué', $1) returning id`,
+        [[ADMIN]],
+      ),
+    );
+    await asRole(db, "authenticated", ADMIN, () =>
+      db.query(`insert into public.admin_message_reactions (message_id, emoji) values ($1, '👀')`, [
+        message.id,
+      ]),
+    );
+    await expect(
+      asRole(db, "authenticated", ADMIN, () =>
+        db.query("select public.delete_admin_message($1)", [message.id]),
+      ),
+    ).rejects.toThrow(/NOT_FOUND/);
+    await asRole(db, "authenticated", OTHER, () =>
+      db.query("select public.delete_admin_message($1)", [message.id]),
+    );
+    const row = await asRole(db, "authenticated", ADMIN, () =>
+      one<{ body: string; mentions: string[]; deleted: boolean; reactions: number }>(
+        db,
+        `select body, mentions, deleted_at is not null as deleted,
+           (select count(*)::int from public.admin_message_reactions where message_id = $1) as reactions
+         from public.admin_messages where id = $1`,
+        [message.id],
+      ),
+    );
+    expect(row).toEqual({ body: "", mentions: [], deleted: true, reactions: 0 });
+    await expect(
+      asRole(db, "authenticated", CUSTOMER, () =>
+        db.query("select public.delete_admin_message($1)", [message.id]),
+      ),
+    ).rejects.toThrow(/FORBIDDEN/);
+  });
+
   it("marcar como leído guarda la hora de cada cosa por separado", async () => {
     await asRole(db, "authenticated", ADMIN, () =>
       db.query("select public.mark_admin_read('chat')"),

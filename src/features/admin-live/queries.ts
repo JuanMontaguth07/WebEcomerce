@@ -35,7 +35,7 @@ export async function getAdminLiveData(userId: string): Promise<AdminLiveData> {
     supabase
       .from("admin_messages")
       .select(
-        "id, author_id, body, reply_to, created_at, admin_message_reactions (id, message_id, user_id, emoji)",
+        "id, author_id, body, reply_to, product_id, mentions, deleted_at, created_at, admin_message_reactions (id, message_id, user_id, emoji)",
       )
       .order("created_at", { ascending: false })
       .limit(100),

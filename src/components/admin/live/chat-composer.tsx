@@ -2,6 +2,7 @@
 
 import {
   ArrowUpIcon,
+  SmileIcon,
   PackageIcon,
   PackagePlusIcon,
   ReplyIcon,
@@ -121,6 +122,17 @@ export function ChatComposer({
     const position = query.start + handle.length + 2;
     setDraft(next);
     setCaret(position);
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+      inputRef.current?.setSelectionRange(position, position);
+    });
+  }
+
+  // El emoji entra donde está el cursor.
+  function insertEmoji(emoji: string) {
+    const next = draft.slice(0, caret) + emoji + draft.slice(caret);
+    const position = caret + emoji.length;
+    onInput(next, position);
     requestAnimationFrame(() => {
       inputRef.current?.focus();
       inputRef.current?.setSelectionRange(position, position);
@@ -259,7 +271,10 @@ export function ChatComposer({
         }}
         className="flex items-end gap-2 p-3"
       >
-        <ProductPicker onPick={attach} />
+        <span className="flex shrink-0 items-center pb-1">
+          <EmojiPicker onPick={insertEmoji} />
+          <ProductPicker onPick={attach} />
+        </span>
         <label htmlFor={`${id}-input`} className="sr-only">
           Mensaje
         </label>
@@ -407,7 +422,7 @@ function ProductPicker({ onPick }: { onPick: (product: ProductRef) => void }) {
       <Popover.Trigger
         aria-label="Compartir un producto"
         title="Compartir un producto"
-        className="grid size-10 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-secondary data-[state=open]:text-foreground"
+        className="grid size-8 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-secondary data-[state=open]:text-foreground"
       >
         <PackagePlusIcon className="size-5" aria-hidden />
       </Popover.Trigger>
@@ -483,6 +498,89 @@ function ProductPicker({ onPick }: { onPick: (product: ProductRef) => void }) {
               </p>
             )}
           </div>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  );
+}
+
+const EMOJIS = [
+  "😀",
+  "😂",
+  "😊",
+  "😍",
+  "🤔",
+  "😅",
+  "😮",
+  "😢",
+  "😡",
+  "🥳",
+  "👍",
+  "👎",
+  "👏",
+  "🙏",
+  "💪",
+  "🤝",
+  "👀",
+  "✅",
+  "❌",
+  "⚠️",
+  "🔥",
+  "🚀",
+  "🎉",
+  "💯",
+  "❤️",
+  "⭐",
+  "📦",
+  "🚚",
+  "💸",
+  "🧾",
+  "🖥️",
+  "💻",
+  "🎮",
+  "🔧",
+  "⚡",
+  "🧊",
+  "⏰",
+  "📈",
+  "📉",
+  "☕",
+];
+
+/** Emojis frecuentes para el texto (las reacciones van aparte). */
+function EmojiPicker({ onPick }: { onPick: (emoji: string) => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover.Root open={open} onOpenChange={setOpen}>
+      <Popover.Trigger
+        aria-label="Insertar un emoji"
+        title="Emoji"
+        className="grid size-8 place-items-center rounded-full text-muted-foreground transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-secondary data-[state=open]:text-foreground"
+      >
+        <SmileIcon className="size-[1.125rem]" aria-hidden />
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content
+          side="top"
+          align="start"
+          sideOffset={10}
+          onCloseAutoFocus={(event) => event.preventDefault()}
+          className="z-[60] grid grid-cols-8 gap-0.5 rounded-2xl border bg-popover p-2 shadow-[0_20px_50px_-18px_rgb(0_0_0/0.6)] data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
+        >
+          {EMOJIS.map((emoji) => (
+            <button
+              key={emoji}
+              type="button"
+              onClick={() => {
+                onPick(emoji);
+                setOpen(false);
+              }}
+              aria-label={`Insertar ${emoji}`}
+              className="grid size-8 place-items-center rounded-lg text-lg transition-[scale,background-color] outline-none hover:scale-110 hover:bg-secondary focus-visible:bg-secondary focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {emoji}
+            </button>
+          ))}
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
