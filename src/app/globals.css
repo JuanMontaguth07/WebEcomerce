@@ -954,7 +954,7 @@
    bloque contenedor para lo que va fijo o pegajoso dentro de la página. */
 @media (prefers-reduced-motion: no-preference) {
   .admin-page-in {
-    animation: admin-page-in 0.32s var(--ease-out-soft) both;
+    animation: admin-page-in 0.18s var(--ease-out-soft) both;
   }
   .admin-rise {
     animation: admin-rise 0.5s var(--ease-out-soft) both;
@@ -964,8 +964,8 @@
 
 @keyframes admin-page-in {
   from {
-    opacity: 0;
-    translate: 0 6px;
+    opacity: 0.4;
+    translate: 0 3px;
   }
 }
 

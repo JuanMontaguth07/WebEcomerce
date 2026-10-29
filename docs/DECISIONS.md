@@ -674,7 +674,10 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
   cookie `admin_sidebar`, que el layout lee para pintarlo igual desde el servidor (sin salto).
 - **Marca de la sección activa** que se desliza hasta ella al navegar o al contraer el menú
   (medida en el navegador; Motion no trae aquí las animaciones de layout).
-- **Transición entre páginas** (`app/admin/template.tsx`) y **bloques del resumen escalonados**
+- **Cambio de sección inmediato**: `app/admin/loading.tsx` (esqueleto) permite que Next precargue
+  y navegue al instante en vez de esperar a que el servidor termine la página. En tema oscuro los
+  íconos pasan a un cristal teñido de su color (el cuadro negro se perdía en el fondo).
+- **Transición entre páginas** (`app/admin/template.tsx`, 0,18 s) y **bloques del resumen escalonados**
   (`.admin-rise`); con opacity/translate para no romper lo fijo dentro de la página, y sin
   movimiento si el sistema pide reducirlo.
 - **Resumen** (`components/admin/dashboard-view.tsx`, la página solo consulta los datos):
