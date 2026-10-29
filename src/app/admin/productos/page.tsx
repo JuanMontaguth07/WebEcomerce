@@ -1,4 +1,4 @@
-import { DownloadIcon, PlusIcon } from "lucide-react";
+import { DownloadIcon, PlusIcon, SparklesIcon, UploadIcon } from "lucide-react";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import {
@@ -71,6 +71,18 @@ export default async function AdminProductsPage({ searchParams }: PageProps<"/ad
         description={`${total} ${total === 1 ? "producto" : "productos"}`}
         actions={
           <>
+            <Button asChild variant="secondary">
+              <Link href="/admin/productos/calidad">
+                <SparklesIcon aria-hidden />
+                Calidad
+              </Link>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link href="/admin/productos/importar">
+                <UploadIcon aria-hidden />
+                Importar
+              </Link>
+            </Button>
             <Button asChild variant="secondary">
               <Link href="/admin/productos/exportar" prefetch={false}>
                 <DownloadIcon aria-hidden />

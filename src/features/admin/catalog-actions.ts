@@ -12,8 +12,8 @@ import {
   categorySchema,
   productSchema,
   specDefinitionSchema,
-  type ProductValues,
 } from "./catalog-schemas";
+import { toProductRow } from "./product-row";
 import { translateDbError } from "./shared";
 
 // -----------------------------------------------------------------------------
@@ -24,30 +24,6 @@ const PRODUCT_UNIQUE = {
   products_slug_key: { field: "slug", message: "Ya existe un producto con este slug." },
   products_sku_key: { field: "sku", message: "Ya existe un producto con este SKU." },
 };
-
-function toProductRow(values: ProductValues) {
-  return {
-    name: values.name,
-    slug: values.slug,
-    sku: values.sku,
-    product_type: values.productType,
-    category_id: values.categoryId,
-    brand_id: values.brandId ?? null,
-    rarity_id: values.rarityId ?? null,
-    flag_id: values.flagId ?? null,
-    unique_note: values.uniqueNote ?? null,
-    price: values.price,
-    compare_at_price: values.compareAtPrice ?? null,
-    low_stock_threshold: values.lowStockThreshold,
-    warranty_months: values.warrantyMonths ?? null,
-    short_description: values.shortDescription ?? null,
-    description: values.description ?? null,
-    is_active: values.isActive,
-    is_featured: values.isFeatured,
-    seo_title: values.seoTitle ?? null,
-    seo_description: values.seoDescription ?? null,
-  };
-}
 
 export const createProduct = adminAction(productSchema, async (values, { supabase }) => {
   const { data, error } = await supabase

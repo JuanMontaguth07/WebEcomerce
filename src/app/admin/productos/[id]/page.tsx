@@ -18,8 +18,10 @@ import { listActivity } from "@/features/activity/queries";
 import { listAdminFlags } from "@/features/flags/queries";
 import { listAdminRarities } from "@/features/rarities/queries";
 import { requireAdmin } from "@/features/auth/session";
+import { toCardSpecs } from "@/features/catalog/specs";
 import { getInventoryMovements } from "@/features/inventory/queries";
 import { MOVEMENT_LABELS } from "@/features/inventory/schemas";
+import { ProductCardPreview, ProductDraftProvider } from "../product-draft";
 import { ProductForm, type ProductFormValues } from "../product-form";
 import { ImageManager } from "./image-manager";
 import { DeleteProductPanel, DuplicateProductButton } from "./product-actions";
@@ -110,105 +112,133 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
         }
       />
 
-      <div className="grid items-start gap-6 xl:grid-cols-[1fr_22rem]">
-        <div className="grid gap-6">
-          <ProductForm
-            productId={product.id}
-            initial={initial}
-            categories={categories}
-            brands={brands}
-            rarities={rarities}
-            flags={flags}
-          />
-          <Card title="Imágenes" id="imagenes">
-            <ImageManager
+      <ProductDraftProvider initial={initial}>
+        <div className="grid items-start gap-6 xl:grid-cols-[1fr_22rem]">
+          <div className="grid gap-6">
+            <ProductForm
               productId={product.id}
-              productName={product.name}
-              images={product.images}
+              initial={initial}
+              categories={categories}
+              brands={brands}
+              rarities={rarities}
+              flags={flags}
             />
-          </Card>
-          <Card title="Ficha técnica" id="ficha">
-            <SpecsEditor
-              key={product.category_id}
-              productId={product.id}
-              categoryId={product.category_id}
-              definitions={definitions}
-              values={product.specs}
-            />
-          </Card>
-        </div>
-
-        <div className="grid gap-6">
-          <Card title="Inventario" id="inventario">
-            <StockPanel productId={product.id} stock={product.stock} />
-          </Card>
-          <Card title="Últimos movimientos">
-            {movements.length ? (
-              <ul className="flex flex-col gap-2 text-sm">
-                {movements.map((movement) => (
-                  <li
-                    key={movement.id}
-                    className="flex items-start justify-between gap-3 border-b pb-2 last:border-b-0"
-                  >
-                    <div className="grid min-w-0 gap-0.5">
-                      <span className="font-medium">{MOVEMENT_LABELS[movement.type]}</span>
-                      <span className="truncate text-xs text-muted-foreground">
-                        {dateTime.format(new Date(movement.createdAt))}
-                        {movement.reason ? ` · ${movement.reason}` : ""}
-                      </span>
-                    </div>
-                    <span
-                      className={
-                        movement.quantity > 0
-                          ? "font-mono text-success"
-                          : "font-mono text-destructive"
-                      }
-                    >
-                      {movement.quantity > 0 ? "+" : ""}
-                      {movement.quantity}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">Sin movimientos todavía.</p>
-            )}
-            <Link
-              href={`/admin/inventario?producto=${product.id}`}
-              className="text-sm font-semibold text-primary hover:underline"
-            >
-              Ver todos los movimientos
-            </Link>
-          </Card>
-          <Card title="Historial de cambios">
-            {activity.entries.length ? (
-              <ActivityFeed
-                entries={activity.entries}
-                existing={activity.existing}
-                names={activity.names}
-                compact
+            <Card title="Imágenes" id="imagenes">
+              <ImageManager
+                productId={product.id}
+                productName={product.name}
+                images={product.images}
               />
-            ) : (
-              <p className="text-sm text-muted-foreground">Sin cambios registrados todavía.</p>
-            )}
-            <Link
-              href={`/admin/actividad?id=${product.id}`}
-              className="text-sm font-semibold text-primary hover:underline"
-            >
-              Ver todo el historial
-            </Link>
-          </Card>
-          <Card title="Eliminar">
-            <DeleteProductPanel
-              productId={product.id}
-              productName={product.name}
-              stock={product.stock}
-              orderCount={counts.orders}
-              movementCount={counts.movements}
-            />
-          </Card>
+            </Card>
+            <Card title="Ficha técnica" id="ficha">
+              <SpecsEditor
+                key={product.category_id}
+                productId={product.id}
+                categoryId={product.category_id}
+                definitions={definitions}
+                values={product.specs}
+              />
+            </Card>
+          </div>
+
+          <div className="grid gap-6">
+            <Card title="Así se ve en la tienda">
+              <ProductCardPreview
+                categories={categories}
+                brands={brands}
+                rarities={rarities}
+                flags={flags}
+                image={
+                  product.images[0]
+                    ? {
+                        path: product.images[0].storage_path,
+                        alt: product.images[0].alt_text ?? product.name,
+                      }
+                    : null
+                }
+                keySpecs={toCardSpecs(
+                  product.specs.map((spec) => ({
+                    ...spec,
+                    definition:
+                      definitions.find(
+                        (definition) => definition.id === spec.spec_id && definition.show_on_card,
+                      ) ?? null,
+                  })),
+                )}
+                stock={product.stock}
+              />
+            </Card>
+            <Card title="Inventario" id="inventario">
+              <StockPanel productId={product.id} stock={product.stock} />
+            </Card>
+            <Card title="Últimos movimientos">
+              {movements.length ? (
+                <ul className="flex flex-col gap-2 text-sm">
+                  {movements.map((movement) => (
+                    <li
+                      key={movement.id}
+                      className="flex items-start justify-between gap-3 border-b pb-2 last:border-b-0"
+                    >
+                      <div className="grid min-w-0 gap-0.5">
+                        <span className="font-medium">{MOVEMENT_LABELS[movement.type]}</span>
+                        <span className="truncate text-xs text-muted-foreground">
+                          {dateTime.format(new Date(movement.createdAt))}
+                          {movement.reason ? ` · ${movement.reason}` : ""}
+                        </span>
+                      </div>
+                      <span
+                        className={
+                          movement.quantity > 0
+                            ? "font-mono text-success"
+                            : "font-mono text-destructive"
+                        }
+                      >
+                        {movement.quantity > 0 ? "+" : ""}
+                        {movement.quantity}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground">Sin movimientos todavía.</p>
+              )}
+              <Link
+                href={`/admin/inventario?producto=${product.id}`}
+                className="text-sm font-semibold text-primary hover:underline"
+              >
+                Ver todos los movimientos
+              </Link>
+            </Card>
+            <Card title="Historial de cambios">
+              {activity.entries.length ? (
+                <ActivityFeed
+                  entries={activity.entries}
+                  existing={activity.existing}
+                  names={activity.names}
+                  compact
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">Sin cambios registrados todavía.</p>
+              )}
+              <Link
+                href={`/admin/actividad?id=${product.id}`}
+                className="text-sm font-semibold text-primary hover:underline"
+              >
+                Ver todo el historial
+              </Link>
+            </Card>
+            <Card title="Eliminar">
+              <DeleteProductPanel
+                productId={product.id}
+                productName={product.name}
+                stock={product.stock}
+                orderCount={counts.orders}
+                movementCount={counts.movements}
+              />
+            </Card>
+          </div>
         </div>
-      </div>
+      </ProductDraftProvider>
     </div>
   );
 }

@@ -687,3 +687,26 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
 - De paso: el panel tiene región principal (`<main id="contenido">`, destino del «saltar al
   contenido»), en el celular ya no se desborda a lo ancho y el selector de tema se oculta en el
   encabezado del celular (está en «Mi cuenta»).
+
+## D44 — Importar/exportar productos, calidad del catálogo y vista previa (2026-10-29)
+
+- **Un solo formato** (`features/admin/import/columns.ts`): exportar, la plantilla
+  (`/admin/productos/plantilla`) e importar usan las mismas columnas, más una por especificación
+  («Ficha: Núcleos»). Se puede exportar, editar en Excel y volver a subir; las columnas de
+  referencia («Valor del inventario», «Actualizado») se ignoran.
+- **Importar** (`/admin/productos/importar`): el navegador lee el CSV (punto y coma, coma o
+  tabulador; UTF-8 o el Windows-1252 que deja Excel) y el servidor arma un plan por fila
+  (`plan.ts`, puro y probado): el SKU decide si se crea o se actualiza, una celda vacía no borra
+  nada, se valida con las mismas reglas del formulario (`productSchema`) y lo nuevo entra oculto
+  salvo que diga «Visible: Sí». La vista previa muestra nuevos, cambios (campo por campo), sin
+  cambios y errores en palabras; al aplicar el servidor vuelve a planear (no confía en la vista
+  previa) y aplica en tandas de 50 con barra de avance. Stock = cantidad total deseada (queda como
+  movimiento de inventario); la ficha se combina con la existente. Las fotos no se importan.
+- **Calidad del catálogo** (`/admin/productos/calidad`, `features/admin/quality.ts`): 13
+  revisiones con peso alto/medio/bajo (sin fotos, faltan datos de la tarjeta, precio sospechoso,
+  descripción, ficha, agotado visible, texto alternativo, marca, garantía, datos de Arma tu PC,
+  oculto pero listo). Puntaje por producto y del catálogo, filtros por pendiente y cada pendiente
+  lleva a la sección del producto donde se arregla.
+- **Vista previa en el formulario** (`product-draft.tsx`): la misma tarjeta de la tienda con lo
+  que se está escribiendo (precio, oferta, rareza, etiqueta, foto principal y datos de la tarjeta),
+  inerte. El formulario y la vista previa comparten el borrador por contexto.

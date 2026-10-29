@@ -19,6 +19,7 @@ import type { ProductInput } from "@/features/admin/catalog-schemas";
 import type { AdminFlag } from "@/features/flags/queries";
 import type { AdminRarity } from "@/features/rarities/queries";
 import { slugify } from "@/lib/format";
+import { useProductDraft } from "./product-draft";
 
 type Option = { id: string; name: string; is_active?: boolean };
 type Errors = Partial<Record<string, string[]>>;
@@ -92,7 +93,10 @@ export function ProductForm({
   flags: AdminFlag[];
 }) {
   const router = useRouter();
-  const [values, setValues] = useState(initial);
+  // Si la página comparte el borrador (vista previa de la tarjeta), se usa ese estado.
+  const shared = useProductDraft();
+  const local = useState(initial);
+  const [values, setValues] = shared ?? local;
   const [slugTouched, setSlugTouched] = useState(Boolean(productId));
   const [errors, setErrors] = useState<Errors>({});
   const [pending, startTransition] = useTransition();

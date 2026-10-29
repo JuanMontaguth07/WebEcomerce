@@ -230,8 +230,10 @@ export async function listProductsForExport(maxRows = 20_000) {
     supabase
       .from("products")
       .select(
-        `name, sku, slug, price, compare_at_price, stock, low_stock_threshold, warranty_months,
-         is_active, is_featured, updated_at, brand:brands(name), category:categories(name)`,
+        `name, sku, slug, product_type, price, compare_at_price, stock, low_stock_threshold,
+         warranty_months, is_active, is_featured, short_description, description, seo_title,
+         seo_description, updated_at, brand:brands(name), category:categories(name),
+         specs:product_specs(spec_id, value_text, value_number, value_boolean)`,
       )
       .order("name")
       .order("id")
