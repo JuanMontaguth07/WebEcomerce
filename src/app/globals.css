@@ -948,3 +948,30 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Panel: cada página entra suave y los bloques del resumen suben escalonados
+   (--i es su orden). Se usan opacity/translate, no transform, para no crear un
+   bloque contenedor para lo que va fijo o pegajoso dentro de la página. */
+@media (prefers-reduced-motion: no-preference) {
+  .admin-page-in {
+    animation: admin-page-in 0.32s var(--ease-out-soft) both;
+  }
+  .admin-rise {
+    animation: admin-rise 0.5s var(--ease-out-soft) both;
+    animation-delay: calc(var(--i, 0) * 60ms);
+  }
+}
+
+@keyframes admin-page-in {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+}
+
+@keyframes admin-rise {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+  }
+}

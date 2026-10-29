@@ -1,7 +1,8 @@
 import { LogOutIcon } from "lucide-react";
 import Link from "next/link";
 import { figtree, hanken, plex } from "@/app/admin/fonts";
-import { Logo } from "@/components/layout/logo";
+import { Logo, LogoMark } from "@/components/layout/logo";
+import { siteConfig } from "@/config/site";
 import { ThemeSwitch } from "@/components/layout/theme-switch";
 import { signOut } from "@/features/auth/actions";
 import type { AdminUser } from "@/features/auth/session";
@@ -12,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { AdminNav } from "./admin-nav";
 import { AdminPresenceProvider, PresenceDot, TeamPresence } from "./admin-presence";
 import { CommandPalette } from "./command-palette";
+import { AdminFrame, SidebarToggle } from "./sidebar";
 import { AdminChat } from "./live/admin-chat";
 import { AdminLiveProvider } from "./live/live-provider";
 import { LiveToasts } from "./live/live-toasts";
@@ -22,12 +24,15 @@ export function AdminShell({
   team,
   live,
   pendingOrders,
+  sidebarCollapsed,
   children,
 }: {
   admin: AdminUser;
   team: TeamMember[];
   live: AdminLiveData;
   pendingOrders: number;
+  /** Preferencia guardada del menú lateral contraído. */
+  sidebarCollapsed: boolean;
   children: React.ReactNode;
 }) {
   const name = admin.fullName ?? "Administrador";
@@ -35,35 +40,50 @@ export function AdminShell({
     // El acento y la fuente salen de «Mi cuenta» (globals.css: data-admin-*).
     <AdminPresenceProvider self={{ id: admin.id, name, initials: initials(admin) }} team={team}>
       <AdminLiveProvider selfId={admin.id} team={team} initial={live}>
-        <div
+        <AdminFrame
+          initialCollapsed={sidebarCollapsed}
           data-admin-accent={admin.accent}
           data-admin-font={admin.font}
           className={cn(
-            "grid min-h-full flex-1 font-sans lg:grid-cols-[15rem_1fr]",
+            "grid min-h-full flex-1 font-sans",
             plex.variable,
             figtree.variable,
             hanken.variable,
           )}
         >
-          <aside className="border-t-3 border-b border-t-primary bg-sidebar lg:sticky lg:top-0 lg:h-dvh lg:border-r lg:border-b-0">
-            <div className="flex h-full flex-col gap-6 p-4">
-              <div className="flex items-center justify-between gap-2">
-                <Logo />
-                <span className="rounded bg-primary-soft px-1.5 py-1 text-eyebrow text-primary">
-                  Admin
+          <aside
+            id="admin-sidebar"
+            className="min-w-0 border-t-3 border-b border-t-primary bg-sidebar lg:sticky lg:top-0 lg:h-dvh lg:border-r lg:border-b-0"
+          >
+            <div className="flex h-full flex-col gap-6 p-4 lg:overflow-x-hidden lg:overflow-y-auto lg:group-data-[collapsed=true]/shell:px-3">
+              <div className="flex items-center justify-between gap-2 lg:group-data-[collapsed=true]/shell:justify-center">
+                <span className="contents lg:group-data-[collapsed=true]/shell:hidden">
+                  <Logo />
+                  <span className="rounded bg-primary-soft px-1.5 py-1 text-eyebrow text-primary">
+                    Admin
+                  </span>
                 </span>
+                <Link
+                  href="/"
+                  aria-label={`${siteConfig.name}, ir a la tienda`}
+                  className="hidden rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring lg:group-data-[collapsed=true]/shell:block"
+                >
+                  <LogoMark className="size-9" />
+                </Link>
               </div>
               <AdminNav pendingOrders={pendingOrders} />
-              <div className="mt-auto hidden gap-2 border-t pt-4 lg:grid">
+              <div className="mt-auto hidden gap-1 border-t pt-4 lg:grid">
+                <SidebarToggle />
                 <Link
                   href="/admin/cuenta"
-                  className="flex min-w-0 items-center gap-3 rounded-lg p-2 transition-colors hover:bg-secondary"
+                  title={name}
+                  className="flex min-w-0 items-center gap-3 rounded-xl p-2 transition-colors hover:bg-foreground/[0.04] lg:group-data-[collapsed=true]/shell:justify-center lg:group-data-[collapsed=true]/shell:px-0"
                 >
                   <span className="relative grid size-9 shrink-0 place-items-center rounded-full bg-primary font-semibold text-primary-foreground [--presence-ring:var(--sidebar)]">
                     {initials(admin)}
                     <PresenceDot userId={admin.id} />
                   </span>
-                  <span className="grid min-w-0 gap-0.5">
+                  <span className="grid min-w-0 gap-0.5 lg:group-data-[collapsed=true]/shell:sr-only">
                     <span className="truncate text-sm font-semibold">{name}</span>
                     <span className="truncate text-xs text-muted-foreground">{admin.email}</span>
                   </span>
@@ -71,10 +91,15 @@ export function AdminShell({
                 <form action={signOut}>
                   <button
                     type="submit"
-                    className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                    title="Cerrar sesión"
+                    className="flex w-full items-center gap-3 rounded-xl px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive lg:group-data-[collapsed=true]/shell:justify-center lg:group-data-[collapsed=true]/shell:px-0"
                   >
-                    <LogOutIcon className="size-4" aria-hidden />
-                    Cerrar sesión
+                    <span className="grid size-7 shrink-0 place-items-center">
+                      <LogOutIcon className="size-4" aria-hidden />
+                    </span>
+                    <span className="lg:group-data-[collapsed=true]/shell:sr-only">
+                      Cerrar sesión
+                    </span>
                   </button>
                 </form>
               </div>
@@ -88,7 +113,10 @@ export function AdminShell({
               <div className="ml-auto flex items-center gap-3">
                 <TeamPresence />
                 <NotificationBell />
-                <ThemeSwitch />
+                {/* En el celular no cabe: el tema también se cambia en «Mi cuenta». */}
+                <span className="hidden sm:contents">
+                  <ThemeSwitch />
+                </span>
               </div>
               <Link
                 href="/admin/cuenta"
@@ -99,12 +127,18 @@ export function AdminShell({
                 <PresenceDot userId={admin.id} />
               </Link>
             </header>
-            <div className="mx-auto w-full max-w-[90rem] flex-1 p-4 md:p-6 lg:p-8">{children}</div>
+            <main
+              id="contenido"
+              tabIndex={-1}
+              className="mx-auto w-full max-w-[90rem] flex-1 p-4 outline-none md:p-6 lg:p-8"
+            >
+              {children}
+            </main>
           </div>
           {/* Dentro del panel para tomar su color de acento y su fuente. */}
           <LiveToasts />
           <AdminChat />
-        </div>
+        </AdminFrame>
       </AdminLiveProvider>
     </AdminPresenceProvider>
   );

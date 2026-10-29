@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { ORDER_STATUS_LABELS, type OrderStatus } from "@/features/orders/transitions";
 import { cn } from "@/lib/utils";
+import { CurrentModuleTile } from "./current-module-tile";
 
 /** Encabezado de cada página del panel: título, descripción y acciones. */
 export function AdminPageHeader({
@@ -29,9 +30,12 @@ export function AdminPageHeader({
         </Link>
       )}
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="grid gap-1">
-          <h1 className="text-2xl font-extrabold font-stretch-112% md:text-3xl">{title}</h1>
-          {description && <p className="text-muted-foreground">{description}</p>}
+        <div className="flex min-w-0 items-center gap-3.5">
+          <CurrentModuleTile />
+          <div className="grid min-w-0 gap-1">
+            <h1 className="text-2xl font-extrabold font-stretch-112% md:text-3xl">{title}</h1>
+            {description && <p className="text-muted-foreground">{description}</p>}
+          </div>
         </div>
         {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
       </div>

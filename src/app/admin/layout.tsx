@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Suspense } from "react";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { SIDEBAR_COOKIE } from "@/components/admin/sidebar-cookie";
 import { Skeleton } from "@/components/ui/skeleton";
 import { siteConfig } from "@/config/site";
 import { getAdminTeam } from "@/features/account/team";
@@ -18,13 +20,20 @@ export const metadata: Metadata = {
 /** Verifica en el servidor que el usuario sea administrador antes de mostrar el panel. */
 async function AdminGate({ children }: { children: React.ReactNode }) {
   const admin = await requireAdmin();
-  const [pendingOrders, team, live] = await Promise.all([
+  const [pendingOrders, team, live, store] = await Promise.all([
     getPendingOrderCount(),
     getAdminTeam(),
     getAdminLiveData(admin.id),
+    cookies(),
   ]);
   return (
-    <AdminShell admin={admin} team={team} live={live} pendingOrders={pendingOrders}>
+    <AdminShell
+      admin={admin}
+      team={team}
+      live={live}
+      pendingOrders={pendingOrders}
+      sidebarCollapsed={store.get(SIDEBAR_COOKIE)?.value === "1"}
+    >
       {children}
     </AdminShell>
   );
@@ -32,7 +41,10 @@ async function AdminGate({ children }: { children: React.ReactNode }) {
 
 function AdminSkeleton() {
   return (
-    <div className="grid min-h-full flex-1 lg:grid-cols-[15rem_1fr]" aria-busy>
+    <div
+      className="grid min-h-full flex-1 grid-cols-[minmax(0,1fr)] lg:grid-cols-[15rem_minmax(0,1fr)]"
+      aria-busy
+    >
       <span className="sr-only">Cargando panel…</span>
       <div className="hidden border-r bg-sidebar p-4 lg:block">
         <Skeleton className="h-7 w-40" />

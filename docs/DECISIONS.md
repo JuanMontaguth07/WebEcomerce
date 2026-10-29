@@ -661,3 +661,25 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
 - **Silenciar el chat** (campana del encabezado, preferencia en este navegador): los mensajes
   dejan de avisar; las menciones siguen avisando.
 - **Emojis** para el texto: 40 frecuentes, se insertan donde está el cursor.
+
+## D43 — Rediseño visual del panel (2026-10-29)
+
+- **Color por módulo** (`components/admin/module-tile.tsx`): cada sección tiene un ícono tipo
+  app con su degradado (Pedidos verde, Productos azul, Inventario ámbar…), el mismo sistema que
+  las alertas. Se ve en el menú, junto al título de cada página (`CurrentModuleTile`, sale de la
+  ruta) y en el resumen. «Mi cuenta» usa el acento del admin.
+- **Menú lateral contraíble** (`sidebar.tsx`): en pantallas grandes se reduce a solo íconos (con
+  el nombre como ayuda al pasar el cursor y para lectores de pantalla). La preferencia va en la
+  cookie `admin_sidebar`, que el layout lee para pintarlo igual desde el servidor (sin salto).
+- **Marca de la sección activa** que se desliza hasta ella al navegar o al contraer el menú
+  (medida en el navegador; Motion no trae aquí las animaciones de layout).
+- **Transición entre páginas** (`app/admin/template.tsx`) y **bloques del resumen escalonados**
+  (`.admin-rise`); con opacity/translate para no romper lo fijo dentro de la página, y sin
+  movimiento si el sistema pide reducirlo.
+- **Resumen** (`components/admin/dashboard-view.tsx`, la página solo consulta los datos):
+  saludo según la hora de Colombia, cuántos temas hay por atender, accesos rápidos, cifras que
+  suben (`CountUp`; los lectores de pantalla leen el valor final) y tendencia de 30 días en
+  ventas y pedidos.
+- De paso: el panel tiene región principal (`<main id="contenido">`, destino del «saltar al
+  contenido»), en el celular ya no se desborda a lo ancho y el selector de tema se oculta en el
+  encabezado del celular (está en «Mi cuenta»).
