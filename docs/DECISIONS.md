@@ -664,8 +664,9 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
 
 ## D43 — Rediseño visual del panel (2026-10-29)
 
-- **Color por módulo** (`components/admin/module-tile.tsx`): cada sección tiene un ícono tipo
-  app con su degradado (Pedidos verde, Productos azul, Inventario ámbar…), el mismo sistema que
+- **Color por módulo** (`components/admin/module-tile.tsx`): cada sección tiene un ícono
+  oscuro y minimalista (trazo fino de su color sobre un cuadro casi negro, igual en ambos temas;
+  pedido del dueño), antes un degradado tipo app (Pedidos verde, Productos azul, Inventario ámbar…), el mismo sistema que
   las alertas. Se ve en el menú, junto al título de cada página (`CurrentModuleTile`, sale de la
   ruta) y en el resumen. «Mi cuenta» usa el acento del admin.
 - **Menú lateral contraíble** (`sidebar.tsx`): en pantallas grandes se reduce a solo íconos (con

@@ -27,12 +27,12 @@ export function AppIcon({ kind, className }: { kind: LiveAlert["kind"]; classNam
     <span
       aria-hidden
       className={cn(
-        "grid size-9 shrink-0 place-items-center rounded-[0.7rem] text-white",
+        "grid size-9 shrink-0 place-items-center rounded-[0.7rem]",
         TILE_TONES[ALERT_META[kind].tone],
         className,
       )}
     >
-      <Icon className="size-[55%]" strokeWidth={2.25} />
+      <Icon className="size-[52%]" strokeWidth={1.75} />
     </span>
   );
 }

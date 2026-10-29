@@ -1,30 +1,35 @@
 import { cn } from "@/lib/utils";
 
+// Cuadro casi negro con un brillo apenas visible arriba: igual en tema claro y oscuro.
+const BASE =
+  "bg-[linear-gradient(160deg,#1d2129,#0b0d11)] shadow-[inset_0_1px_0_rgb(255_255_255/0.07),0_1px_2px_rgb(0_0_0/0.25)] ring-1 ring-inset";
+
 /**
- * Degradados de «app» como los íconos de iOS (ícono blanco encima): cada módulo
- * del panel y cada tipo de alerta tiene el suyo. Se ven igual en ambos temas.
+ * Íconos del panel en estilo oscuro y minimalista: trazo fino en el color del
+ * módulo (o del tipo de alerta) sobre un cuadro oscuro, con un borde tenue del
+ * mismo color. Los tonos son claros para leerse sobre el fondo oscuro.
  * «accent» toma el color que el admin eligió en «Mi cuenta».
  */
 export const TILE_TONES = {
-  green: "bg-[linear-gradient(145deg,#4ade80,#059669)] shadow-[0_4px_14px_-4px_#05966999]",
-  blue: "bg-[linear-gradient(145deg,#60a5fa,#2563eb)] shadow-[0_4px_14px_-4px_#2563eb99]",
-  amber: "bg-[linear-gradient(145deg,#fcd34d,#d97706)] shadow-[0_4px_14px_-4px_#d9770699]",
-  red: "bg-[linear-gradient(145deg,#fb7185,#e11d48)] shadow-[0_4px_14px_-4px_#e11d4899]",
-  violet: "bg-[linear-gradient(145deg,#c4b5fd,#7c3aed)] shadow-[0_4px_14px_-4px_#7c3aed99]",
-  pink: "bg-[linear-gradient(145deg,#f9a8d4,#db2777)] shadow-[0_4px_14px_-4px_#db277799]",
-  teal: "bg-[linear-gradient(145deg,#5eead4,#0d9488)] shadow-[0_4px_14px_-4px_#0d948899]",
-  orange: "bg-[linear-gradient(145deg,#fdba74,#ea580c)] shadow-[0_4px_14px_-4px_#ea580c99]",
-  sky: "bg-[linear-gradient(145deg,#7dd3fc,#0284c7)] shadow-[0_4px_14px_-4px_#0284c799]",
-  indigo: "bg-[linear-gradient(145deg,#a5b4fc,#4f46e5)] shadow-[0_4px_14px_-4px_#4f46e599]",
-  cyan: "bg-[linear-gradient(145deg,#67e8f9,#0891b2)] shadow-[0_4px_14px_-4px_#0891b299]",
-  slate: "bg-[linear-gradient(145deg,#94a3b8,#475569)] shadow-[0_4px_14px_-4px_#47556999]",
-  accent:
-    "bg-[linear-gradient(145deg,color-mix(in_oklab,var(--primary)_70%,white),var(--primary))] text-primary-foreground shadow-[0_4px_14px_-4px_color-mix(in_oklab,var(--primary)_60%,transparent)]",
+  green: `${BASE} text-[#4ade80] ring-[#4ade80]/25`,
+  blue: `${BASE} text-[#60a5fa] ring-[#60a5fa]/25`,
+  amber: `${BASE} text-[#fbbf24] ring-[#fbbf24]/25`,
+  red: `${BASE} text-[#fb7185] ring-[#fb7185]/25`,
+  violet: `${BASE} text-[#a78bfa] ring-[#a78bfa]/25`,
+  pink: `${BASE} text-[#f472b6] ring-[#f472b6]/25`,
+  teal: `${BASE} text-[#2dd4bf] ring-[#2dd4bf]/25`,
+  orange: `${BASE} text-[#fb923c] ring-[#fb923c]/25`,
+  sky: `${BASE} text-[#38bdf8] ring-[#38bdf8]/25`,
+  indigo: `${BASE} text-[#818cf8] ring-[#818cf8]/25`,
+  cyan: `${BASE} text-[#22d3ee] ring-[#22d3ee]/25`,
+  slate: `${BASE} text-[#cbd5e1] ring-[#cbd5e1]/20`,
+  // En tema claro el acento es oscuro: se aclara para que se lea sobre el cuadro.
+  accent: `${BASE} text-[color:color-mix(in_oklab,var(--primary)_55%,white)] ring-[color:color-mix(in_oklab,var(--primary)_40%,transparent)]`,
 } as const;
 
 export type TileTone = keyof typeof TILE_TONES;
 
-/** Ícono cuadrado redondeado sobre el color de su módulo. */
+/** Ícono cuadrado redondeado en el color de su módulo. */
 export function ModuleTile({
   tone,
   Icon,
@@ -40,12 +45,12 @@ export function ModuleTile({
     <span
       aria-hidden
       className={cn(
-        "grid size-7 shrink-0 place-items-center rounded-[0.55rem] text-white",
+        "grid size-7 shrink-0 place-items-center rounded-[0.55rem]",
         TILE_TONES[tone],
         className,
       )}
     >
-      <Icon className={cn("size-[58%]", iconClassName)} strokeWidth={2.25} />
+      <Icon className={cn("size-[54%]", iconClassName)} strokeWidth={1.75} />
     </span>
   );
 }

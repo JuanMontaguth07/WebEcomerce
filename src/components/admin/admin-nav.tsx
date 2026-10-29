@@ -244,10 +244,10 @@ export function AdminNav({ pendingOrders }: { pendingOrders: number }) {
                     tone={item.tone}
                     Icon={item.Icon}
                     className={cn(
-                      "transition-[scale,filter] duration-200",
+                      "transition-[scale,opacity,box-shadow] duration-200",
                       current
-                        ? "scale-105"
-                        : "saturate-[0.8] group-hover/link:scale-105 group-hover/link:saturate-100",
+                        ? "scale-105 shadow-[0_0_16px_-3px_currentColor] ring-current/55"
+                        : "opacity-70 group-hover/link:scale-105 group-hover/link:opacity-100",
                     )}
                   />
                   {pending && (
@@ -284,9 +284,11 @@ export function AdminNav({ pendingOrders }: { pendingOrders: number }) {
           "text-muted-foreground hover:bg-foreground/[0.04] hover:text-foreground",
         )}
       >
-        <span className="grid size-7 shrink-0 place-items-center rounded-[0.55rem] border bg-background">
-          <ExternalLinkIcon className="size-3.5" aria-hidden />
-        </span>
+        <ModuleTile
+          tone="slate"
+          Icon={ExternalLinkIcon}
+          className="opacity-70 transition-[scale,opacity] duration-200 group-hover/link:scale-105 group-hover/link:opacity-100"
+        />
         <span className={cn("truncate", hideWhenCollapsed)}>Ver tienda</span>
         <span className="sr-only">(se abre en otra pestaña)</span>
       </Link>
