@@ -2,7 +2,13 @@
 
 import type { OrderStatus } from "@/features/orders/transitions";
 
-export const ALERT_KINDS = ["order_new", "order_status", "stock_low", "stock_out"] as const;
+export const ALERT_KINDS = [
+  "order_new",
+  "order_status",
+  "stock_low",
+  "stock_out",
+  "payment_receipt",
+] as const;
 export type AlertKind = (typeof ALERT_KINDS)[number];
 
 export type LiveAlert = {
@@ -64,11 +70,12 @@ export const ALERT_META: Record<LiveAlert["kind"], { app: string; tone: AlertTon
   order_status: { app: "Pedidos", tone: "blue" },
   stock_low: { app: "Inventario", tone: "amber" },
   stock_out: { app: "Inventario", tone: "red" },
+  payment_receipt: { app: "Pagos", tone: "teal" },
   chat: { app: "Chat", tone: "violet" },
   mention: { app: "Menciones", tone: "pink" },
 };
 
-export type AlertTone = "green" | "blue" | "amber" | "red" | "violet" | "pink";
+export type AlertTone = "green" | "blue" | "amber" | "red" | "violet" | "pink" | "teal";
 
 /** Pedido citado en el chat con su número (#1042). */
 export type OrderRef = {

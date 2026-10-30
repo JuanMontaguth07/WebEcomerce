@@ -213,9 +213,21 @@ type Task = {
   tone: TileTone;
 };
 
-function tasksFor(stats: DashboardStats): Task[] {
+function tasksFor(stats: DashboardStats, receiptsPending: number): Task[] {
   const plural = (count: number, one: string, many: string) => (count === 1 ? one : many);
   const tasks: Task[] = [
+    {
+      key: "receipts",
+      count: receiptsPending,
+      text: plural(
+        receiptsPending,
+        "comprobante de pago por revisar",
+        "comprobantes de pago por revisar",
+      ),
+      href: "/admin/pedidos?estado=pending",
+      Icon: ReceiptIcon,
+      tone: "teal",
+    },
     {
       key: "expiring",
       count: stats.ordersExpiringSoon,
@@ -352,6 +364,8 @@ export type DashboardData = {
   lowStock: LowStockProduct[];
   activity: Activity;
   settings: StoreSettings;
+  /** Comprobantes que subieron los clientes y falta revisar. */
+  receiptsPending: number;
 };
 
 /** Resumen del panel: saludo, lo que hay por atender, cifras y lo reciente. */
@@ -364,8 +378,9 @@ export function DashboardView({
   lowStock,
   activity,
   settings,
+  receiptsPending,
 }: DashboardData) {
-  const tasks = tasksFor(stats);
+  const tasks = tasksFor(stats, receiptsPending);
   const steps = setupSteps(stats, settings);
   const doneSteps = steps.filter((step) => step.done).length;
   const averageTicket = stats.ordersLast30d ? stats.salesLast30d / stats.ordersLast30d : 0;

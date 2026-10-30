@@ -21,6 +21,12 @@ export type PublicOrder = {
   createdAt: string;
   /** Hasta cuándo se mantiene la reserva de un pedido pendiente (null si ya no aplica). */
   expiresAt: string | null;
+  /** El último comprobante de pago que subió el cliente (sin la imagen), o null. */
+  receipt: {
+    status: "pending" | "approved" | "rejected";
+    createdAt: string;
+    reviewNote: string | null;
+  } | null;
   items: {
     /** null si el producto se eliminó después de la compra. */
     productId: string | null;
@@ -48,7 +54,10 @@ export async function getOrderByToken(orderId: string, token: string): Promise<P
   if (error) throw error;
   if (!data) return null;
 
-  const raw = data as Record<string, unknown> & { items: Record<string, unknown>[] };
+  const raw = data as Record<string, unknown> & {
+    items: Record<string, unknown>[];
+    receipt: { status: string; created_at: string; review_note: string | null } | null;
+  };
   return {
     id: String(raw.id),
     orderNumber: Number(raw.order_number),
@@ -64,6 +73,14 @@ export async function getOrderByToken(orderId: string, token: string): Promise<P
     total: Number(raw.total),
     createdAt: String(raw.created_at),
     expiresAt: typeof raw.expires_at === "string" ? raw.expires_at : null,
+    receipt:
+      raw.receipt && ["pending", "approved", "rejected"].includes(raw.receipt.status)
+        ? {
+            status: raw.receipt.status as "pending" | "approved" | "rejected",
+            createdAt: raw.receipt.created_at,
+            reviewNote: raw.receipt.review_note,
+          }
+        : null,
     items: raw.items.map((item) => ({
       productId: typeof item.product_id === "string" ? item.product_id : null,
       productName: String(item.product_name),

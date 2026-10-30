@@ -157,6 +157,7 @@ profiles (1:1 auth.users) ── orders.user_id (opcional)
 | `admin_message_reactions` | Reacciones al chat (lista fija de emojis), cada admin las suyas. En Realtime.                                              |
 | `admin_reads`             | Hasta cuándo leyó cada admin las alertas y el chat.                                                                        |
 | `audit_log`               | Historial general inmutable (triggers y funciones); solo lo lee el admin.                                                  |
+| `payment_receipts`        | Comprobantes de pago que sube el cliente (imagen privada en la base); los revisa un admin.                                 |
 | `payments`                | Vacía en el MVP; la llenarán los adaptadores de pasarela.                                                                  |
 
 ### Funciones del catálogo (RPC, `security invoker`)

@@ -9,6 +9,7 @@ import { CopyButton } from "@/components/support/copy-button";
 import { listActivity } from "@/features/activity/queries";
 import { customerMessages, customerWhatsapp } from "@/features/admin/order-messages";
 import { getAdminOrder } from "@/features/admin/orders";
+import { getOrderReceipts } from "@/features/admin/receipts";
 import { requireAdmin } from "@/features/auth/session";
 import { ORDER_STATUS_LABELS } from "@/features/orders/transitions";
 import { getShippingQuote } from "@/features/shipping/queries";
@@ -16,6 +17,7 @@ import { getStoreSettings } from "@/features/store-settings/queries";
 import { whatsappLink } from "@/features/store-settings/types";
 import { formatCOP } from "@/lib/format";
 import { OrderStatusActions } from "./order-status-actions";
+import { ReceiptReview } from "./receipt-review";
 import { ShippingEditor } from "./shipping-editor";
 
 export const metadata: Metadata = { title: "Pedido" };
@@ -52,10 +54,11 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/pedid
   if (!order) notFound();
 
   const editableShipping = SHIPPING_EDITABLE.has(order.status);
-  const [activity, settings, quote] = await Promise.all([
+  const [activity, settings, quote, receipts] = await Promise.all([
     listActivity({ entityId: order.id, limit: 50 }),
     getStoreSettings(),
     editableShipping ? getShippingQuote(order.department, order.city) : Promise.resolve(null),
+    getOrderReceipts(order.id),
   ]);
   // Pedidos anteriores al historial general no tienen su creación registrada allí.
   const hasFullActivity = activity.entries.some((entry) => entry.action === "create");
@@ -180,6 +183,11 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/pedid
         </div>
 
         <div className="grid min-w-0 gap-6">
+          {receipts.length > 0 && (
+            <Section title="Comprobante de pago" id="comprobante">
+              <ReceiptReview orderId={order.id} receipts={receipts} total={formatCOP(total)} />
+            </Section>
+          )}
           <Section title="Gestionar pedido">
             {order.status === "pending" && order.expires_at && (
               <p className="text-sm text-warning">

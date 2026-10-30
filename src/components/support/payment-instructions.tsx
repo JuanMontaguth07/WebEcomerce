@@ -5,6 +5,7 @@ import type { StoreSettings } from "@/features/store-settings/types";
 import { formatPhone, whatsappLink } from "@/features/store-settings/types";
 import { formatCOP } from "@/lib/format";
 import { CopyButton } from "./copy-button";
+import { ReceiptUpload } from "./receipt-upload";
 
 const dateFormatter = new Intl.DateTimeFormat("es-CO", {
   dateStyle: "long",
@@ -19,9 +20,12 @@ const dateFormatter = new Intl.DateTimeFormat("es-CO", {
 export function PaymentInstructions({
   order,
   settings,
+  token,
 }: {
   order: PublicOrder;
   settings: StoreSettings;
+  /** El del enlace privado del pedido: permite subir el comprobante. */
+  token: string;
 }) {
   if (order.status !== "pending" || !settings.nequiNumber) return null;
 
@@ -82,31 +86,55 @@ export function PaymentInstructions({
           <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary font-mono text-sm font-bold text-primary-foreground">
             2
           </span>
-          <div className="grid gap-3">
-            <p>
-              Envíanos el comprobante indicando tu pedido{" "}
-              <strong className="font-mono">#{order.orderNumber}</strong>
-              {!settings.whatsappNumber && settings.supportEmail && (
-                <>
-                  {" "}
-                  a <strong className="break-all">{settings.supportEmail}</strong>
-                </>
+          {shippingPending ? (
+            <div className="grid gap-3">
+              <p>Pídenos el valor del envío a tu ciudad; con él completas el pago.</p>
+              {settings.whatsappNumber && (
+                <Button asChild className="w-fit">
+                  <a
+                    href={whatsappLink(settings.whatsappNumber, whatsappMessage)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <MessageCircleIcon aria-hidden />
+                    Pedir el valor del envío
+                  </a>
+                </Button>
               )}
-              .
-            </p>
-            {settings.whatsappNumber && (
-              <Button asChild className="w-fit">
+            </div>
+          ) : (
+            <div className="grid min-w-0 flex-1 gap-3">
+              <p>
+                Sube aquí la captura del pago de tu pedido{" "}
+                <strong className="font-mono">#{order.orderNumber}</strong>. La revisamos y te
+                avisamos.
+              </p>
+              <ReceiptUpload
+                orderId={order.id}
+                token={token}
+                receipt={order.receipt}
+                amount={amount}
+              />
+              {settings.whatsappNumber ? (
                 <a
                   href={whatsappLink(settings.whatsappNumber, whatsappMessage)}
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:underline"
                 >
-                  <MessageCircleIcon aria-hidden />
-                  {shippingPending ? "Pedir el valor del envío" : "Enviar comprobante por WhatsApp"}
+                  <MessageCircleIcon className="size-4" aria-hidden />
+                  ¿Prefieres enviarlo por WhatsApp?
                 </a>
-              </Button>
-            )}
-          </div>
+              ) : (
+                settings.supportEmail && (
+                  <p className="text-sm text-muted-foreground">
+                    También puedes enviarlo a{" "}
+                    <strong className="break-all text-foreground">{settings.supportEmail}</strong>.
+                  </p>
+                )
+              )}
+            </div>
+          )}
         </li>
         <li className="flex gap-4">
           <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary font-mono text-sm font-bold text-primary-foreground">

@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { revalidateCatalog } from "@/features/catalog/revalidate";
 import { adminAction } from "@/lib/admin-action";
+import { AppError } from "@/lib/errors";
 
 const changeStatusSchema = z.object({
   orderId: z.uuid(),
@@ -59,3 +60,30 @@ export const setOrderShipping = adminAction(shippingSchema, async (input, { supa
   if (error) throw error;
   return { total: Number(data) };
 });
+
+const RECEIPT_ERRORS: Record<string, string> = {
+  REASON_REQUIRED: "Escribe el motivo del rechazo: el cliente lo verá.",
+  ALREADY_REVIEWED: "Este comprobante ya se revisó.",
+};
+
+/** Aprueba (confirma el pedido) o rechaza con motivo el comprobante que subió el cliente. */
+export const reviewPaymentReceipt = adminAction(
+  z.object({
+    receiptId: z.uuid(),
+    approve: z.boolean(),
+    note: z.string().trim().max(300).optional(),
+  }),
+  async ({ receiptId, approve, note }, { supabase }) => {
+    const { error } = await supabase.rpc("review_payment_receipt", {
+      p_receipt_id: receiptId,
+      p_approve: approve,
+      p_note: note || undefined,
+    });
+    if (error) {
+      const message = RECEIPT_ERRORS[error.message];
+      if (message) throw new AppError("VALIDATION", { message });
+      throw error;
+    }
+    return { approved: approve };
+  },
+);

@@ -18,6 +18,8 @@ export type AdminOrderRow = {
   /** Minutos que le quedan a la reserva de un pedido pendiente. */
   expiresInMinutes: number | null;
   itemCount: number;
+  /** El cliente subió un comprobante que falta revisar. */
+  receiptPending: boolean;
 };
 
 export async function listOrders({
@@ -34,7 +36,7 @@ export async function listOrders({
   let query = supabase
     .from("orders")
     .select(
-      "id, order_number, created_at, customer_name, customer_email, city, department, total, shipping_cost, status, expires_at, items:order_items(count)",
+      "id, order_number, created_at, customer_name, customer_email, city, department, total, shipping_cost, status, expires_at, items:order_items(count), receipts:payment_receipts(status)",
       { count: "exact" },
     )
     .order("created_at", { ascending: false })
@@ -69,6 +71,7 @@ export async function listOrders({
       ? Math.max(0, Math.round((Date.parse(row.expires_at) - Date.now()) / 60_000))
       : null,
     itemCount: row.items[0]?.count ?? 0,
+    receiptPending: row.receipts.some((receipt) => receipt.status === "pending"),
   }));
   return {
     orders,

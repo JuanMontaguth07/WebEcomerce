@@ -712,6 +712,66 @@ export type Database = {
           },
         ]
       }
+      payment_receipts: {
+        Row: {
+          created_at: string
+          height: number | null
+          id: string
+          image: string
+          mime: string
+          note: string | null
+          order_id: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          width: number | null
+        }
+        Insert: {
+          created_at?: string
+          height?: number | null
+          id?: string
+          image: string
+          mime: string
+          note?: string | null
+          order_id: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          width?: number | null
+        }
+        Update: {
+          created_at?: string
+          height?: number | null
+          id?: string
+          image?: string
+          mime?: string
+          note?: string | null
+          order_id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_receipts_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_receipts_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -1367,6 +1427,10 @@ export type Database = {
         Args: { p_image_ids: string[]; p_product_id: string }
         Returns: undefined
       }
+      review_payment_receipt: {
+        Args: { p_approve: boolean; p_note?: string; p_receipt_id: string }
+        Returns: undefined
+      }
       save_build: { Args: { p_build: Json }; Returns: string }
       search_suggestions: {
         Args: { p_limit?: number; p_query: string }
@@ -1396,6 +1460,18 @@ export type Database = {
           p_text: string
         }
         Returns: string
+      }
+      submit_payment_receipt: {
+        Args: {
+          p_height?: number
+          p_image: string
+          p_mime: string
+          p_note?: string
+          p_order_id: string
+          p_token: string
+          p_width?: number
+        }
+        Returns: Json
       }
       touch_admin_seen: { Args: never; Returns: undefined }
       update_order_status: {

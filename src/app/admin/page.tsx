@@ -4,6 +4,7 @@ import { siteConfig } from "@/config/site";
 import { listActivity } from "@/features/activity/queries";
 import { getLowStockProducts } from "@/features/admin/catalog";
 import { getRecentOrders } from "@/features/admin/orders";
+import { getPendingReceiptCount } from "@/features/admin/receipts";
 import { getDashboardStats, getSalesSeries, getTopProducts } from "@/features/admin/queries";
 import { requireAdmin } from "@/features/auth/session";
 import { getStoreSettings } from "@/features/store-settings/queries";
@@ -14,20 +15,22 @@ export const metadata: Metadata = { title: { absolute: `Admin · Resumen | ${sit
 export default async function AdminHomePage() {
   // Defensa en profundidad: la página también exige administrador.
   const admin = await requireAdmin("/admin");
-  const [stats, series, top, recentOrders, lowStock, activity, settings] = await Promise.all([
-    getDashboardStats(),
-    getSalesSeries(30),
-    getTopProducts(30, 5),
-    getRecentOrders(6),
-    getLowStockProducts(6),
-    listActivity({ limit: 8 }),
-    getStoreSettings(),
-  ]);
+  const [stats, series, top, recentOrders, lowStock, activity, settings, receiptsPending] =
+    await Promise.all([
+      getDashboardStats(),
+      getSalesSeries(30),
+      getTopProducts(30, 5),
+      getRecentOrders(6),
+      getLowStockProducts(6),
+      listActivity({ limit: 8 }),
+      getStoreSettings(),
+      getPendingReceiptCount(),
+    ]);
 
   return (
     <DashboardView
       firstName={admin.fullName?.split(" ")[0]}
-      {...{ stats, series, top, recentOrders, lowStock, activity, settings }}
+      {...{ stats, series, top, recentOrders, lowStock, activity, settings, receiptsPending }}
     />
   );
 }

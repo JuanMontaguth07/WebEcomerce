@@ -710,3 +710,20 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
 - **Vista previa en el formulario** (`product-draft.tsx`): la misma tarjeta de la tienda con lo
   que se está escribiendo (precio, oferta, rareza, etiqueta, foto principal y datos de la tarjeta),
   inerte. El formulario y la vista previa comparten el borrador por contexto.
+
+## D45 — Comprobante de pago Nequi desde el pedido (2026-10-30)
+
+- **El cliente sube la captura** en «Paga con Nequi» de su pedido (`ReceiptUpload`). El navegador
+  la achica (lado mayor 1.600 px, WebP o JPEG si no hay WebP) y la envía a
+  `submit_payment_receipt` con el token del enlace privado del pedido. WhatsApp queda como
+  alternativa. Si falta el valor del envío, primero se pide ese valor.
+- **Imagen en la base** (`payment_receipts.image`, bytea de hasta 2,5 MB): es privada y pequeña, y
+  así no hay que abrir el almacenamiento al público ni usar llaves de servicio. La función revisa
+  el token, que el pedido siga pendiente, el tamaño y la firma real del archivo (JPEG, PNG o
+  WebP), con un tope de 5 envíos por pedido; un envío nuevo reemplaza al que estaba en revisión.
+  El panel la muestra por `/admin/pedidos/[id]/comprobante/[receiptId]` (solo administradores).
+- **Revisión** (`review_payment_receipt`): aprobar marca el pago como pagado y confirma el pedido;
+  rechazar exige un motivo, que el cliente ve en su pedido para subir otro. Llega una alerta
+  «Pagos» al panel, la lista de pedidos marca «Comprobante por revisar» y el resumen lo cuenta.
+- **No vence mientras se revisa**: `expire_pending_orders` salta los pedidos con un comprobante
+  pendiente.

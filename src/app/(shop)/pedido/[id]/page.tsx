@@ -63,7 +63,7 @@ async function OrderContent({ params, searchParams }: PageProps<"/pedido/[id]">)
         </p>
       </div>
 
-      <PaymentInstructions order={order} settings={settings} />
+      <PaymentInstructions order={order} settings={settings} token={token ?? ""} />
 
       <div className="grid items-start gap-6 lg:grid-cols-[1fr_22rem]">
         <section aria-labelledby="productos" className="rounded-xl border bg-card p-5 sm:p-6">

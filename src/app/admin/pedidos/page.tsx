@@ -160,7 +160,17 @@ export default async function AdminOrdersPage({ searchParams }: PageProps<"/admi
                     )}
                   </td>
                   <td>
-                    <OrderStatusBadge status={order.status} />
+                    <div className="grid justify-items-start gap-1">
+                      <OrderStatusBadge status={order.status} />
+                      {order.receiptPending && (
+                        <Link
+                          href={`/admin/pedidos/${order.id}#comprobante`}
+                          className="inline-flex items-center rounded-full bg-success/10 px-2 py-0.5 text-xs font-semibold text-success hover:underline"
+                        >
+                          Comprobante por revisar
+                        </Link>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );

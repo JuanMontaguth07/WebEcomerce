@@ -2,6 +2,7 @@ import {
   AtSignIcon,
   MessageCircleIcon,
   PackageXIcon,
+  ReceiptIcon,
   ShoppingBagIcon,
   TrendingDownIcon,
   TruckIcon,
@@ -16,6 +17,7 @@ const ICONS: Record<LiveAlert["kind"], LucideIcon> = {
   order_status: TruckIcon,
   stock_low: TrendingDownIcon,
   stock_out: PackageXIcon,
+  payment_receipt: ReceiptIcon,
   chat: MessageCircleIcon,
   mention: AtSignIcon,
 };
