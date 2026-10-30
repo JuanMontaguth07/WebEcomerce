@@ -1,7 +1,12 @@
 import { XIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { buildCatalogQuery, toggleSpec, type CatalogFilters } from "@/features/catalog/params";
+import {
+  buildCatalogQuery,
+  catalogHref,
+  toggleSpec,
+  type CatalogFilters,
+} from "@/features/catalog/params";
 import type { CatalogFacets, CategoryRef, SpecFacet } from "@/features/catalog/types";
 import { formatCOP } from "@/lib/format";
 
@@ -80,7 +85,7 @@ export function ActiveFilters({
       {chips.map((chip) => (
         <Link
           key={chip.key}
-          href={`${basePath}${buildCatalogQuery(filters, { page: 1, ...chip.changes })}` as Route}
+          href={catalogHref(basePath, filters, { page: 1, ...chip.changes }) as Route}
           scroll={false}
           className="inline-flex items-center gap-1.5 rounded-full border bg-card py-1 pr-2 pl-3 text-xs font-medium transition-colors hover:border-input"
         >

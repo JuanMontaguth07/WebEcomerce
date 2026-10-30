@@ -727,3 +727,17 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
   «Pagos» al panel, la lista de pedidos marca «Comprobante por revisar» y el resumen lo cuenta.
 - **No vence mientras se revisa**: `expire_pending_orders` salta los pedidos con un comprobante
   pendiente.
+
+## D46 — Clientes en el panel y enlaces de categoría limpios (2026-10-30)
+
+- **Clientes** (`/admin/clientes`, migración `20261113120000_admin_customers`): la tienda no pide
+  cuenta, así que un cliente es un correo (sin importar mayúsculas ni espacios), armado en la base
+  a partir de los pedidos (`admin_customers`, `admin_customer_summary`, security invoker: la RLS de
+  `orders` ya limita a administradores). Nombre, teléfono y ciudad son los del pedido más
+  reciente; «Gastado» cuenta solo pedidos pagados (confirmado en adelante). Grupos: recurrentes
+  (2+ compras), nuevos (primer pedido en 30 días) e inactivos (nada en 90 días); orden por gasto,
+  compras o reciente; búsqueda por nombre, correo o teléfono (desde 4 dígitos). Cada fila lleva a
+  sus pedidos y a WhatsApp; se exporta a CSV.
+- **`?categoria=` repetido**: en `/categorias/[slug]` la categoría ya va en la ruta;
+  `catalogHref()` arma todos los enlaces de filtros, chips, paginación y estado vacío sin
+  repetirla.

@@ -14,6 +14,7 @@ import {
   TagIcon,
   TruckIcon,
   UserCogIcon,
+  UsersIcon,
   WarehouseIcon,
 } from "lucide-react";
 import type { Route } from "next";
@@ -58,7 +59,14 @@ export const ADMIN_NAV: { title: string | null; items: AdminNavItem[] }[] = [
         label: "Pedidos",
         Icon: ClipboardListIcon,
         tone: "green",
-        keywords: "ordenes compras pagos nequi",
+        keywords: "ordenes compras pagos nequi comprobantes",
+      },
+      {
+        href: "/admin/clientes",
+        label: "Clientes",
+        Icon: UsersIcon,
+        tone: "violet",
+        keywords: "compradores recurrentes correo telefono whatsapp",
       },
     ],
   },

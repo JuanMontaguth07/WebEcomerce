@@ -130,6 +130,19 @@ export function buildCatalogQuery(
   return query ? `?${query}` : "";
 }
 
+/**
+ * Enlace del catálogo con sus filtros. En la página de una categoría la
+ * categoría ya va en la ruta (/categorias/…): no se repite como ?categoria=.
+ */
+export function catalogHref(
+  basePath: string,
+  filters: CatalogFilters,
+  overrides: Partial<CatalogFilters> = {},
+): string {
+  const categoryInPath = basePath.startsWith("/categorias/");
+  return `${basePath}${buildCatalogQuery(filters, categoryInPath ? { ...overrides, category: null } : overrides)}`;
+}
+
 export function hasActiveFilters(filters: CatalogFilters): boolean {
   return (
     filters.brands.length > 0 ||

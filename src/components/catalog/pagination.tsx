@@ -1,7 +1,7 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { buildCatalogQuery, type CatalogFilters } from "@/features/catalog/params";
+import { catalogHref, type CatalogFilters } from "@/features/catalog/params";
 import { cn } from "@/lib/utils";
 
 /** Páginas a mostrar: primera, última y vecinas de la actual, con saltos ("…"). */
@@ -28,7 +28,7 @@ export function Pagination({
 }) {
   if (pageCount <= 1) return null;
   const current = Math.min(filters.page, pageCount);
-  const href = (page: number) => `${basePath}${buildCatalogQuery(filters, { page })}` as Route;
+  const href = (page: number) => catalogHref(basePath, filters, { page }) as Route;
   const itemClass =
     "inline-flex size-10 items-center justify-center rounded-lg border text-sm font-medium transition-colors";
 

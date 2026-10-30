@@ -1271,6 +1271,43 @@ export type Database = {
         }
         Returns: number
       }
+      admin_customer_summary: {
+        Args: never
+        Returns: {
+          average_spent: number
+          buyers: number
+          customers: number
+          frequent: number
+          inactive: number
+          new_30d: number
+        }[]
+      }
+      admin_customers: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_query?: string
+          p_segment?: string
+          p_sort?: string
+        }
+        Returns: {
+          cancelled_orders: number
+          city: string
+          department: string
+          email: string
+          first_order_at: string
+          last_order_at: string
+          last_order_id: string
+          last_order_number: number
+          name: string
+          orders: number
+          paid_orders: number
+          pending_orders: number
+          phone: string
+          spent: number
+          total_count: number
+        }[]
+      }
       admin_dashboard_stats: { Args: never; Returns: Json }
       admin_sales_series: {
         Args: { p_days?: number }

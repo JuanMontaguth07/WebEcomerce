@@ -3,7 +3,7 @@
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useOptimistic, useTransition } from "react";
-import { buildCatalogQuery, type CatalogFilters } from "@/features/catalog/params";
+import { catalogHref, type CatalogFilters } from "@/features/catalog/params";
 import { cn } from "@/lib/utils";
 
 type CatalogNavigation = {
@@ -38,7 +38,7 @@ export function CatalogNavigationProvider({
   const [optimisticFilters, setOptimisticFilters] = useOptimistic(filters);
 
   const hrefFor = (changes: Partial<CatalogFilters>) =>
-    `${basePath}${buildCatalogQuery(optimisticFilters, { page: 1, ...changes })}` as Route;
+    catalogHref(basePath, optimisticFilters, { page: 1, ...changes }) as Route;
 
   const update = (changes: Partial<CatalogFilters>) => {
     const href = hrefFor(changes);

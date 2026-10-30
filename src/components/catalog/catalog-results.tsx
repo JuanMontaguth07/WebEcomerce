@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProductGrid, ProductGridSkeleton } from "@/components/shop/product-grid";
 import {
-  buildCatalogQuery,
+  catalogHref,
   hasActiveFilters,
   parseCatalogParams,
   type CatalogFilters as Filters,
@@ -57,7 +57,16 @@ function EmptyState({ filters, basePath }: { filters: Filters; basePath: string 
           <Button asChild variant="secondary">
             <Link
               href={
-                `${basePath}${buildCatalogQuery({ ...filters, brands: [], minPrice: null, maxPrice: null, inStock: false, onSale: false, specs: {}, page: 1 })}` as Route
+                catalogHref(basePath, {
+                  ...filters,
+                  brands: [],
+                  minPrice: null,
+                  maxPrice: null,
+                  inStock: false,
+                  onSale: false,
+                  specs: {},
+                  page: 1,
+                }) as Route
               }
             >
               Quitar filtros

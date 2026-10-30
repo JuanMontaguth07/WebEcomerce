@@ -3,6 +3,7 @@ import { getAvailability, isDemoProduct } from "./availability";
 import {
   buildCatalogQuery,
   EMPTY_FILTERS,
+  catalogHref,
   hasActiveFilters,
   parseCatalogParams,
   toggleSpec,
@@ -253,5 +254,19 @@ describe("filtros por especificación en la URL", () => {
     specs = toggleSpec(specs, "socket", "am5", false);
     specs = toggleSpec(specs, "socket", "lga1851", false);
     expect(specs).toEqual({});
+  });
+});
+
+describe("enlaces del catálogo", () => {
+  const filters = { ...parseCatalogParams({ categoria: "graficas", marca: "nvidia" }) };
+
+  it("en la página de una categoría no repite ?categoria=", () => {
+    expect(catalogHref("/categorias/graficas", filters, { page: 2 })).toBe(
+      "/categorias/graficas?marca=nvidia&pagina=2",
+    );
+  });
+
+  it("en el catálogo general sí la lleva", () => {
+    expect(catalogHref("/productos", filters)).toBe("/productos?categoria=graficas&marca=nvidia");
   });
 });
