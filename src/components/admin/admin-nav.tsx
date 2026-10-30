@@ -2,6 +2,7 @@
 
 import {
   BoxesIcon,
+  CpuIcon,
   ClipboardListIcon,
   ExternalLinkIcon,
   FlagIcon,
@@ -114,6 +115,13 @@ export const ADMIN_NAV: { title: string | null; items: AdminNavItem[] }[] = [
         Icon: MegaphoneIcon,
         tone: "red",
         keywords: "anuncios banners inicio publicidad armamos asesoria",
+      },
+      {
+        href: "/admin/pcs-armadas",
+        label: "PCs armadas",
+        Icon: CpuIcon,
+        tone: "orange",
+        keywords: "arma tu pc recomendadas configuraciones equipos gamer",
       },
       {
         href: "/admin/envios",

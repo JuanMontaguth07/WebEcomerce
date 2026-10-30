@@ -421,6 +421,50 @@ export type Database = {
           },
         ]
       }
+      featured_builds: {
+        Row: {
+          build_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          position: number
+          tag: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          build_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          position?: number
+          tag?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          build_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          position?: number
+          tag?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "featured_builds_build_id_fkey"
+            columns: ["build_id"]
+            isOneToOne: true
+            referencedRelation: "builds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       home_banners: {
         Row: {
           body: string | null
@@ -1511,6 +1555,7 @@ export type Database = {
       duplicate_product: { Args: { p_product_id: string }; Returns: string }
       expire_pending_orders: { Args: never; Returns: number }
       get_build: { Args: { p_code: string }; Returns: Json }
+      get_featured_builds: { Args: never; Returns: Json }
       get_order_by_token: {
         Args: { p_order_id: string; p_token: string }
         Returns: Json

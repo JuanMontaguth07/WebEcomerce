@@ -159,6 +159,7 @@ profiles (1:1 auth.users) ── orders.user_id (opcional)
 | `audit_log`               | Historial general inmutable (triggers y funciones); solo lo lee el admin.                                                  |
 | `payment_receipts`        | Comprobantes de pago que sube el cliente (imagen privada en la base); los revisa un admin.                                 |
 | `product_offers`          | Dónde más se consigue una pieza (tienda, enlace, precio, fecha de revisión); las carga el admin.                           |
+| `featured_builds`         | PCs ya armadas: configuraciones que el admin recomienda en Arma tu PC (título, etiqueta, orden).                           |
 | `payments`                | Vacía en el MVP; la llenarán los adaptadores de pasarela.                                                                  |
 
 ### Funciones del catálogo (RPC, `security invoker`)

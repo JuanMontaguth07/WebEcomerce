@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ConfiguratorEntry } from "@/components/architect/configurator-entry";
 import { ConfiguratorSkeleton } from "@/components/architect/configurator-skeleton";
+import { FeaturedBuilds } from "@/components/architect/featured-builds";
 import { Breadcrumbs } from "@/components/shop/breadcrumbs";
 import { siteConfig } from "@/config/site";
 import { demoArchitectParts } from "@/features/architect/parts";
+import { getFeaturedBuilds } from "@/features/architect/featured-queries";
 import { getArchitectParts } from "@/features/architect/queries";
 import { getStoreSettings } from "@/features/store-settings/queries";
 import { baseOpenGraph } from "@/lib/seo";
@@ -37,6 +39,10 @@ async function ConfiguratorWithParts() {
   );
 }
 
+async function FeaturedSection() {
+  return <FeaturedBuilds builds={await getFeaturedBuilds()} />;
+}
+
 export default function ArchitectPage() {
   return (
     <main id="contenido" className="container-page grid gap-8 py-8 md:py-10">
@@ -51,6 +57,9 @@ export default function ArchitectPage() {
           confirmar con la ficha técnica te lo decimos, sin suponer.
         </p>
       </header>
+      <Suspense fallback={null}>
+        <FeaturedSection />
+      </Suspense>
       <Suspense fallback={<ConfiguratorSkeleton />}>
         <ConfiguratorWithParts />
       </Suspense>

@@ -779,3 +779,18 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
   Siempre se aclara que los precios de otras tiendas los revisamos en la fecha indicada, pueden
   haber cambiado y no incluyen envío ni impuestos de importación. Los enlaces externos llevan
   `rel="nofollow noopener noreferrer"`.
+
+## D49 — Comparador de Arma tu PC, fase 3: PCs ya armadas (2026-10-30)
+
+- **`featured_builds`** (migración `20261116120000_featured_builds`): una configuración guardada
+  (inmutable) que el admin destaca con título, etiqueta, descripción, orden y visible/oculta. El
+  público las lee con `get_featured_builds()` (security definer, solo las visibles), que entrega
+  las piezas y el **total a precios de hoy**: si la pieza sigue en la tienda (o es de referencia)
+  usa su precio actual; si no, el guardado, y la marca como no disponible.
+- **Panel** (`/admin/pcs-armadas`, menú Tienda): recomendadas con subir/bajar, ocultar, editar y
+  quitar; «Agregar» con el enlace de «Guardar y compartir» o su código; y **las últimas
+  configuraciones que guardaron los clientes** (para saber qué piezas tener en stock) con
+  «Recomendar», que llena el formulario.
+- **Tienda**: «PCs ya armadas» arriba del configurador en `/arma-tu-pc`, tarjetas con etiqueta,
+  piezas clave, total y «Abrir y personalizar» (`/arma-tu-pc/<código>`). Caché con la etiqueta
+  `featured-builds` y la del catálogo (los precios cambian).
