@@ -29,6 +29,7 @@ export const DEMO_PARTS: DemoPart[] = [
       boost_clock: 5.1,
       tdp: 65,
       integrated_graphics: true,
+      perf_score: 44,
     },
   },
   {
@@ -43,6 +44,7 @@ export const DEMO_PARTS: DemoPart[] = [
       boost_clock: 5.4,
       tdp: 120,
       integrated_graphics: true,
+      perf_score: 63,
     },
   },
   {
@@ -57,6 +59,7 @@ export const DEMO_PARTS: DemoPart[] = [
       boost_clock: 5.5,
       tdp: 125,
       integrated_graphics: true,
+      perf_score: 82,
     },
   },
   // Placas madre
@@ -108,21 +111,42 @@ export const DEMO_PARTS: DemoPart[] = [
     kind: "gpu",
     name: "Gráfica demo 8 GB",
     price: 1_599_900,
-    specs: { vram: 8, memory_type: "GDDR6", tdp: 145, recommended_psu: 550, length: 240 },
+    specs: {
+      vram: 8,
+      memory_type: "GDDR6",
+      tdp: 145,
+      recommended_psu: 550,
+      length: 240,
+      perf_score: 30,
+    },
   },
   {
     id: "demo-gpu-12",
     kind: "gpu",
     name: "Gráfica demo 12 GB",
     price: 2_849_900,
-    specs: { vram: 12, memory_type: "GDDR7", tdp: 250, recommended_psu: 650, length: 285 },
+    specs: {
+      vram: 12,
+      memory_type: "GDDR7",
+      tdp: 250,
+      recommended_psu: 650,
+      length: 285,
+      perf_score: 54,
+    },
   },
   {
     id: "demo-gpu-16",
     kind: "gpu",
     name: "Gráfica demo 16 GB",
     price: 4_199_900,
-    specs: { vram: 16, memory_type: "GDDR7", tdp: 320, recommended_psu: 850, length: 336 },
+    specs: {
+      vram: 16,
+      memory_type: "GDDR7",
+      tdp: 320,
+      recommended_psu: 850,
+      length: 336,
+      perf_score: 76,
+    },
   },
   // Memorias
   {

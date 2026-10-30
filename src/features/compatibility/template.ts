@@ -49,6 +49,9 @@ export const ARCHITECT_TEMPLATES: Record<PartKind, SpecTemplate[]> = {
     spec("boost_clock", "Frecuencia máxima", "Rendimiento", "number", { unit: "GHz" }),
     spec("tdp", "TDP", "Energía", "number", { unit: "W", architect: true }),
     spec("integrated_graphics", "Gráficos integrados", "Rendimiento", "boolean"),
+    spec("perf_score", "Puntaje de rendimiento", "Rendimiento", "number", {
+      hint: "Del 1 al 100 frente al procesador más potente del mercado (100). Tómalo de una tabla de benchmarks.",
+    }),
   ],
   motherboard: [
     spec("socket", "Socket", "Compatibilidad", "text", { isFilterable: true, architect: true }),
@@ -75,6 +78,9 @@ export const ARCHITECT_TEMPLATES: Record<PartKind, SpecTemplate[]> = {
       architect: true,
     }),
     spec("length", "Longitud", "Dimensiones", "number", { unit: "mm", architect: true }),
+    spec("perf_score", "Puntaje de rendimiento", "Rendimiento", "number", {
+      hint: "Del 1 al 100 frente a la gráfica más potente del mercado (100). Tómalo de una tabla de benchmarks.",
+    }),
   ],
   ram: [
     spec("capacity", "Capacidad total", "Memoria", "number", { unit: "GB", isFilterable: true }),

@@ -794,3 +794,20 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
 - **Tienda**: «PCs ya armadas» arriba del configurador en `/arma-tu-pc`, tarjetas con etiqueta,
   piezas clave, total y «Abrir y personalizar» (`/arma-tu-pc/<código>`). Caché con la etiqueta
   `featured-builds` y la del catálogo (los precios cambian).
+
+## D50 — Comparador de Arma tu PC, fase 4: estadísticas del equipo (2026-10-30)
+
+- **Puntaje de rendimiento** (`perf_score`, 1–100) en la plantilla de procesadores y gráficas: el
+  admin lo carga de tablas de benchmarks (100 = lo más potente del mercado). Para que aparezca en
+  categorías ya creadas, se vuelve a aplicar la plantilla de Arma tu PC (solo agrega lo que falta).
+  Las piezas demo traen puntajes de ejemplo. Unos gráficos integrados cuentan como 6.
+- **Cálculo** (`features/architect/stats.ts`, puro y probado): juegos = 0,8 × min(gráfica,
+  procesador × 1,3) + 0,2 × procesador (un procesador flojo no deja rendir a la gráfica); trabajo =
+  0,75 × procesador + 0,25 × gráfica. Equilibrio por la proporción gráfica/procesador (> 1,5 el
+  procesador limita; < 0,55 la gráfica se queda corta). «Ideal para» por tramos del puntaje de
+  juegos (oficina, 1080p eSports, 1080p alto, 1440p alto, 1440p ultra, 4K alto). Consumo frente a
+  la fuente con margen (justa por debajo de 20 %). Rendimiento por precio = puntos de juegos por
+  cada millón. Avisos: menos de 16 GB de RAM, sin almacenamiento, sin gráfica dedicada.
+- **No se adivina**: sin puntaje de alguna pieza no se estima rendimiento y se dice cuál falta; el
+  panel aclara que es una estimación relativa, no FPS medidos. Reemplaza la línea suelta de
+  consumo del resumen.

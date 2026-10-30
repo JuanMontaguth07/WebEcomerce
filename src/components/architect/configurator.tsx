@@ -31,10 +31,10 @@ import { EMPTY_SELECTION, type ArchitectPart, type Selection } from "@/features/
 import { whatsappLink } from "@/features/store-settings/types";
 import { useCart } from "@/features/cart/store";
 import { checkBuild, overallStatus } from "@/features/compatibility/engine";
-import { estimatePower } from "@/features/compatibility/rules";
 import { STATUS_LABELS, type PartKind } from "@/features/compatibility/types";
 import { formatCOP } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { buildStats } from "@/features/architect/stats";
 import { buildPricing } from "@/features/offers/compare";
 import { BuildSummary } from "./build-summary";
 import { CompareSheet } from "./compare-sheet";
@@ -107,7 +107,7 @@ export function Configurator({
   const status = overallStatus(results);
   const total = selectionTotal(selection, index);
   const usage = budgetUsage(total, budget);
-  const power = estimatePower(toBuild(selection, index));
+
   const chosenParts = selectedParts(selection, index);
   const count = chosenParts.length;
   // Solo vale la pena comparar si alguna pieza tiene ofertas afuera o no se vende aquí.
@@ -232,7 +232,7 @@ export function Configurator({
       budget={budget}
       usage={usage}
       onBudgetChange={setBudget}
-      power={power}
+      stats={count ? buildStats(toBuild(selection, index), total) : null}
       results={results}
       status={status}
       count={count}

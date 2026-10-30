@@ -6,15 +6,16 @@ import {
   Share2Icon,
   ShoppingCartIcon,
   StoreIcon,
-  ZapIcon,
 } from "lucide-react";
 import { useId } from "react";
 import { Button } from "@/components/ui/button";
 import type { BudgetUsage } from "@/features/architect/build";
+import type { BuildStats } from "@/features/architect/stats";
 import type { BuildPricing } from "@/features/offers/compare";
 import type { CompatibilityResult, CompatibilityStatus } from "@/features/compatibility/types";
 import { formatCOP } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { BuildStatsPanel } from "./build-stats";
 import { StatusDot, StatusLabel } from "./status";
 
 /** Presupuesto máximo que acepta el campo (evita cifras por error de tipeo). */
@@ -33,7 +34,7 @@ export function BuildSummary({
   budget,
   usage,
   onBudgetChange,
-  power,
+  stats,
   results,
   status,
   count,
@@ -49,7 +50,8 @@ export function BuildSummary({
   budget: number | null;
   usage: BudgetUsage | null;
   onBudgetChange: (budget: number | null) => void;
-  power: number | null;
+  /** Rendimiento, consumo y demás (null si no hay piezas). */
+  stats: BuildStats | null;
   results: CompatibilityResult[];
   status: CompatibilityStatus | null;
   count: number;
@@ -129,13 +131,9 @@ export function BuildSummary({
             </p>
           </div>
         )}
-        {power !== null && (
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <ZapIcon className="size-3.5 text-primary" aria-hidden />
-            Consumo estimado ~{power} W
-          </p>
-        )}
       </div>
+
+      {stats && <BuildStatsPanel stats={stats} />}
 
       {pricing && (
         <section
