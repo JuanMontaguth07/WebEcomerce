@@ -17,6 +17,8 @@ export type StoreSettings = {
   /** Ruta interna opcional, p. ej. /productos?oferta=1. */
   announcementHref: string | null;
   announcementEnabled: boolean;
+  /** Pesos por dólar para mostrar en COP las ofertas en USD (Arma tu PC). */
+  usdCopRate: number | null;
 };
 
 export const EMPTY_SETTINGS: StoreSettings = {
@@ -33,6 +35,7 @@ export const EMPTY_SETTINGS: StoreSettings = {
   announcementText: null,
   announcementHref: null,
   announcementEnabled: false,
+  usdCopRate: null,
 };
 
 /** Enlace a un chat de WhatsApp con un mensaje inicial. */

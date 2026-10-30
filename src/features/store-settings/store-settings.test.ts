@@ -55,6 +55,7 @@ describe("configuración de la tienda", () => {
       announcementText: null,
       announcementHref: null,
       announcementEnabled: false,
+      usdCopRate: null,
     });
   });
 
@@ -139,5 +140,28 @@ describe("tarifas de envío", () => {
     expect(deliveryLabel({ minDays: 1, maxDays: 1 })).toBe("1 día hábil");
     expect(deliveryLabel({ minDays: null, maxDays: 4 })).toBe("4 días hábiles");
     expect(deliveryLabel({ minDays: null, maxDays: null })).toBeNull();
+  });
+});
+
+describe("tasa del dólar", () => {
+  const base = {
+    whatsappNumber: "",
+    supportEmail: "",
+    supportHours: "",
+    legalName: "",
+    legalNit: "",
+    legalDv: "",
+    legalAddress: "",
+    legalCity: "",
+    nequiNumber: "",
+    nequiHolder: "",
+    announcementText: "",
+    announcementHref: "",
+    announcementEnabled: false,
+  };
+
+  it("acepta «4.150» y rechaza valores fuera de rango", () => {
+    expect(storeSettingsSchema.parse({ ...base, usdCopRate: "4.150" }).usdCopRate).toBe(4150);
+    expect(storeSettingsSchema.safeParse({ ...base, usdCopRate: "41" }).success).toBe(false);
   });
 });

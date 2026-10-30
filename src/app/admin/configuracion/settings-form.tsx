@@ -160,6 +160,20 @@ export function SettingsForm({ initial }: { initial: StoreSettingsInput }) {
       </Section>
 
       <Section
+        title="Comparador de Arma tu PC"
+        description="Las ofertas de otras tiendas en dólares (Amazon, Newegg…) se muestran también en pesos con esta tasa. Actualízala de vez en cuando; sin tasa se ven solo en dólares."
+      >
+        <TextField
+          {...field("usdCopRate")}
+          label="Pesos por dólar"
+          optional
+          inputMode="numeric"
+          placeholder="4.150"
+          className="sm:max-w-60"
+        />
+      </Section>
+
+      <Section
         title="Datos legales"
         description="La Ley 1480 exige mostrar quién vende: aparecen en Soporte, en el pie de página y en los textos legales. Son públicos."
       >

@@ -761,3 +761,21 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
   Falabella, Éxito, Newegg u otra con nombre), enlace solo https, precio opcional en COP o USD,
   nota y fecha de revisión. Editor en la ficha del producto con búsquedas de ayuda; Arma tu PC ya
   las carga (`ArchitectPart.offers`) y nunca pasa piezas de referencia al carrito.
+
+## D48 — Comparador de Arma tu PC, fase 2: precios lado a lado (2026-10-30)
+
+- **Tasa del dólar** (`store_settings.usd_cop_rate`, migración `20261115120000_usd_rate`): el admin
+  la pone en Configuración → «Comparador de Arma tu PC». Las ofertas en USD se muestran también en
+  pesos; sin tasa, solo en dólares (no se inventa la conversión).
+- **Lógica** (`features/offers/compare.ts`, pura y probada): precio en pesos de cada oferta, la
+  opción más barata que se puede comprar (aquí solo cuenta con stock; ante empate gana aquí), el
+  precio a mostrar y ordenar (las de referencia, su oferta más barata) y los totales del equipo:
+  «comprando aquí» frente a «mejor precio combinado», lo que se ahorraría combinando y cuántas
+  piezas no tienen precio conocido.
+- **En la lista de piezas**: una línea («Más barato en MercadoLibre: $ …» o «El mejor precio está
+  aquí») y «Comparar precios» abre aquí + cada tienda con su fecha de revisión, nota, enlace y
+  búsquedas automáticas. Las de referencia dicen «Desde $ …» y «No se vende aquí».
+- **En el resumen**: «Dónde comprar» con los dos totales y un panel «Dónde comprar cada pieza».
+  Siempre se aclara que los precios de otras tiendas los revisamos en la fecha indicada, pueden
+  haber cambiado y no incluyen envío ni impuestos de importación. Los enlaces externos llevan
+  `rel="nofollow noopener noreferrer"`.

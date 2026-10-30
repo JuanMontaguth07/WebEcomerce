@@ -32,6 +32,7 @@ async function ConfiguratorWithParts() {
       catalogParts={catalogParts}
       demoParts={demoArchitectParts()}
       whatsappNumber={settings.whatsappNumber}
+      usdRate={settings.usdCopRate}
     />
   );
 }

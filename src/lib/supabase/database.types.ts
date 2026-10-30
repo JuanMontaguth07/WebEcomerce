@@ -1275,6 +1275,7 @@ export type Database = {
           support_email: string | null
           support_hours: string | null
           updated_at: string
+          usd_cop_rate: number | null
           whatsapp_number: string | null
         }
         Insert: {
@@ -1292,6 +1293,7 @@ export type Database = {
           support_email?: string | null
           support_hours?: string | null
           updated_at?: string
+          usd_cop_rate?: number | null
           whatsapp_number?: string | null
         }
         Update: {
@@ -1309,6 +1311,7 @@ export type Database = {
           support_email?: string | null
           support_hours?: string | null
           updated_at?: string
+          usd_cop_rate?: number | null
           whatsapp_number?: string | null
         }
         Relationships: []

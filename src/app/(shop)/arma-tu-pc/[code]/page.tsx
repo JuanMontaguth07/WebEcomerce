@@ -96,6 +96,7 @@ async function SavedBuildContent({ params }: PageProps<"/arma-tu-pc/[code]">) {
         catalogParts={catalogParts}
         demoParts={demoParts}
         whatsappNumber={settings.whatsappNumber}
+        usdRate={settings.usdCopRate}
         initial={{
           mode: "free",
           source: build.source,

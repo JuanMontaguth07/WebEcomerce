@@ -10,6 +10,8 @@ type Props = {
   catalogParts: ArchitectPart[];
   demoParts: ArchitectPart[];
   whatsappNumber: string | null;
+  /** Pesos por dólar para las ofertas en USD (null: se muestran solo en dólares). */
+  usdRate: number | null;
 };
 
 /**

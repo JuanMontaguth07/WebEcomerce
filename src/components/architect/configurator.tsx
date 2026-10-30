@@ -35,6 +35,7 @@ import { estimatePower } from "@/features/compatibility/rules";
 import { STATUS_LABELS, type PartKind } from "@/features/compatibility/types";
 import { formatCOP } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { buildPricing } from "@/features/offers/compare";
 import { BuildSummary } from "./build-summary";
 import { CompareSheet } from "./compare-sheet";
 import { GuidedWizard } from "./guided-wizard";
@@ -43,6 +44,7 @@ import { ShareSheet, type SavedLink } from "./share-sheet";
 import { PartPicker } from "./part-picker";
 import { SlotList } from "./slot-list";
 import { StatusDot } from "./status";
+import { WhereToBuySheet } from "./where-to-buy-sheet";
 
 type Source = "catalog" | "demo";
 type Mode = "guided" | "free";
@@ -72,11 +74,13 @@ export function Configurator({
   catalogParts,
   demoParts,
   whatsappNumber,
+  usdRate,
   initial,
 }: {
   catalogParts: ArchitectPart[];
   demoParts: ArchitectPart[];
   whatsappNumber: string | null;
+  usdRate: number | null;
   initial?: ConfiguratorInitial;
 }) {
   const router = useRouter();
@@ -95,6 +99,7 @@ export function Configurator({
   const [compare, setCompare] = useState<string[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
+  const [whereOpen, setWhereOpen] = useState(false);
 
   const parts = source === "catalog" ? catalogParts : demoParts;
   const index = useMemo(() => indexParts(parts), [parts]);
@@ -103,7 +108,12 @@ export function Configurator({
   const total = selectionTotal(selection, index);
   const usage = budgetUsage(total, budget);
   const power = estimatePower(toBuild(selection, index));
-  const count = selectedParts(selection, index).length;
+  const chosenParts = selectedParts(selection, index);
+  const count = chosenParts.length;
+  // Solo vale la pena comparar si alguna pieza tiene ofertas afuera o no se vende aquí.
+  const pricing = chosenParts.some((part) => part.offers.length || part.reference)
+    ? buildPricing(chosenParts, usdRate)
+    : null;
   const lines = cartLines(selection, index);
   const available = lines.filter(({ part }) => (part.stock ?? 0) > 0);
 
@@ -226,6 +236,11 @@ export function Configurator({
       results={results}
       status={status}
       count={count}
+      pricing={pricing}
+      onWhereToBuy={() => {
+        setSummaryOpen(false);
+        setWhereOpen(true);
+      }}
       cart={cart}
       onAddToCart={addAllToCart}
       onShare={() => {
@@ -342,6 +357,7 @@ export function Configurator({
                 selection={selection}
                 index={index}
                 compare={compare}
+                rate={usdRate}
                 onChoose={choose}
                 onRemove={(kind, position) =>
                   setSelection((current) => removePart(current, kind, position))
@@ -434,6 +450,12 @@ export function Configurator({
             shareHref={shareHref}
           />
 
+          <WhereToBuySheet
+            parts={chosenParts}
+            rate={usdRate}
+            open={whereOpen}
+            onOpenChange={setWhereOpen}
+          />
           <CompareSheet
             parts={
               comparing.length === 2

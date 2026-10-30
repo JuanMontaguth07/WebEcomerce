@@ -65,6 +65,15 @@ export const storeSettingsSchema = z
       })
       .transform((value) => value || null),
     announcementEnabled: z.boolean(),
+    // Pesos por dólar para el comparador (ej. «4.150»).
+    usdCopRate: z
+      .string()
+      .default("")
+      .transform((value) => value.replace(/\D/g, ""))
+      .refine((digits) => digits === "" || (Number(digits) >= 1000 && Number(digits) <= 20000), {
+        message: "Escribe cuántos pesos vale un dólar (entre 1.000 y 20.000).",
+      })
+      .transform((digits) => (digits ? Number(digits) : null)),
   })
   .refine((values) => !values.announcementEnabled || values.announcementText, {
     path: ["announcementText"],

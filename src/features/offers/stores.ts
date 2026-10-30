@@ -60,5 +60,7 @@ export function searchLinks(query: string): { label: string; url: string }[] {
 
 /** Días desde que se revisó el precio (para «revisado hace 3 días»). */
 export function daysSince(date: string, now: number): number {
-  return Math.max(0, Math.floor((now - Date.parse(`${date}T12:00:00-05:00`)) / 86_400_000));
+  // Días de calendario en Colombia: lo revisado el 27 está «hace 3 días» el 30, a cualquier hora.
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bogota" }).format(now);
+  return Math.max(0, Math.round((Date.parse(today) - Date.parse(date)) / 86_400_000));
 }

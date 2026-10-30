@@ -5,11 +5,13 @@ import {
   RotateCcwIcon,
   Share2Icon,
   ShoppingCartIcon,
+  StoreIcon,
   ZapIcon,
 } from "lucide-react";
 import { useId } from "react";
 import { Button } from "@/components/ui/button";
 import type { BudgetUsage } from "@/features/architect/build";
+import type { BuildPricing } from "@/features/offers/compare";
 import type { CompatibilityResult, CompatibilityStatus } from "@/features/compatibility/types";
 import { formatCOP } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -35,6 +37,8 @@ export function BuildSummary({
   results,
   status,
   count,
+  pricing,
+  onWhereToBuy,
   cart,
   onAddToCart,
   onShare,
@@ -49,6 +53,9 @@ export function BuildSummary({
   results: CompatibilityResult[];
   status: CompatibilityStatus | null;
   count: number;
+  /** Totales comprando aquí y combinando tiendas (null si no hay nada que comparar). */
+  pricing: BuildPricing | null;
+  onWhereToBuy: () => void;
   /** Si se puede comprar y, si no, por qué (piezas demo, nada elegido, agotadas). */
   cart: { ready: true } | { ready: false; reason: string };
   onAddToCart: () => void;
@@ -129,6 +136,53 @@ export function BuildSummary({
           </p>
         )}
       </div>
+
+      {pricing && (
+        <section
+          aria-labelledby={`${id}-precios`}
+          className="grid gap-3 rounded-xl border bg-background p-3"
+        >
+          <h2 id={`${id}-precios`} className="flex items-center gap-2 text-sm font-semibold">
+            <StoreIcon className="size-4 text-primary" aria-hidden />
+            Dónde comprar
+          </h2>
+          <dl className="grid gap-1.5 text-sm">
+            <div className="flex items-baseline justify-between gap-2">
+              <dt className="text-muted-foreground">
+                Comprando aquí{" "}
+                <span className="text-xs">
+                  ({pricing.here.count} de {count})
+                </span>
+              </dt>
+              <dd className="font-semibold tabular-nums">{formatCOP(pricing.here.total)}</dd>
+            </div>
+            <div className="flex items-baseline justify-between gap-2">
+              <dt className="text-muted-foreground">
+                Mejor precio combinado{" "}
+                <span className="text-xs">
+                  ({pricing.best.count} de {count})
+                </span>
+              </dt>
+              <dd className="font-semibold tabular-nums">{formatCOP(pricing.best.total)}</dd>
+            </div>
+          </dl>
+          {pricing.savings > 0 && (
+            <p className="text-xs text-success">
+              Combinando tiendas ahorrarías {formatCOP(pricing.savings)} en lo que también vendemos.
+            </p>
+          )}
+          {pricing.unpriced > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {pricing.unpriced === 1
+                ? "1 pieza no tiene precio conocido: búscala con los enlaces."
+                : `${pricing.unpriced} piezas no tienen precio conocido: búscalas con los enlaces.`}
+            </p>
+          )}
+          <Button type="button" variant="secondary" size="sm" onClick={onWhereToBuy}>
+            Ver dónde comprar cada pieza
+          </Button>
+        </section>
+      )}
 
       <section aria-labelledby={`${id}-compat`} className="grid gap-3">
         <h2 id={`${id}-compat`} className="flex items-center gap-2 text-sm font-semibold">

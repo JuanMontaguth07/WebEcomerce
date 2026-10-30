@@ -12,7 +12,9 @@ import type { ArchitectPart, Selection } from "@/features/architect/types";
 import { PART_LABELS, type PartKind } from "@/features/compatibility/types";
 import { formatCOP } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { displayPrice } from "@/features/offers/compare";
 import { PartThumb } from "./part-thumb";
+import { PriceCompare } from "./price-compare";
 import { StatusLabel } from "./status";
 
 type Sort = "price-asc" | "price-desc" | "name";
@@ -30,6 +32,7 @@ export function PartPicker({
   selection,
   index,
   compare,
+  rate,
   onChoose,
   onRemove,
   onToggleCompare,
@@ -39,6 +42,8 @@ export function PartPicker({
   selection: Selection;
   index: PartIndex;
   compare: string[];
+  /** Pesos por dólar para las ofertas en USD. */
+  rate: number | null;
   onChoose: (part: ArchitectPart) => void;
   onRemove: (kind: PartKind, position?: number) => void;
   onToggleCompare: (part: ArchitectPart) => void;
@@ -55,8 +60,8 @@ export function PartPicker({
       sort === "name"
         ? a.part.name.localeCompare(b.part.name, "es")
         : sort === "price-asc"
-          ? a.part.price - b.part.price
-          : b.part.price - a.part.price,
+          ? displayPrice(a.part, rate) - displayPrice(b.part, rate)
+          : displayPrice(b.part, rate) - displayPrice(a.part, rate),
     );
     const hidden = sorted.filter(
       ({ part, check }) => check?.status === "error" && !isChosen(selection, part),
@@ -67,7 +72,7 @@ export function PartPicker({
         : sorted,
       hidden,
     };
-  }, [parts, kind, selection, index, sort, onlyCompatible]);
+  }, [parts, kind, selection, index, sort, onlyCompatible, rate]);
 
   const drives = kind === "storage" ? selection.storage.flatMap((id) => index.get(id) ?? []) : [];
   const label = PART_LABELS[kind].toLocaleLowerCase("es-CO");
@@ -180,13 +185,21 @@ export function PartPicker({
                         )}
                       </p>
                     )}
+                    <PriceCompare part={part} rate={rate} />
                   </div>
                   <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 sm:col-span-1 sm:grid sm:justify-items-end">
                     <span className="grid gap-1 sm:justify-items-end">
                       <span className="font-heading text-base font-bold font-stretch-112% tabular-nums">
-                        {formatCOP(part.price)}
+                        {part.reference && (
+                          <span className="mr-1 font-sans text-xs font-normal text-muted-foreground">
+                            Desde
+                          </span>
+                        )}
+                        {formatCOP(displayPrice(part, rate))}
                       </span>
-                      {part.stock === null ? (
+                      {part.reference ? (
+                        <span className="text-xs text-muted-foreground">No se vende aquí</span>
+                      ) : part.stock === null ? (
                         <span className="text-xs text-muted-foreground">Precio de ejemplo</span>
                       ) : (
                         <StockBadge stock={part.stock} lowStockThreshold={part.lowStockThreshold} />

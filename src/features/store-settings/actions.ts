@@ -24,6 +24,7 @@ export const updateStoreSettings = adminAction(
         announcement_text: values.announcementText,
         announcement_href: values.announcementHref,
         announcement_enabled: values.announcementEnabled,
+        usd_cop_rate: values.usdCopRate,
       })
       .eq("id", true);
     if (error) throw error;

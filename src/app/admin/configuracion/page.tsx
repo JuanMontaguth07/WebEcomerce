@@ -31,6 +31,7 @@ export default async function SettingsPage() {
           announcementText: settings.announcementText ?? "",
           announcementHref: settings.announcementHref ?? "",
           announcementEnabled: settings.announcementEnabled,
+          usdCopRate: settings.usdCopRate ? settings.usdCopRate.toLocaleString("es-CO") : "",
         }}
       />
     </div>
