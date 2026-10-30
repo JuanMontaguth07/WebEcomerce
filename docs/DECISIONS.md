@@ -741,3 +741,23 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
 - **`?categoria=` repetido**: en `/categorias/[slug]` la categoría ya va en la ruta;
   `catalogHref()` arma todos los enlaces de filtros, chips, paginación y estado vacío sin
   repetirla.
+
+## D47 — Comparador de Arma tu PC, fase 1: piezas de referencia y ofertas externas (2026-10-30)
+
+- **Por qué manual**: la búsqueda pública de MercadoLibre responde 403 sin cuenta de desarrollador
+  y la API de productos de Amazon exige Afiliados con 10 ventas referidas en 30 días; copiar sus
+  páginas va contra sus términos. El dueño eligió: precios cargados a mano + enlaces de búsqueda
+  automáticos (Amazon, MercadoLibre, Google Shopping), catálogo de referencia y estadísticas
+  completas. Fases: 1) datos (esta), 2) comparador en Arma tu PC, 3) PCs armadas recomendadas, 4) estadísticas (consumo, rendimiento estimado, equilibrio CPU/GPU, resolución, precio por
+  rendimiento).
+- **Piezas «solo referencia»** (`products.is_reference`, migración
+  `20261114120000_reference_parts_offers`): no se venden aquí. Un check impide que estén visibles
+  en la tienda; `create_order` ya exige productos activos. La RLS de productos, fotos y ficha las
+  deja leer para Arma tu PC; por eso la ficha del producto y «Más vendidos» filtran `is_active`
+  de forma explícita. `save_build` las acepta (`20261114130000_builds_reference`). En el panel:
+  casilla en el formulario, filtro «Referencia», columna «Solo referencia» en el CSV, «Mostrar» en
+  lote las salta y la calidad no les pide estar visibles.
+- **Ofertas externas** (`product_offers`): tienda (Amazon, MercadoLibre, Alkosto, Ktronix,
+  Falabella, Éxito, Newegg u otra con nombre), enlace solo https, precio opcional en COP o USD,
+  nota y fecha de revisión. Editor en la ficha del producto con búsquedas de ayuda; Arma tu PC ya
+  las carga (`ArchitectPart.offers`) y nunca pasa piezas de referencia al carrito.

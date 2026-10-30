@@ -442,6 +442,8 @@ export async function getBestSellers(limit = 8): Promise<ProductSummary[]> {
     .from("products")
     .select(SUMMARY_SELECT)
     .in("id", ids)
+    // Explícito: la RLS también deja leer piezas de referencia (no se venden).
+    .eq("is_active", true)
     .overrideTypes<SummaryRow[], { merge: false }>();
   if (productsError) fail("getBestSellers", productsError);
 
@@ -495,6 +497,8 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
     `,
     )
     .eq("slug", slug)
+    // Explícito: la RLS también deja leer piezas de referencia (no se venden).
+    .eq("is_active", true)
     .maybeSingle()
     .overrideTypes<DetailRow, { merge: false }>();
   if (error) fail("getProductBySlug", error);

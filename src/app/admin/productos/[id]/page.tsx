@@ -18,12 +18,14 @@ import { listActivity } from "@/features/activity/queries";
 import { listAdminFlags } from "@/features/flags/queries";
 import { listAdminRarities } from "@/features/rarities/queries";
 import { requireAdmin } from "@/features/auth/session";
+import { getProductOffers } from "@/features/offers/queries";
 import { toCardSpecs } from "@/features/catalog/specs";
 import { getInventoryMovements } from "@/features/inventory/queries";
 import { MOVEMENT_LABELS } from "@/features/inventory/schemas";
 import { ProductCardPreview, ProductDraftProvider } from "../product-draft";
 import { ProductForm, type ProductFormValues } from "../product-form";
 import { ImageManager } from "./image-manager";
+import { OffersEditor } from "./offers-editor";
 import { DeleteProductPanel, DuplicateProductButton } from "./product-actions";
 import { SpecsEditor } from "./specs-editor";
 import { StockPanel } from "./stock-panel";
@@ -53,17 +55,27 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
   const product = await getAdminProduct(id);
   if (!product) notFound();
 
-  const [categories, brands, definitions, { movements }, counts, activity, rarities, flags] =
-    await Promise.all([
-      getCategoryOptions(),
-      getBrandOptions(),
-      getSpecDefinitions(product.category_id),
-      getInventoryMovements({ productId: id, pageSize: 8 }),
-      getProductHistoryCounts(id),
-      listActivity({ entityId: id, limit: 6 }),
-      listAdminRarities(),
-      listAdminFlags(),
-    ]);
+  const [
+    categories,
+    brands,
+    definitions,
+    { movements },
+    counts,
+    activity,
+    rarities,
+    flags,
+    offers,
+  ] = await Promise.all([
+    getCategoryOptions(),
+    getBrandOptions(),
+    getSpecDefinitions(product.category_id),
+    getInventoryMovements({ productId: id, pageSize: 8 }),
+    getProductHistoryCounts(id),
+    listActivity({ entityId: id, limit: 6 }),
+    listAdminRarities(),
+    listAdminFlags(),
+    getProductOffers(id),
+  ]);
 
   const initial: ProductFormValues = {
     name: product.name,
@@ -83,6 +95,7 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
     description: product.description ?? "",
     isActive: product.is_active,
     isFeatured: product.is_featured,
+    isReference: product.is_reference,
     seoTitle: product.seo_title ?? "",
     seoDescription: product.seo_description ?? "",
   };
@@ -129,6 +142,9 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
                 productName={product.name}
                 images={product.images}
               />
+            </Card>
+            <Card title="En otras tiendas" id="ofertas">
+              <OffersEditor productId={product.id} productName={product.name} offers={offers} />
             </Card>
             <Card title="Ficha técnica" id="ficha">
               <SpecsEditor

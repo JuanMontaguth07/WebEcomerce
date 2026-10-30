@@ -22,7 +22,7 @@ export async function allRows<T>(
 }
 
 const PRODUCT_FIELDS =
-  "id, name, slug, sku, product_type, category_id, brand_id, rarity_id, flag_id, unique_note, price, compare_at_price, low_stock_threshold, warranty_months, short_description, description, is_active, is_featured, seo_title, seo_description, stock";
+  "id, name, slug, sku, product_type, category_id, brand_id, rarity_id, flag_id, unique_note, price, compare_at_price, low_stock_threshold, warranty_months, short_description, description, is_active, is_featured, is_reference, seo_title, seo_description, stock";
 
 /** Lo que la importación compara: categorías, marcas, productos con su ficha y especificaciones. */
 export async function loadImportContext(supabase: Supabase): Promise<ImportContext> {
@@ -87,6 +87,7 @@ export async function loadImportContext(supabase: Supabase): Promise<ImportConte
         description: row.description,
         isActive: row.is_active,
         isFeatured: row.is_featured,
+        isReference: row.is_reference,
         seoTitle: row.seo_title,
         seoDescription: row.seo_description,
       },

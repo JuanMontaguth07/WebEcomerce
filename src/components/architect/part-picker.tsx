@@ -150,6 +150,14 @@ export function PartPicker({
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       <h3 className="text-sm leading-snug font-semibold">{part.name}</h3>
                       {part.demo && <Badge variant="outline">Demo</Badge>}
+                      {part.reference && (
+                        <Badge
+                          variant="outline"
+                          title="No se vende aquí: compárala en otras tiendas"
+                        >
+                          Referencia
+                        </Badge>
+                      )}
                     </div>
                     {part.keySpecs.length > 0 && (
                       <ul aria-label="Especificaciones clave" className="flex flex-wrap gap-1">

@@ -5,7 +5,7 @@ import { ADMIN_PAGE_SIZE, sanitizeSearch } from "./shared";
 
 /** Lecturas del catálogo para el panel (incluyen elementos inactivos; RLS exige admin). */
 
-export type ProductFilter = "all" | "active" | "inactive" | "out" | "low";
+export type ProductFilter = "all" | "active" | "inactive" | "reference" | "out" | "low";
 
 export async function listAdminProducts({
   q,
@@ -25,7 +25,7 @@ export async function listAdminProducts({
   let query = supabase
     .from("products")
     .select(
-      `id, name, slug, sku, price, stock, low_stock_threshold, is_active, is_featured, updated_at,
+      `id, name, slug, sku, price, stock, low_stock_threshold, is_active, is_featured, is_reference, updated_at,
        brand:brands(name), category:categories(name),
        rarity:rarities(id, name, color, effect),
        flag:product_flags(id, name, color, logo_path, show_name),
@@ -38,7 +38,8 @@ export async function listAdminProducts({
     .range(from, from + ADMIN_PAGE_SIZE - 1);
 
   if (filter === "active") query = query.eq("is_active", true);
-  if (filter === "inactive") query = query.eq("is_active", false);
+  if (filter === "inactive") query = query.eq("is_active", false).eq("is_reference", false);
+  if (filter === "reference") query = query.eq("is_reference", true);
   if (filter === "out") query = query.eq("stock", 0);
   if (rarityId) query = query.eq("rarity_id", rarityId);
   if (flagId) query = query.eq("flag_id", flagId);
@@ -63,6 +64,7 @@ export async function listAdminProducts({
       lowStockThreshold: row.low_stock_threshold,
       isActive: row.is_active,
       isFeatured: row.is_featured,
+      isReference: row.is_reference,
       brand: row.brand?.name ?? null,
       category: row.category?.name ?? "—",
       image: row.images[0]?.storage_path ?? null,
@@ -231,7 +233,7 @@ export async function listProductsForExport(maxRows = 20_000) {
       .from("products")
       .select(
         `name, sku, slug, product_type, price, compare_at_price, stock, low_stock_threshold,
-         warranty_months, is_active, is_featured, short_description, description, seo_title,
+         warranty_months, is_active, is_featured, is_reference, short_description, description, seo_title,
          seo_description, updated_at, brand:brands(name), category:categories(name),
          specs:product_specs(spec_id, value_text, value_number, value_boolean)`,
       )

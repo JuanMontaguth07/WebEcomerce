@@ -34,6 +34,8 @@ export type QualityInput = {
   price: number;
   stock: number;
   isActive: boolean;
+  /** Solo referencia: no se vende, así que no cuenta lo de estar visible. */
+  isReference?: boolean;
   brandId: string | null;
   warrantyMonths: number | null;
   shortDescription: string | null;
@@ -90,7 +92,9 @@ export function assessProduct(input: QualityInput): QualityResult {
   if (!input.brandId) fail("no_brand");
   if (input.warrantyMonths === null) fail("no_warranty");
 
-  if (input.isActive) {
+  if (input.isReference) {
+    // No se vende: nada que revisar sobre visibilidad o stock.
+  } else if (input.isActive) {
     applicable.push("visible_out");
     if (input.stock <= 0) fail("visible_out");
   } else {

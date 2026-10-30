@@ -72,6 +72,8 @@ export function demoArchitectParts(): ArchitectPart[] {
     slug: null,
     image: null,
     demo: true,
+    reference: false,
+    offers: [],
     ...describeSpecs(demoRawSpecs(part.kind, part.specs)),
   }));
 }

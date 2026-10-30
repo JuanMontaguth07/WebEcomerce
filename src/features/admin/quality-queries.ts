@@ -37,7 +37,7 @@ export async function getCatalogQuality(): Promise<CatalogQuality> {
         .from("products")
         .select(
           `id, name, sku, price, stock, is_active, brand_id, warranty_months, short_description,
-           description, category_id, images:product_images(storage_path, alt_text, position),
+           description, category_id, is_reference, images:product_images(storage_path, alt_text, position),
            specs:product_specs(spec_id)`,
         )
         .order("name")
@@ -67,6 +67,7 @@ export async function getCatalogQuality(): Promise<CatalogQuality> {
       price: Number(product.price),
       stock: product.stock,
       isActive: product.is_active,
+      isReference: product.is_reference,
       brandId: product.brand_id,
       warrantyMonths: product.warranty_months,
       shortDescription: product.short_description,

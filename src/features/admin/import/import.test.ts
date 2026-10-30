@@ -52,6 +52,7 @@ const context: ImportContext = {
         description: null,
         isActive: true,
         isFeatured: false,
+        isReference: false,
         seoTitle: null,
         seoDescription: null,
       },

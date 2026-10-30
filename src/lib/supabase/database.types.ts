@@ -893,6 +893,59 @@ export type Database = {
           },
         ]
       }
+      product_offers: {
+        Row: {
+          checked_at: string
+          created_at: string
+          currency: string
+          id: string
+          note: string | null
+          position: number
+          price: number | null
+          product_id: string
+          store: string
+          store_name: string | null
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          checked_at?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          note?: string | null
+          position?: number
+          price?: number | null
+          product_id: string
+          store: string
+          store_name?: string | null
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          checked_at?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          note?: string | null
+          position?: number
+          price?: number | null
+          product_id?: string
+          store?: string
+          store_name?: string | null
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_offers_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_specs: {
         Row: {
           product_id: string
@@ -943,6 +996,7 @@ export type Database = {
           id: string
           is_active: boolean
           is_featured: boolean
+          is_reference: boolean
           low_stock_threshold: number
           name: string
           price: number
@@ -969,6 +1023,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_featured?: boolean
+          is_reference?: boolean
           low_stock_threshold?: number
           name: string
           price: number
@@ -995,6 +1050,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_featured?: boolean
+          is_reference?: boolean
           low_stock_threshold?: number
           name?: string
           price?: number

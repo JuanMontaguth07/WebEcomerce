@@ -3,6 +3,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import { CATALOG_TAGS } from "@/features/catalog/queries";
 import type { RawSpec } from "@/features/catalog/specs";
 import { asPartKind, type PartKind } from "@/features/compatibility/types";
+import { toOffer } from "@/features/offers/mappers";
 import { createPublicClient } from "@/lib/supabase/public";
 import { describeSpecs } from "./parts";
 import { SHARE_CODE, type SavedBuild } from "./saved";
@@ -20,9 +21,13 @@ type PartRow = {
   low_stock_threshold: number;
   category_id: string;
   brand: { name: string } | null;
+  is_reference: boolean;
   images: { storage_path: string; alt_text: string; position: number }[];
   specs: RawSpec[];
+  offers: OfferRow[];
 };
+
+type OfferRow = Parameters<typeof toOffer>[0] & { position: number };
 
 /**
  * Productos activos de las categorías que el admin marcó como pieza de Kova
@@ -52,15 +57,17 @@ export async function getArchitectParts(): Promise<ArchitectPart[]> {
   const { data, error: productsError } = await client
     .from("products")
     .select(
-      `id, name, slug, price, stock, low_stock_threshold, category_id,
+      `id, name, slug, price, stock, low_stock_threshold, category_id, is_reference,
        brand:brands(name),
        images:product_images(storage_path, alt_text, position),
        specs:product_specs(
          value_text, value_number, value_boolean,
          definition:spec_definitions(key, label, group_label, unit, data_type, position, show_on_card)
-       )`,
+       ),
+       offers:product_offers(id, store, store_name, url, price, currency, note, checked_at, position)`,
     )
-    .eq("is_active", true)
+    // Lo que se vende y las piezas de referencia (para comparar; no se venden aquí).
+    .or("is_active.eq.true,is_reference.eq.true")
     .in("category_id", [...kindOf.keys()])
     .order("price")
     .order("position", { referencedTable: "product_images" })
@@ -84,6 +91,8 @@ export async function getArchitectParts(): Promise<ArchitectPart[]> {
       slug: row.slug,
       image: image ? { path: image.storage_path, alt: image.alt_text } : null,
       demo: false,
+      reference: row.is_reference,
+      offers: [...row.offers].sort((a, b) => a.position - b.position).map(toOffer),
       ...describeSpecs(row.specs),
     };
   });

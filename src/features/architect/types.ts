@@ -1,4 +1,5 @@
 import type { CardSpec, ImageRef } from "@/features/catalog/types";
+import type { ProductOffer } from "@/features/offers/stores";
 import type { PartKind, PartSpecs } from "@/features/compatibility/types";
 
 /** Pieza que ofrece el configurador: un producto del catálogo o una pieza demo. */
@@ -16,6 +17,10 @@ export type ArchitectPart = {
   slug: string | null;
   image: ImageRef | null;
   demo: boolean;
+  /** Solo referencia: no se vende aquí; se compara con sus ofertas en otras tiendas. */
+  reference: boolean;
+  /** Dónde más se consigue (Amazon, MercadoLibre…), con el precio que cargó el admin. */
+  offers: ProductOffer[];
   /** Valores tal como están en la ficha, para el motor de compatibilidad. */
   specs: PartSpecs;
   /** Ficha legible en su orden, para comparar. */

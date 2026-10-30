@@ -68,10 +68,19 @@ export const productSchema = z
     description: optionalText(20_000),
     isActive: z.boolean(),
     isFeatured: z.boolean(),
+    // Solo referencia: no se vende; aparece en Arma tu PC para comparar.
+    isReference: z.boolean().default(false),
     seoTitle: optionalText(70),
     seoDescription: optionalText(160),
   })
   .superRefine((value, ctx) => {
+    if (value.isReference && value.isActive) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["isActive"],
+        message: "Una pieza de referencia no se vende aquí: no puede estar visible en la tienda.",
+      });
+    }
     if (
       value.compareAtPrice !== null &&
       value.compareAtPrice !== undefined &&

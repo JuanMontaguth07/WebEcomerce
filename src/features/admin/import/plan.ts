@@ -72,6 +72,7 @@ const COMPARED: (keyof ProductValues)[] = [
   "warrantyMonths",
   "isActive",
   "isFeatured",
+  "isReference",
   "shortDescription",
   "description",
   "seoTitle",
@@ -141,6 +142,7 @@ const DEFAULTS = {
   // publica nada sin fotos por accidente.
   isActive: false,
   isFeatured: false,
+  isReference: false,
   seoTitle: null,
   seoDescription: null,
 } satisfies Partial<ProductValues>;
@@ -228,7 +230,7 @@ export function planImport(rows: RawProductRow[], context: ImportContext): Plann
       if (number === null) errors.push(`${LABEL[field]}: «${raw}» debe ser un número entero.`);
       else draft[field] = number;
     }
-    for (const field of ["isActive", "isFeatured"] as const) {
+    for (const field of ["isActive", "isFeatured", "isReference"] as const) {
       const raw = fields[field];
       if (!raw) continue;
       const yes = parseYesNo(raw);
@@ -243,6 +245,9 @@ export function planImport(rows: RawProductRow[], context: ImportContext): Plann
     ] as const) {
       if (fields[field]) draft[field] = fields[field];
     }
+
+    // Una pieza de referencia nunca está visible: si el archivo no dice nada, se oculta sola.
+    if (draft.isReference === true && !fields.isActive) draft.isActive = false;
 
     // El slug: el del archivo, o uno a partir del nombre para lo nuevo.
     if (fields.slug) {
@@ -316,7 +321,7 @@ export function planImport(rows: RawProductRow[], context: ImportContext): Plann
       changes.push(...changedFields.map((field) => LABEL[field] ?? field));
       if (stockDelta) changes.push(`Stock ${existing.stock} → ${existing.stock + stockDelta}`);
       if (specsChanged) changes.push("Ficha técnica");
-    } else if (!fields.isActive) {
+    } else if (!fields.isActive && !values.isReference) {
       warnings.push("Se crea oculto: pon «Sí» en Visible para publicarlo.");
     }
 

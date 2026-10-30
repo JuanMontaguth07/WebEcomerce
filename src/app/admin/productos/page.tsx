@@ -23,6 +23,7 @@ const FILTERS: { value: ProductFilter; label: string }[] = [
   { value: "all", label: "Todos" },
   { value: "active", label: "Visibles" },
   { value: "inactive", label: "Ocultos" },
+  { value: "reference", label: "Referencia" },
   { value: "low", label: "Stock bajo" },
   { value: "out", label: "Agotados" },
 ];

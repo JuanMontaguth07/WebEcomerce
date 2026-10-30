@@ -113,11 +113,10 @@ export const bulkUpdateProducts = adminAction(
       feature: { is_featured: true },
       unfeature: { is_featured: false },
     }[change];
-    const { data, error } = await supabase
-      .from("products")
-      .update(values)
-      .in("id", ids)
-      .select("slug");
+    let query = supabase.from("products").update(values).in("id", ids);
+    // Las piezas de referencia nunca se muestran en la tienda: «Mostrar» las salta.
+    if (change === "show") query = query.eq("is_reference", false);
+    const { data, error } = await query.select("slug");
     if (error) throw error;
     revalidateCatalog({ productSlugs: data.map((row) => row.slug) });
     return { updated: data.length };

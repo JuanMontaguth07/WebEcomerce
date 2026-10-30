@@ -20,6 +20,7 @@ export function toProductRow(values: ProductValues) {
     description: values.description ?? null,
     is_active: values.isActive,
     is_featured: values.isFeatured,
+    is_reference: values.isReference,
     seo_title: values.seoTitle ?? null,
     seo_description: values.seoDescription ?? null,
   };

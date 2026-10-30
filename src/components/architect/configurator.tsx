@@ -111,7 +111,12 @@ export function Configurator({
     source === "demo"
       ? { ready: false, reason: "Las piezas demo son de ejemplo y no se pueden comprar." }
       : !lines.length
-        ? { ready: false, reason: "Elige piezas para agregarlas al carrito." }
+        ? {
+            ready: false,
+            reason: count
+              ? "Las piezas elegidas son de referencia: no se venden aquí. Mira dónde conseguirlas."
+              : "Elige piezas para agregarlas al carrito.",
+          }
         : !available.length
           ? { ready: false, reason: "Las piezas elegidas están agotadas." }
           : { ready: true };

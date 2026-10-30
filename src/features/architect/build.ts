@@ -101,7 +101,8 @@ export function candidateStatus(
 export function cartLines(selection: Selection, index: PartIndex) {
   const lines = new Map<string, { part: ArchitectPart; quantity: number }>();
   for (const part of selectedParts(selection, index)) {
-    if (part.demo) continue;
+    // Ni las demo ni las de referencia se venden aquí.
+    if (part.demo || part.reference) continue;
     const line = lines.get(part.id);
     lines.set(part.id, { part, quantity: (line?.quantity ?? 0) + 1 });
   }

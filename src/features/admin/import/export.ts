@@ -52,6 +52,7 @@ export async function productsCsv(products: ExportProduct[]): Promise<string> {
       warrantyMonths: product.warranty_months,
       isActive: product.is_active,
       isFeatured: product.is_featured,
+      isReference: product.is_reference,
       shortDescription: product.short_description,
       description: product.description,
       seoTitle: product.seo_title,

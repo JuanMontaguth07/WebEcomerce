@@ -42,6 +42,7 @@ export type ProductFormValues = {
   description: string;
   isActive: boolean;
   isFeatured: boolean;
+  isReference: boolean;
   seoTitle: string;
   seoDescription: string;
 };
@@ -64,6 +65,7 @@ export const EMPTY_PRODUCT: ProductFormValues = {
   description: "",
   isActive: false,
   isFeatured: false,
+  isReference: false,
   seoTitle: "",
   seoDescription: "",
 };
@@ -288,9 +290,25 @@ export function ProductForm({
         <CheckboxField
           name="isActive"
           label="Visible en la tienda"
-          hint="Déjalo oculto mientras completas imágenes y ficha técnica."
-          checked={values.isActive}
+          hint={
+            values.isReference
+              ? "Las piezas de referencia no se venden aquí, así que no se muestran en la tienda."
+              : "Déjalo oculto mientras completas imágenes y ficha técnica."
+          }
+          errors={errors}
+          disabled={values.isReference}
+          checked={values.isActive && !values.isReference}
           onCheckedChange={(checked) => update("isActive", checked)}
+        />
+        <CheckboxField
+          name="isReference"
+          label="Solo referencia (no se vende aquí)"
+          hint="Aparece en Arma tu PC para comparar y armar, con sus ofertas en otras tiendas; nunca en la tienda ni en el carrito."
+          checked={values.isReference}
+          onCheckedChange={(checked) => {
+            update("isReference", checked);
+            if (checked) update("isActive", false);
+          }}
         />
         <CheckboxField
           name="isFeatured"

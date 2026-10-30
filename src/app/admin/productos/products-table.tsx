@@ -42,6 +42,7 @@ export type ProductRow = {
   lowStockThreshold: number;
   isActive: boolean;
   isFeatured: boolean;
+  isReference: boolean;
   brand: string | null;
   category: string;
   image: string | null;
@@ -393,9 +394,15 @@ export function ProductsTable({
                 </td>
                 <td>
                   <div className="flex flex-wrap gap-1">
-                    <Badge variant={product.isActive ? "success" : "outline"}>
-                      {product.isActive ? "Visible" : "Oculto"}
-                    </Badge>
+                    {product.isReference ? (
+                      <Badge variant="soft" title="No se vende aquí: aparece en Arma tu PC">
+                        Referencia
+                      </Badge>
+                    ) : (
+                      <Badge variant={product.isActive ? "success" : "outline"}>
+                        {product.isActive ? "Visible" : "Oculto"}
+                      </Badge>
+                    )}
                     {product.isFeatured && <Badge variant="soft">Destacado</Badge>}
                   </div>
                 </td>
