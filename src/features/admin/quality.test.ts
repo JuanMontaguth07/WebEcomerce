@@ -57,6 +57,26 @@ describe("calidad del catálogo", () => {
     expect(assessProduct({ ...complete, isActive: false }).issues).toEqual(["hidden_ready"]);
   });
 
+  it("una pieza de referencia solo se revisa por su ficha (no se muestra en la tienda)", () => {
+    const result = assessProduct({
+      ...complete,
+      price: null,
+      isActive: false,
+      isReference: true,
+      stock: 0,
+      warrantyMonths: null,
+      shortDescription: null,
+      description: null,
+      images: [],
+      brandId: null,
+    });
+    expect(result).toEqual({ issues: [], score: 100 });
+    expect(
+      assessProduct({ ...complete, isReference: true, isActive: false, filledSpecs: new Set() })
+        .issues,
+    ).toEqual(["card_specs", "specs", "architect"]);
+  });
+
   it("sin ficha definida en la categoría no exige ficha", () => {
     const result = assessProduct({ ...complete, categorySpecs: [], filledSpecs: new Set() });
     expect(result).toEqual({ issues: [], score: 100 });

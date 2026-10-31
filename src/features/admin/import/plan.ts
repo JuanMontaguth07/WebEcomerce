@@ -49,6 +49,8 @@ export type PlannedRow = {
   changes: string[];
   /** Cambia algún dato del producto (no solo stock o ficha). */
   fieldsChanged: boolean;
+  /** Marca que no existe todavía: se crea al importar. */
+  newBrand: string | null;
   errors: string[];
   warnings: string[];
 };
@@ -179,6 +181,7 @@ export function planImport(rows: RawProductRow[], context: ImportContext): Plann
       specs: null,
       changes: [],
       fieldsChanged: false,
+      newBrand: null,
       errors: message ? [message] : errors,
       warnings,
     });
@@ -190,6 +193,7 @@ export function planImport(rows: RawProductRow[], context: ImportContext): Plann
 
     const existing = bySku.get(sku);
     const draft: Record<string, unknown> = existing ? { ...existing.values } : { ...DEFAULTS, sku };
+    let newBrand: string | null = null;
 
     if (fields.name) draft.name = fields.name;
     if (fields.productType) {
@@ -213,7 +217,13 @@ export function planImport(rows: RawProductRow[], context: ImportContext): Plann
       else {
         const brand = named(context.brands, fields.brand);
         if (brand) draft.brandId = brand.id;
-        else errors.push(`Marca: no existe «${fields.brand}». Créala primero en Marcas.`);
+        else if (fields.brand.trim().length > 80) errors.push("Marca: máximo 80 caracteres.");
+        else {
+          // No existe: se crea al aplicar, antes de los productos.
+          newBrand = fields.brand.trim();
+          draft.brandId = null;
+          warnings.push(`Marca «${newBrand}»: no existe; se crea al importar.`);
+        }
       }
     }
     for (const field of ["price", "compareAtPrice"] as const) {
@@ -338,11 +348,23 @@ export function planImport(rows: RawProductRow[], context: ImportContext): Plann
           ? [...merged].map(([specId, value]) => ({ specId, value }))
           : null,
       changes,
-      fieldsChanged: changedFields.length > 0,
+      fieldsChanged: changedFields.length > 0 || newBrand !== null,
+      newBrand,
       errors: [],
       warnings,
     };
   });
+}
+
+/** Las marcas que hay que crear para aplicar el plan, sin repetir (sin importar tildes). */
+export function missingBrands(plan: PlannedRow[]): string[] {
+  const names = new Map<string, string>();
+  for (const row of plan) {
+    if (row.action === "error" || !row.newBrand) continue;
+    const key = normalizeName(row.newBrand);
+    if (!names.has(key)) names.set(key, row.newBrand);
+  }
+  return [...names.values()];
 }
 
 /** Cuántas filas hay de cada tipo. */

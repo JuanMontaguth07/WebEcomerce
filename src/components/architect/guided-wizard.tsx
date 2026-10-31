@@ -17,16 +17,18 @@ import { Button } from "@/components/ui/button";
 import { indexParts, selectionTotal, toBuild } from "@/features/architect/build";
 import {
   DEFAULT_ANSWERS,
+  pricedParts,
   recommendBuild,
   swapPick,
   USE_LABELS,
   type GuidedAnswers,
   type GuidedResult,
+  type PricedPart,
   type Use,
 } from "@/features/architect/guided";
 import type { ArchitectPart, Selection } from "@/features/architect/types";
 import { checkBuild, overallStatus } from "@/features/compatibility/engine";
-import { PART_LABELS } from "@/features/compatibility/types";
+import { PART_KINDS, PART_LABELS } from "@/features/compatibility/types";
 import { formatCOP } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { PartThumb } from "./part-thumb";
@@ -116,14 +118,22 @@ const STEPS: Step[] = [
  */
 export function GuidedWizard({
   parts,
+  demoAvailable = false,
+  onUseDemo,
   onApply,
 }: {
   parts: ArchitectPart[];
+  /** Se puede cambiar a piezas demo si al catálogo le falta algo. */
+  demoAvailable?: boolean;
+  onUseDemo?: () => void;
   onApply: (selection: Selection, budget: number, answers: GuidedAnswers) => void;
 }) {
   const [answers, setAnswers] = useState<GuidedAnswers>(DEFAULT_ANSWERS);
   const [step, setStep] = useState(0);
   const [result, setResult] = useState<{ base: GuidedResult; selection: Selection } | null>(null);
+  // La recomendación y sus alternativas solo usan piezas con precio conocido.
+  const priced = useMemo(() => pricedParts(parts), [parts]);
+  const unpricedKinds = PART_KINDS.filter((kind) => !priced.some((part) => part.kind === kind));
 
   const steps = STEPS.filter((item) => !item.when || item.when(answers));
   const current = steps[Math.min(step, steps.length - 1)] as Step;
@@ -133,7 +143,8 @@ export function GuidedWizard({
     return (
       <GuidedResultView
         answers={answers}
-        parts={parts}
+        parts={priced}
+        demoAvailable={demoAvailable}
         result={result.base}
         selection={result.selection}
         onSwap={(part) =>
@@ -152,6 +163,24 @@ export function GuidedWizard({
 
   return (
     <section aria-labelledby="guided-step" className="mx-auto grid w-full max-w-3xl gap-6">
+      {unpricedKinds.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-warning/40 bg-warning/10 p-3 text-sm">
+          <InfoIcon className="size-4 shrink-0 text-warning" aria-hidden />
+          <p className="min-w-60 flex-1">
+            {unpricedKinds.length === PART_KINDS.length
+              ? "La recomendación reparte tu presupuesto y el catálogo todavía no tiene precios: compara precios en tiendas en el modo libre"
+              : `Para recomendarte por presupuesto faltan precios de ${unpricedKinds
+                  .map((kind) => PART_LABELS[kind].toLocaleLowerCase("es-CO"))
+                  .join(", ")}: esas las eliges en el modo libre`}
+            {demoAvailable ? " o prueba la recomendación con piezas demo." : "."}
+          </p>
+          {demoAvailable && onUseDemo && (
+            <Button type="button" variant="outline" size="sm" onClick={onUseDemo}>
+              Usar piezas demo
+            </Button>
+          )}
+        </div>
+      )}
       <div className="grid gap-2">
         <p className="text-eyebrow text-muted-foreground">
           Pregunta {step + 1} de {steps.length}
@@ -291,6 +320,7 @@ function BudgetQuestion({ value, onChange }: { value: number; onChange: (value: 
 function GuidedResultView({
   answers,
   parts,
+  demoAvailable,
   result,
   selection,
   onSwap,
@@ -298,10 +328,11 @@ function GuidedResultView({
   onApply,
 }: {
   answers: GuidedAnswers;
-  parts: ArchitectPart[];
+  parts: PricedPart[];
+  demoAvailable: boolean;
   result: GuidedResult;
   selection: Selection;
-  onSwap: (part: ArchitectPart) => void;
+  onSwap: (part: PricedPart) => void;
   onBack: () => void;
   onApply: () => void;
 }) {
@@ -342,11 +373,14 @@ function GuidedResultView({
           {result.missing.length > 0 && (
             <li className="flex gap-2.5 rounded-xl border border-warning/40 bg-warning/10 p-3 text-sm">
               <InfoIcon className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
-              No hay{" "}
-              {result.missing
-                .map((kind) => PART_LABELS[kind].toLocaleLowerCase("es-CO"))
-                .join(", ")}{" "}
-              con ficha que encaje en el catálogo. Elígelas en el modo libre o cambia a piezas demo.
+              <span>
+                {result.missing.length === PART_KINDS.length
+                  ? "El catálogo todavía no tiene piezas con precio para repartir el presupuesto. Compara precios en el modo libre"
+                  : `No hay ${result.missing
+                      .map((kind) => PART_LABELS[kind].toLocaleLowerCase("es-CO"))
+                      .join(", ")} con precio y ficha que encaje en el catálogo. Elígelas en el modo libre`}
+                {demoAvailable ? " o cambia a piezas demo" : ""}.
+              </span>
             </li>
           )}
           {result.notes.map((note) => (
@@ -367,7 +401,7 @@ function GuidedResultView({
             { label: "Mejor", option: pick.better },
             ...(swapped ? [{ label: "Recomendada", option: pick.part }] : []),
           ].filter(
-            (item): item is { label: string; option: ArchitectPart } =>
+            (item): item is { label: string; option: PricedPart } =>
               item.option !== null && item.option.id !== part.id,
           );
           return (

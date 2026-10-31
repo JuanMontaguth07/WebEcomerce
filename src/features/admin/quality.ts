@@ -31,7 +31,8 @@ export const SUSPICIOUS_PRICE = 10_000;
 export const MIN_DESCRIPTION = 120;
 
 export type QualityInput = {
-  price: number;
+  /** null solo en piezas de referencia (su precio sale de las ofertas). */
+  price: number | null;
   stock: number;
   isActive: boolean;
   /** Solo referencia: no se vende, así que no cuenta lo de estar visible. */
@@ -54,17 +55,17 @@ export type QualityResult = { issues: QualityCheck[]; score: number };
 /** Qué le falta a un producto y su puntaje de 0 a 100. */
 export function assessProduct(input: QualityInput): QualityResult {
   const issues: QualityCheck[] = [];
-  const applicable: QualityCheck[] = [
-    "no_images",
-    "price",
-    "no_short",
-    "thin_description",
-    "no_brand",
-    "no_warranty",
-  ];
+  // Una pieza de referencia no se muestra en la tienda: solo cuenta la ficha (lo
+  // que usa Arma tu PC). Fotos, textos, marca, precio y garantía no aplican.
+  const shop = !input.isReference;
+  const applicable: QualityCheck[] = shop
+    ? ["no_images", "price", "no_short", "thin_description", "no_brand", "no_warranty"]
+    : [];
   const fail = (check: QualityCheck) => issues.push(check);
 
-  if (!input.images.length) fail("no_images");
+  if (!shop) {
+    // Sin revisión de fotos.
+  } else if (!input.images.length) fail("no_images");
   else {
     applicable.push("one_image", "alt_text");
     if (input.images.length === 1) fail("one_image");
@@ -86,11 +87,13 @@ export function assessProduct(input: QualityInput): QualityResult {
     if (architectSpecs.some((spec) => !input.filledSpecs.has(spec.id))) fail("architect");
   }
 
-  if (input.price < SUSPICIOUS_PRICE) fail("price");
-  if (!input.shortDescription?.trim()) fail("no_short");
-  if ((input.description?.trim().length ?? 0) < MIN_DESCRIPTION) fail("thin_description");
-  if (!input.brandId) fail("no_brand");
-  if (input.warrantyMonths === null) fail("no_warranty");
+  if (shop) {
+    if (!input.brandId) fail("no_brand");
+    if (input.price === null || input.price < SUSPICIOUS_PRICE) fail("price");
+    if (!input.shortDescription?.trim()) fail("no_short");
+    if ((input.description?.trim().length ?? 0) < MIN_DESCRIPTION) fail("thin_description");
+    if (input.warrantyMonths === null) fail("no_warranty");
+  }
 
   if (input.isReference) {
     // No se vende: nada que revisar sobre visibilidad o stock.

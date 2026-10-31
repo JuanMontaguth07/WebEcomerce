@@ -64,7 +64,7 @@ export async function getCatalogQuality(): Promise<CatalogQuality> {
   const assessed = products.map((product): QualityProduct => {
     const images = [...product.images].sort((a, b) => a.position - b.position);
     const result = assessProduct({
-      price: Number(product.price),
+      price: product.price === null ? null : Number(product.price),
       stock: product.stock,
       isActive: product.is_active,
       isReference: product.is_reference,

@@ -52,8 +52,12 @@ export const productSchema = z
       .transform((value) => value || null)
       .nullable()
       .optional(),
-    price: money.refine((value) => value > 0, "El precio debe ser mayor que cero."),
     // En estas uniones el literal "" va primero: z.coerce convertiría "" en 0.
+    // Vacío solo vale en una pieza de referencia (su precio sale de las ofertas).
+    price: z
+      .union([z.literal(""), z.null(), money])
+      .optional()
+      .transform((value) => (value === "" || value === null || value === undefined ? null : value)),
     compareAtPrice: z
       .union([z.literal(""), z.null(), money])
       .transform((value) => (value === "" || value === null || value === 0 ? null : value))
@@ -81,10 +85,20 @@ export const productSchema = z
         message: "Una pieza de referencia no se vende aquí: no puede estar visible en la tienda.",
       });
     }
+    if (value.price === null && !value.isReference) {
+      ctx.addIssue({ code: "custom", path: ["price"], message: "Escribe el precio de venta." });
+    }
+    if (value.price !== null && value.price <= 0) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["price"],
+        message: "El precio debe ser mayor que cero.",
+      });
+    }
     if (
       value.compareAtPrice !== null &&
       value.compareAtPrice !== undefined &&
-      value.compareAtPrice <= value.price
+      (value.price === null || value.compareAtPrice <= value.price)
     ) {
       ctx.addIssue({
         code: "custom",

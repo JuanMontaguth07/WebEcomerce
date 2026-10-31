@@ -87,7 +87,7 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
     rarityId: product.rarity_id ?? "",
     flagId: product.flag_id ?? "",
     uniqueNote: product.unique_note ?? "",
-    price: String(product.price),
+    price: product.price === null ? "" : String(product.price),
     compareAtPrice: product.compare_at_price === null ? "" : String(product.compare_at_price),
     lowStockThreshold: String(product.low_stock_threshold),
     warrantyMonths: product.warranty_months === null ? "" : String(product.warranty_months),

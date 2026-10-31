@@ -1,0 +1,30 @@
+﻿SKU;Producto;Categoría;Marca;Precio;Solo referencia;Ficha: Placas compatibles;Ficha: Longitud máxima de GPU;Ficha: Altura máxima del disipador;Ficha: Radiadores compatibles;Ficha: Ventiladores incluidos;Ficha: Panel lateral
+REF-CASE-LIAN-LI-O11-DYNAMIC-EVO;Lian Li O11 Dynamic EVO;Chasis;Lian Li;;Sí;E-ATX, ATX, Micro-ATX, Mini-ITX;422;167;240, 280, 360;0;Vidrio templado
+REF-CASE-LIAN-LI-LANCOOL-216;Lian Li Lancool 216;Chasis;Lian Li;;Sí;E-ATX, ATX, Micro-ATX, Mini-ITX;392;180;240, 280, 360;3;Vidrio templado
+REF-CASE-LIAN-LI-LANCOOL-207;Lian Li Lancool 207;Chasis;Lian Li;;Sí;ATX, Micro-ATX, Mini-ITX;375;170;240, 280, 360;4;Vidrio templado
+REF-CASE-LIAN-LI-A3-MATX;Lian Li A3-mATX;Chasis;Lian Li;;Sí;Micro-ATX, Mini-ITX;415;165;240, 280, 360;0;Vidrio templado
+REF-CASE-NZXT-H5-FLOW-2024;NZXT H5 Flow (2024);Chasis;NZXT;;Sí;ATX, Micro-ATX, Mini-ITX;365;165;240, 280, 360;2;Vidrio templado
+REF-CASE-NZXT-H6-FLOW;NZXT H6 Flow;Chasis;NZXT;;Sí;ATX, Micro-ATX, Mini-ITX;365;163;240, 280, 360;3;Vidrio templado
+REF-CASE-NZXT-H9-FLOW;NZXT H9 Flow;Chasis;NZXT;;Sí;ATX, Micro-ATX, Mini-ITX;435;165;240, 280, 360;4;Vidrio templado
+REF-CASE-CORSAIR-4000D-AIRFLOW;Corsair 4000D Airflow;Chasis;Corsair;;Sí;ATX, Micro-ATX, Mini-ITX;360;170;240, 280, 360;2;Vidrio templado
+REF-CASE-CORSAIR-5000D-AIRFLOW;Corsair 5000D Airflow;Chasis;Corsair;;Sí;E-ATX, ATX, Micro-ATX, Mini-ITX;420;170;240, 280, 360;2;Vidrio templado
+REF-CASE-CORSAIR-3500X;Corsair 3500X;Chasis;Corsair;;Sí;ATX, Micro-ATX, Mini-ITX;410;170;240, 280, 360;0;Vidrio templado
+REF-CASE-CORSAIR-2500X;Corsair 2500X;Chasis;Corsair;;Sí;Micro-ATX, Mini-ITX;400;180;240, 280, 360;0;Vidrio templado
+REF-CASE-FRACTAL-DESIGN-NORTH;Fractal Design North;Chasis;Fractal Design;;Sí;ATX, Micro-ATX, Mini-ITX;355;170;240, 280, 360;2;Vidrio templado
+REF-CASE-FRACTAL-DESIGN-POP-AIR;Fractal Design Pop Air;Chasis;Fractal Design;;Sí;ATX, Micro-ATX, Mini-ITX;405;170;240, 280, 360;3;Vidrio templado
+REF-CASE-FRACTAL-DESIGN-MESHIFY-2-COMPACT;Fractal Design Meshify 2 Compact;Chasis;Fractal Design;;Sí;ATX, Micro-ATX, Mini-ITX;360;169;240, 280, 360;3;Vidrio templado
+REF-CASE-FRACTAL-DESIGN-TERRA;Fractal Design Terra;Chasis;Fractal Design;;Sí;Mini-ITX;322;77;;0;Malla de aluminio
+REF-CASE-MONTECH-AIR-903-MAX;Montech AIR 903 MAX;Chasis;Montech;;Sí;E-ATX, ATX, Micro-ATX, Mini-ITX;400;180;240, 280, 360;4;Vidrio templado
+REF-CASE-MONTECH-XR;Montech XR;Chasis;Montech;;Sí;ATX, Micro-ATX, Mini-ITX;420;167;240, 360;3;Vidrio templado
+REF-CASE-PHANTEKS-XT-PRO-ULTRA;Phanteks XT Pro Ultra;Chasis;Phanteks;;Sí;E-ATX, ATX, Micro-ATX, Mini-ITX;415;184;240, 280, 360;4;Vidrio templado
+REF-CASE-HYTE-Y60;HYTE Y60;Chasis;HYTE;;Sí;ATX, Micro-ATX, Mini-ITX;375;160;240, 280, 360;3;Vidrio templado
+REF-CASE-HYTE-Y70;HYTE Y70;Chasis;HYTE;;Sí;E-ATX, ATX, Micro-ATX, Mini-ITX;422;180;240, 280, 360;4;Vidrio templado
+REF-CASE-COOLER-MASTER-MASTERBOX-Q300L;Cooler Master MasterBox Q300L;Chasis;Cooler Master;;Sí;Micro-ATX, Mini-ITX;360;157;240;1;Acrílico
+REF-CASE-COOLER-MASTER-MASTERBOX-TD500-MESH-V2;Cooler Master MasterBox TD500 Mesh V2;Chasis;Cooler Master;;Sí;ATX, Micro-ATX, Mini-ITX;410;165;240, 280, 360;3;Vidrio templado
+REF-CASE-DEEPCOOL-CH560;DeepCool CH560;Chasis;DeepCool;;Sí;E-ATX, ATX, Micro-ATX, Mini-ITX;380;175;240, 280, 360;4;Vidrio templado
+REF-CASE-DEEPCOOL-CC560-V2;DeepCool CC560 V2;Chasis;DeepCool;;Sí;ATX, Micro-ATX, Mini-ITX;370;163;240, 280, 360;4;Vidrio templado
+REF-CASE-THERMALTAKE-VERSA-H18;Thermaltake Versa H18;Chasis;Thermaltake;;Sí;Micro-ATX, Mini-ITX;350;155;240;1;Vidrio templado
+REF-CASE-ANTEC-C8;Antec C8;Chasis;Antec;;Sí;E-ATX, ATX, Micro-ATX, Mini-ITX;445;175;240, 280, 360;0;Vidrio templado
+REF-CASE-BE-QUIET-PURE-BASE-500DX;be quiet! Pure Base 500DX;Chasis;be quiet!;;Sí;ATX, Micro-ATX, Mini-ITX;369;190;240, 280, 360;3;Vidrio templado
+REF-CASE-ASUS-TUF-GAMING-GT502;ASUS TUF Gaming GT502;Chasis;Asus;;Sí;ATX, Micro-ATX, Mini-ITX;400;163;240, 280, 360;0;Vidrio templado
+REF-CASE-ASUS-PRIME-AP201;ASUS Prime AP201;Chasis;Asus;;Sí;Micro-ATX, Mini-ITX;338;170;240, 280, 360;1;Malla

@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { ArchitectPart } from "@/features/architect/types";
-import { buildPricing, displayPrice, offerInCop, partPricing } from "./compare";
+import {
+  buildPricing,
+  displayPrice,
+  offerInCop,
+  partPricing,
+  priceLabel,
+  priceOrder,
+} from "./compare";
 import { daysSince, searchLinks, type ProductOffer } from "./stores";
 
 const offer = (patch: Partial<ProductOffer>): ProductOffer => ({
@@ -67,6 +74,16 @@ describe("precios en otras tiendas", () => {
     const reference = part({ reference: true, stock: 0, offers: [offer({ price: 1_950_000 })] });
     expect(partPricing(reference, null).here).toBeNull();
     expect(displayPrice(reference, null)).toBe(1_950_000);
+  });
+
+  it("sin precio propio ni ofertas con precio, no inventa uno", () => {
+    const bare = part({ reference: true, price: null, stock: 0, offers: [offer({ price: null })] });
+    expect(displayPrice(bare, null)).toBeNull();
+    expect(priceLabel(null)).toBe("En tiendas");
+    expect(priceOrder(null)).toBeGreaterThan(priceOrder(99_000_000));
+    expect(buildPricing([bare], null).unpriced).toBe(1);
+    // Con precio de referencia y sin ofertas, se usa ese.
+    expect(displayPrice(part({ reference: true, offers: [] }), null)).toBe(2_300_000);
   });
 
   it("suma el equipo comprando aquí y combinando lo más barato", () => {

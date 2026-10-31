@@ -14,13 +14,17 @@ export const INTEGRATED_GPU_SCORE = 6;
 
 export type PerformanceTier = { label: string; detail: string };
 
-/** Para qué alcanza según el rendimiento en juegos (estimado). */
+/**
+ * Para qué alcanza según el rendimiento en juegos (estimado). La escala es
+ * lineal (la gráfica más potente = 100): una RTX 4090 ronda 76, una RTX 4070
+ * Super 40, una RTX 4060 20 y una RX 6600 15.
+ */
 const TIERS: { min: number; tier: PerformanceTier }[] = [
-  { min: 85, tier: { label: "4K alto", detail: "Juegos exigentes en 4K y lo que venga." } },
-  { min: 70, tier: { label: "1440p ultra", detail: "1440p al máximo; 4K en calidad media." } },
-  { min: 52, tier: { label: "1440p alto", detail: "Juegos actuales en 1440p con buena calidad." } },
-  { min: 35, tier: { label: "1080p alto", detail: "Juegos actuales en 1080p con calidad alta." } },
-  { min: 15, tier: { label: "1080p eSports", detail: "Juegos competitivos y ligeros en 1080p." } },
+  { min: 70, tier: { label: "4K alto", detail: "Juegos exigentes en 4K y lo que venga." } },
+  { min: 50, tier: { label: "1440p ultra", detail: "1440p al máximo; 4K en calidad media." } },
+  { min: 36, tier: { label: "1440p alto", detail: "Juegos actuales en 1440p con buena calidad." } },
+  { min: 17, tier: { label: "1080p alto", detail: "Juegos actuales en 1080p con calidad alta." } },
+  { min: 8, tier: { label: "1080p eSports", detail: "Juegos competitivos y ligeros en 1080p." } },
   { min: 0, tier: { label: "Oficina y estudio", detail: "Navegar, ofimática, clases y video." } },
 ];
 
@@ -67,21 +71,26 @@ export function buildStats(build: Build, total: number): BuildStats {
   let performance: BuildStats["performance"] = null;
   let balance: BuildStats["balance"] = null;
   if (cpuScore !== null && gpuScore !== null) {
-    // En juegos manda la gráfica, pero un procesador flojo no la deja rendir.
-    const gaming = Math.round(0.8 * Math.min(gpuScore, cpuScore * 1.3) + 0.2 * cpuScore);
+    // En juegos manda la gráfica, pero un procesador flojo no la deja rendir; y
+    // un procesador potente no compensa una gráfica floja.
+    const gaming = Math.round(
+      0.8 * Math.min(gpuScore, cpuScore * 1.3) + 0.2 * Math.min(cpuScore, gpuScore * 2),
+    );
     // En trabajo (render, compilar, edición) pesa más el procesador.
     const work = Math.round(0.75 * cpuScore + 0.25 * gpuScore);
     performance = { gaming, work };
     if (!integratedGraphics) {
+      // Las gráficas se escalan más abiertas que los procesadores: un Ryzen 5
+      // 7600 (≈53) con una RTX 4060 (≈20) es un equipo equilibrado.
       const ratio = gpuScore / cpuScore;
       balance =
-        ratio > 1.5
+        ratio > 1.4
           ? {
               kind: "cpu-limits",
               message:
                 "El procesador limita a la gráfica: uno más potente sacaría más de ella en juegos.",
             }
-          : ratio < 0.55
+          : ratio < 0.3
             ? {
                 kind: "gpu-limits",
                 message:

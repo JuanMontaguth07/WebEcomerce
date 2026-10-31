@@ -141,7 +141,9 @@ describe("reglas", () => {
   it("lo que el catálogo no informa se marca como no confirmable", () => {
     const chassis = part("Gabinete", {});
     const aio = part("AIO", { cooling_type: "Líquida AIO", radiator_size: 240 });
-    expect(coolerHeight({ cooler: aio, case: chassis })?.status).toBe("unknown");
+    // En una líquida no cuenta la altura: lo que tiene que caber es el radiador.
+    expect(coolerHeight({ cooler: aio, case: chassis })).toBeNull();
+    expect(coolerHeight({ cooler: part("Torre", {}), case: chassis })?.status).toBe("unknown");
     expect(radiatorSupport({ cooler: aio, case: chassis })?.status).toBe("unknown");
     expect(
       radiatorSupport({ cooler: part("Aire", { cooling_type: "Aire" }), case: chassis }),

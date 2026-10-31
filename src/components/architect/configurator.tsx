@@ -17,6 +17,7 @@ import {
   budgetUsage,
   cartLines,
   choosePart,
+  coversAllKinds,
   indexParts,
   removePart,
   selectedParts,
@@ -24,7 +25,7 @@ import {
   toBuild,
 } from "@/features/architect/build";
 import { saveBuild } from "@/features/architect/actions";
-import type { GuidedAnswers } from "@/features/architect/guided";
+import { pricedParts, type GuidedAnswers } from "@/features/architect/guided";
 import { buildPayload, quoteMessage } from "@/features/architect/saved";
 import { savedBuildsActions } from "@/features/architect/saved-store";
 import { EMPTY_SELECTION, type ArchitectPart, type Selection } from "@/features/architect/types";
@@ -35,7 +36,7 @@ import { STATUS_LABELS, type PartKind } from "@/features/compatibility/types";
 import { formatCOP } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { buildStats } from "@/features/architect/stats";
-import { buildPricing } from "@/features/offers/compare";
+import { buildPricing, displayPrice } from "@/features/offers/compare";
 import { BuildSummary } from "./build-summary";
 import { CompareSheet } from "./compare-sheet";
 import { GuidedWizard } from "./guided-wizard";
@@ -67,8 +68,8 @@ export const piecesLabel = (count: number) => `${count} ${count === 1 ? "pieza" 
 
 /**
  * Kova Architect en modo libre: piezas, opciones y resumen. Funciona con el
- * catálogo real o con piezas demo (ficticias, no comprables) cuando el catálogo
- * todavía no tiene productos con ficha.
+ * catálogo real o con piezas demo (ficticias, no comprables) mientras al
+ * catálogo le falte algún tipo de pieza; con todos, el demo desaparece.
  */
 export function Configurator({
   catalogParts,
@@ -101,7 +102,20 @@ export function Configurator({
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [whereOpen, setWhereOpen] = useState(false);
 
-  const parts = source === "catalog" ? catalogParts : demoParts;
+  // Las de referencia van con su mejor precio afuera (o el de referencia): así
+  // ordenan, suman y entran al presupuesto como las demás.
+  const pricedCatalog = useMemo(
+    () =>
+      catalogParts.map((part) =>
+        part.reference ? { ...part, price: displayPrice(part, usdRate) } : part,
+      ),
+    [catalogParts, usdRate],
+  );
+  // El demo sobra cuando con el catálogo se arma un equipo completo con precios
+  // (el modo guiado reparte un presupuesto). Un enlace guardado con piezas demo
+  // se sigue abriendo con ellas.
+  const demoAvailable = !coversAllKinds(pricedParts(pricedCatalog)) || initial?.source === "demo";
+  const parts = source === "catalog" ? pricedCatalog : demoParts;
   const index = useMemo(() => indexParts(parts), [parts]);
   const results = useMemo(() => checkBuild(toBuild(selection, index)), [selection, index]);
   const status = overallStatus(results);
@@ -276,34 +290,36 @@ export function Configurator({
               ["free", "Libre"],
             ]}
           />
-          <div
-            role="group"
-            aria-label="Piezas"
-            className="inline-flex rounded-xl border bg-card p-1"
-          >
-            {(
-              [
-                ["catalog", `Catálogo (${catalogParts.length})`],
-                ["demo", "Piezas demo"],
-              ] as const
-            ).map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={source === value}
-                disabled={value === "catalog" && !catalogParts.length}
-                onClick={() => switchSource(value)}
-                className={cn(
-                  "rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-                  source === value
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          {demoAvailable && (
+            <div
+              role="group"
+              aria-label="Piezas"
+              className="inline-flex rounded-xl border bg-card p-1"
+            >
+              {(
+                [
+                  ["catalog", `Catálogo (${catalogParts.length})`],
+                  ["demo", "Piezas demo"],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={source === value}
+                  disabled={value === "catalog" && !catalogParts.length}
+                  onClick={() => switchSource(value)}
+                  className={cn(
+                    "rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+                    source === value
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
           <MyBuildsButton />
         </div>
         {!catalogParts.length && (
@@ -327,6 +343,8 @@ export function Configurator({
         <GuidedWizard
           key={source}
           parts={parts}
+          demoAvailable={demoAvailable && source === "catalog"}
+          onUseDemo={() => switchSource("demo")}
           onApply={(next, towerBudget, guidedAnswers) => {
             setAnswers(guidedAnswers);
             setSelection(next);

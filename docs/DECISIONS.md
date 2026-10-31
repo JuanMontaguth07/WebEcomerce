@@ -811,3 +811,30 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
 - **No se adivina**: sin puntaje de alguna pieza no se estima rendimiento y se dice cuál falta; el
   panel aclara que es una estimación relativa, no FPS medidos. Reemplaza la línea suelta de
   consumo del resumen.
+
+## D51 — Catálogo de referencia grande y fin del demo (2026-10-31)
+
+- **Precio opcional en piezas de referencia** (migración `20261117120000_reference_optional_price`):
+  `products.price` admite null solo si `is_reference` (check `products_price_required`). Lo que se
+  vende sigue necesitando precio (formulario, importación y base). En Arma tu PC una pieza de
+  referencia usa la oferta más barata en pesos, o su precio de referencia, o muestra «En tiendas».
+  `save_build` guarda 0 para una pieza sin precio; `get_featured_builds` suma cada pieza con su
+  mejor precio de hoy (`private.best_offer_cop`, con la tasa de dólar de la tienda) y cuenta las
+  piezas sin precio (`unpriced`).
+- **Catálogo de 359 piezas** en `docs/catalogo-referencia/` (CSV por categoría con la ficha de la
+  plantilla): CPU y placas por modelo exacto, gráficas por chip, RAM/almacenamiento/fuentes
+  genéricos, refrigeración y gabinetes populares. Sin precios ni fotos; los puntajes son
+  aproximados y lo no confirmado va vacío (el motor lo marca «por confirmar»).
+- **Importación**: las marcas que no existen se crean al aplicar (la vista previa lo avisa); una
+  pieza «Solo referencia» puede ir sin precio. **Calidad**: una pieza de referencia solo se revisa
+  por su ficha (no se muestra en la tienda).
+- **Demo**: desaparece cuando las piezas con precio (tienda u ofertas) cubren los 8 tipos, porque
+  el modo guiado reparte un presupuesto y solo puede usar piezas con precio. Un enlace guardado con
+  piezas demo se sigue abriendo con ellas. Si faltan precios, el modo guiado lo avisa al empezar y
+  ofrece «Usar piezas demo».
+- **Recalibración para datos reales** (escala lineal: RTX 5090 = 100): tramos de «Ideal para» en
+  70/50/36/17/8; juegos = 0,8 × min(gráfica, procesador × 1,3) + 0,2 × min(procesador,
+  gráfica × 2) (un procesador potente no compensa una gráfica floja); equilibrio > 1,4 / < 0,3. El
+  modo guiado compara procesadores y gráficas por puntaje cuando lo tienen (antes por núcleos y
+  VRAM). La regla de altura del disipador no aplica a las líquidas (vale la del radiador). En la
+  lista, a igual precio va primero la de más rendimiento.

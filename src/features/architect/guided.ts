@@ -117,11 +117,15 @@ const has = (part: ArchitectPart, pattern: RegExp, ...keys: string[]) =>
 function score(part: ArchitectPart, answers: GuidedAnswers): number {
   const n = (key: string) => numberSpec(part.specs, key) ?? 0;
   const looks = answers.priority === "looks";
+  // Con puntaje de rendimiento se compara por él; sin él, por lo que dice la ficha.
+  const perf = n("perf_score");
   switch (part.kind) {
     case "cpu":
-      return n("cores") * 10 + n("threads") * 2 + n("boost_clock") * 5;
+      return perf ? 1000 + perf * 10 : n("cores") * 10 + n("threads") * 2 + n("boost_clock") * 5;
     case "gpu":
-      return n("vram") * 10 + (has(part, /gddr7/i, "memory_type") ? 6 : 0);
+      return perf
+        ? 1000 + perf * 10
+        : n("vram") * 10 + (has(part, /gddr7/i, "memory_type") ? 6 : 0);
     case "ram":
       return n("capacity") * 2 + n("speed") / 500;
     case "storage":
@@ -155,15 +159,21 @@ function matchesBrand(part: ArchitectPart, brand: BrandPreference): boolean {
   return true;
 }
 
+/** Pieza con precio conocido: solo esas se pueden repartir en un presupuesto. */
+export type PricedPart = ArchitectPart & { price: number };
+
+export const pricedParts = (parts: ArchitectPart[]): PricedPart[] =>
+  parts.filter((part): part is PricedPart => part.price !== null);
+
 export type GuidedPick = {
   kind: PartKind;
-  part: ArchitectPart;
+  part: PricedPart;
   /** Parte del presupuesto de la torre asignada a esta pieza (%). */
   share: number;
   allocation: number;
   reason: string;
-  cheaper: ArchitectPart | null;
-  better: ArchitectPart | null;
+  cheaper: PricedPart | null;
+  better: PricedPart | null;
 };
 
 export type GuidedResult = {
@@ -232,7 +242,7 @@ function describe(
 }
 
 /** Elige pieza por pieza. En modo económico toma siempre la más barata que encaja. */
-function pickParts(answers: GuidedAnswers, parts: ArchitectPart[], frugal: boolean) {
+function pickParts(answers: GuidedAnswers, parts: PricedPart[], frugal: boolean) {
   const index: PartIndex = indexParts(parts);
   const extrasBudget = Math.round((answers.budget * EXTRAS_SHARE[answers.extras]) / 100);
   const towerBudget = answers.budget - extrasBudget;
@@ -290,11 +300,9 @@ function pickParts(answers: GuidedAnswers, parts: ArchitectPart[], frugal: boole
 
     const allocation =
       Math.round((towerBudget * share) / 100) + carry + (kind === "storage" ? storageBonus : 0);
-    const byScore = (a: ArchitectPart, b: ArchitectPart) =>
+    const byScore = (a: PricedPart, b: PricedPart) =>
       score(b, answers) - score(a, answers) || a.price - b.price;
-    const cheapest = [...pool].sort(
-      (a, b) => a.price - b.price || byScore(a, b),
-    )[0] as ArchitectPart;
+    const cheapest = [...pool].sort((a, b) => a.price - b.price || byScore(a, b))[0] as PricedPart;
     const best = frugal
       ? undefined
       : [...pool].sort(byScore).find((part) => part.price <= allocation);
@@ -324,7 +332,9 @@ function pickParts(answers: GuidedAnswers, parts: ArchitectPart[], frugal: boole
  * Arma una recomendación con las piezas disponibles (catálogo o demo). Si el
  * presupuesto no alcanza ni con lo más económico que encaja, usa eso y lo dice.
  */
-export function recommendBuild(answers: GuidedAnswers, parts: ArchitectPart[]): GuidedResult {
+export function recommendBuild(answers: GuidedAnswers, all: ArchitectPart[]): GuidedResult {
+  // Lo que no tiene ningún precio conocido no se puede meter en un presupuesto.
+  const parts = pricedParts(all);
   let result = pickParts(answers, parts, false);
   if (result.total > result.towerBudget) {
     const frugal = pickParts(answers, parts, true);

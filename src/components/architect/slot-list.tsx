@@ -45,7 +45,8 @@ export function SlotList({
             kind === "storage"
               ? selection.storage.flatMap((id) => index.get(id) ?? [])
               : [selection.parts[kind]].flatMap((id) => (id ? (index.get(id) ?? []) : []));
-          const total = parts.reduce((sum, part) => sum + part.price, 0);
+          const total = parts.reduce((sum, part) => sum + (part.price ?? 0), 0);
+          const unpriced = parts.length > 0 && parts.every((part) => part.price === null);
           const status = parts.length ? (partStatus(results, kind) ?? "ok") : null;
           const name =
             parts.length > 1 ? `${parts.length} unidades` : (parts[0]?.name ?? "Pendiente");
@@ -68,7 +69,7 @@ export function SlotList({
                     </span>
                     {parts.length > 0 && (
                       <span className="shrink-0 font-mono text-[0.6875rem] text-muted-foreground tabular-nums">
-                        {formatCOP(total)}
+                        {unpriced ? "En tiendas" : formatCOP(total)}
                       </span>
                     )}
                   </span>

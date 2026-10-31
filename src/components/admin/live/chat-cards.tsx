@@ -110,7 +110,8 @@ export function ProductCard({ product }: { product: ProductRef }) {
           {product.name}
         </span>
         <span className="truncate text-xs text-muted-foreground">
-          {formatCOP(product.price)} · SKU {product.sku}
+          {product.price === null ? "Solo referencia" : formatCOP(product.price)} · SKU{" "}
+          {product.sku}
         </span>
         <span
           className={cn(

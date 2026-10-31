@@ -14,8 +14,15 @@ const SINGLE_KINDS: SingleKind[] = ["cpu", "motherboard", "gpu", "ram", "psu", "
 
 export type PartIndex = Map<string, ArchitectPart>;
 
-export const indexParts = (parts: ArchitectPart[]): PartIndex =>
+export const indexParts = <T extends ArchitectPart>(parts: T[]): Map<string, T> =>
   new Map(parts.map((part) => [part.id, part]));
+
+/**
+ * Hay al menos una pieza de cada tipo: con eso se arma un equipo completo y las
+ * piezas demo ya no hacen falta.
+ */
+export const coversAllKinds = (parts: ArchitectPart[]): boolean =>
+  PART_KINDS.every((kind) => parts.some((part) => part.kind === kind));
 
 /** Las piezas elegidas que existen en el índice, en el orden del equipo. */
 export function selectedParts(selection: Selection, index: PartIndex): ArchitectPart[] {
@@ -38,9 +45,9 @@ export function toBuild(selection: Selection, index: PartIndex): Build {
   return build;
 }
 
-/** Total en pesos enteros de las piezas elegidas. */
+/** Total en pesos enteros de las piezas elegidas (las sin precio conocido no suman). */
 export function selectionTotal(selection: Selection, index: PartIndex): number {
-  return selectedParts(selection, index).reduce((sum, part) => sum + part.price, 0);
+  return selectedParts(selection, index).reduce((sum, part) => sum + (part.price ?? 0), 0);
 }
 
 export type BudgetUsage = { percent: number; remaining: number; over: boolean };

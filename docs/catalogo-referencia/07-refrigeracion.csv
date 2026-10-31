@@ -1,0 +1,32 @@
+﻿SKU;Producto;Categoría;Marca;Precio;Solo referencia;Ficha: Tipo;Ficha: Sockets compatibles;Ficha: Capacidad térmica;Ficha: Radiador / ventilador;Ficha: Altura
+REF-COOL-THERMALRIGHT-PEERLESS-ASSASSIN-120-SE;Thermalright Peerless Assassin 120 SE;Refrigeraciones;Thermalright;;Sí;Aire;AM5, AM4, LGA1851, LGA1700;245;120;155
+REF-COOL-THERMALRIGHT-PHANTOM-SPIRIT-120-SE;Thermalright Phantom Spirit 120 SE;Refrigeraciones;Thermalright;;Sí;Aire;AM5, AM4, LGA1851, LGA1700;265;120;154
+REF-COOL-THERMALRIGHT-ASSASSIN-X-120-REFINED-SE;Thermalright Assassin X 120 Refined SE;Refrigeraciones;Thermalright;;Sí;Aire;AM5, AM4, LGA1851, LGA1700;220;120;148
+REF-COOL-NOCTUA-NH-D15-G2;Noctua NH-D15 G2;Refrigeraciones;Noctua;;Sí;Aire;AM5, AM4, LGA1851, LGA1700;250;140;168
+REF-COOL-NOCTUA-NH-D15-CHROMAX.BLACK;Noctua NH-D15 chromax.black;Refrigeraciones;Noctua;;Sí;Aire;AM5, AM4, LGA1851, LGA1700;220;140;165
+REF-COOL-NOCTUA-NH-U12S-REDUX;Noctua NH-U12S redux;Refrigeraciones;Noctua;;Sí;Aire;AM5, AM4, LGA1851, LGA1700;160;120;158
+REF-COOL-NOCTUA-NH-L9A-AM5;Noctua NH-L9a-AM5;Refrigeraciones;Noctua;;Sí;Aire;AM5, AM4;65;92;37
+REF-COOL-DEEPCOOL-AK400;DeepCool AK400;Refrigeraciones;DeepCool;;Sí;Aire;AM5, AM4, LGA1851, LGA1700;220;120;155
+REF-COOL-DEEPCOOL-AK620;DeepCool AK620;Refrigeraciones;DeepCool;;Sí;Aire;AM5, AM4, LGA1851, LGA1700;260;120;160
+REF-COOL-DEEPCOOL-AG400;DeepCool AG400;Refrigeraciones;DeepCool;;Sí;Aire;AM5, AM4, LGA1851, LGA1700;220;120;150
+REF-COOL-COOLER-MASTER-HYPER-212-BLACK;Cooler Master Hyper 212 Black;Refrigeraciones;Cooler Master;;Sí;Aire;AM5, AM4, LGA1851, LGA1700;150;120;154
+REF-COOL-BE-QUIET-DARK-ROCK-PRO-5;be quiet! Dark Rock Pro 5;Refrigeraciones;be quiet!;;Sí;Aire;AM5, AM4, LGA1851, LGA1700;270;135;168
+REF-COOL-BE-QUIET-PURE-ROCK-2;be quiet! Pure Rock 2;Refrigeraciones;be quiet!;;Sí;Aire;AM5, AM4, LGA1851, LGA1700;150;120;155
+REF-COOL-ARCTIC-FREEZER-36;Arctic Freezer 36;Refrigeraciones;Arctic;;Sí;Aire;AM5, AM4, LGA1851, LGA1700;200;120;159
+REF-COOL-ID-COOLING-SE-224-XTS;ID-Cooling SE-224-XTS;Refrigeraciones;ID-Cooling;;Sí;Aire;AM5, AM4, LGA1851, LGA1700;220;120;154
+REF-COOL-ARCTIC-LIQUID-FREEZER-III-240;Arctic Liquid Freezer III 240;Refrigeraciones;Arctic;;Sí;Líquida AIO;AM5, AM4, LGA1851, LGA1700;250;240;
+REF-COOL-ARCTIC-LIQUID-FREEZER-III-360;Arctic Liquid Freezer III 360;Refrigeraciones;Arctic;;Sí;Líquida AIO;AM5, AM4, LGA1851, LGA1700;300;360;
+REF-COOL-NZXT-KRAKEN-240;NZXT Kraken 240;Refrigeraciones;NZXT;;Sí;Líquida AIO;AM5, AM4, LGA1851, LGA1700;250;240;
+REF-COOL-NZXT-KRAKEN-ELITE-360;NZXT Kraken Elite 360;Refrigeraciones;NZXT;;Sí;Líquida AIO;AM5, AM4, LGA1851, LGA1700;300;360;
+REF-COOL-CORSAIR-ICUE-LINK-H100I-RGB;Corsair iCUE Link H100i RGB;Refrigeraciones;Corsair;;Sí;Líquida AIO;AM5, AM4, LGA1851, LGA1700;250;240;
+REF-COOL-CORSAIR-ICUE-LINK-H150I-RGB;Corsair iCUE Link H150i RGB;Refrigeraciones;Corsair;;Sí;Líquida AIO;AM5, AM4, LGA1851, LGA1700;300;360;
+REF-COOL-LIAN-LI-GALAHAD-II-TRINITY-240;Lian Li Galahad II Trinity 240;Refrigeraciones;Lian Li;;Sí;Líquida AIO;AM5, AM4, LGA1851, LGA1700;250;240;
+REF-COOL-LIAN-LI-GALAHAD-II-TRINITY-360;Lian Li Galahad II Trinity 360;Refrigeraciones;Lian Li;;Sí;Líquida AIO;AM5, AM4, LGA1851, LGA1700;300;360;
+REF-COOL-DEEPCOOL-LE520;DeepCool LE520;Refrigeraciones;DeepCool;;Sí;Líquida AIO;AM5, AM4, LGA1851, LGA1700;250;240;
+REF-COOL-DEEPCOOL-LS720-SE;DeepCool LS720 SE;Refrigeraciones;DeepCool;;Sí;Líquida AIO;AM5, AM4, LGA1851, LGA1700;300;360;
+REF-COOL-THERMALRIGHT-AQUA-ELITE-240-V3;Thermalright Aqua Elite 240 V3;Refrigeraciones;Thermalright;;Sí;Líquida AIO;AM5, AM4, LGA1851, LGA1700;250;240;
+REF-COOL-THERMALRIGHT-AQUA-ELITE-360-V3;Thermalright Aqua Elite 360 V3;Refrigeraciones;Thermalright;;Sí;Líquida AIO;AM5, AM4, LGA1851, LGA1700;300;360;
+REF-COOL-ASUS-ROG-RYUJIN-III-360;ASUS ROG Ryujin III 360;Refrigeraciones;Asus;;Sí;Líquida AIO;AM5, AM4, LGA1851, LGA1700;300;360;
+REF-COOL-ASUS-ROG-STRIX-LC-III-360;ASUS ROG Strix LC III 360;Refrigeraciones;Asus;;Sí;Líquida AIO;AM5, AM4, LGA1851, LGA1700;300;360;
+REF-COOL-MSI-MAG-CORELIQUID-A13-240;MSI MAG CoreLiquid A13 240;Refrigeraciones;Msi;;Sí;Líquida AIO;AM5, AM4, LGA1851, LGA1700;250;240;
+REF-COOL-COOLER-MASTER-MASTERLIQUID-360L-CORE;Cooler Master MasterLiquid 360L Core;Refrigeraciones;Cooler Master;;Sí;Líquida AIO;AM5, AM4, LGA1851, LGA1700;300;360;

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { toCsv } from "@/lib/csv";
 import { classifyHeader } from "./columns";
 import { parseCsv, parseMoney, parseYesNo, readProductSheet } from "./parse";
-import { planImport, summarize, type ImportContext } from "./plan";
+import { missingBrands, planImport, summarize, type ImportContext } from "./plan";
 
 const CPU = "11111111-1111-4111-8111-111111111111";
 const GPU = "22222222-2222-4222-8222-222222222222";
@@ -132,6 +132,24 @@ describe("planear la importación", () => {
     expect(row?.warnings[0]).toMatch(/Se crea oculto/);
   });
 
+  it("una pieza de referencia puede venir sin precio; una para vender, no", () => {
+    const [reference, sold] = planImport(
+      sheet([
+        "SKU;Producto;Categoría;Precio;Solo referencia",
+        "REF-9800X3D;Ryzen 7 9800X3D;procesadores;;Sí",
+        "CPU-SIN;Sin precio;procesadores;;No",
+      ]).rows,
+      context,
+    );
+    expect(reference).toMatchObject({
+      action: "create",
+      values: { price: null, isReference: true, isActive: false },
+      warnings: [],
+    });
+    expect(sold?.action).toBe("error");
+    expect(sold?.errors).toEqual(["Precio: Escribe el precio de venta."]);
+  });
+
   it("al actualizar solo cambia lo que trae la fila y conserva la ficha", () => {
     const [row] = planImport(
       sheet(["SKU;Precio;Stock;Ficha: Socket", "CPU-7800X3D;1.799.900;10;AM5"]).rows,
@@ -159,6 +177,22 @@ describe("planear la importación", () => {
     );
     const plan = planImport(readProductSheet(exported).rows, context);
     expect(plan[0]?.action).toBe("unchanged");
+  });
+
+  it("una marca que no existe se crea al importar (una sola vez, sin importar tildes)", () => {
+    const plan = planImport(
+      sheet([
+        "SKU;Producto;Categoría;Marca;Precio",
+        "MB-1;Placa 1;procesadores;Gigabyte;100000",
+        "MB-2;Placa 2;procesadores;GIGABYTE;100000",
+        "MB-3;Placa 3;procesadores;amd;100000",
+      ]).rows,
+      context,
+    );
+    expect(plan.map((row) => row.action)).toEqual(["create", "create", "create"]);
+    expect(plan[0]?.warnings).toContain("Marca «Gigabyte»: no existe; se crea al importar.");
+    expect(plan[2]?.newBrand).toBeNull();
+    expect(missingBrands(plan)).toEqual(["Gigabyte"]);
   });
 
   it("explica cada error en palabras y por campo", () => {

@@ -91,7 +91,7 @@ export type ProductRef = {
   id: string;
   name: string;
   sku: string;
-  price: number;
+  price: number | null;
   stock: number;
   lowStockThreshold: number;
   active: boolean;

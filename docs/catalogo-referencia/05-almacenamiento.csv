@@ -1,0 +1,23 @@
+﻿SKU;Producto;Categoría;Marca;Precio;Solo referencia;Ficha: Capacidad;Ficha: Interfaz;Ficha: Formato;Ficha: Lectura secuencial;Ficha: Escritura secuencial
+REF-STO-NVME-G3.0-500-GB;SSD NVMe PCIe 3.0 500 GB (M.2 2280);Almacenamiento;;;Sí;500;NVMe PCIe 3.0;M.2 2280;3500;2300
+REF-STO-NVME-G3.0-1-TB;SSD NVMe PCIe 3.0 1 TB (M.2 2280);Almacenamiento;;;Sí;1000;NVMe PCIe 3.0;M.2 2280;3500;3000
+REF-STO-NVME-G3.0-2-TB;SSD NVMe PCIe 3.0 2 TB (M.2 2280);Almacenamiento;;;Sí;2000;NVMe PCIe 3.0;M.2 2280;3500;3000
+REF-STO-NVME-G4.0-BASICO-500-GB;SSD NVMe PCIe 4.0 básico 500 GB (M.2 2280);Almacenamiento;;;Sí;500;NVMe PCIe 4.0;M.2 2280;5000;3000
+REF-STO-NVME-G4.0-BASICO-1-TB;SSD NVMe PCIe 4.0 básico 1 TB (M.2 2280);Almacenamiento;;;Sí;1000;NVMe PCIe 4.0;M.2 2280;5000;4200
+REF-STO-NVME-G4.0-BASICO-2-TB;SSD NVMe PCIe 4.0 básico 2 TB (M.2 2280);Almacenamiento;;;Sí;2000;NVMe PCIe 4.0;M.2 2280;5000;4200
+REF-STO-NVME-G4.0-BASICO-4-TB;SSD NVMe PCIe 4.0 básico 4 TB (M.2 2280);Almacenamiento;;;Sí;4000;NVMe PCIe 4.0;M.2 2280;5000;4200
+REF-STO-NVME-G4.0-ALTO-RENDIMIENTO-1-TB;SSD NVMe PCIe 4.0 alto rendimiento 1 TB (M.2 2280);Almacenamiento;;;Sí;1000;NVMe PCIe 4.0;M.2 2280;7000;6000
+REF-STO-NVME-G4.0-ALTO-RENDIMIENTO-2-TB;SSD NVMe PCIe 4.0 alto rendimiento 2 TB (M.2 2280);Almacenamiento;;;Sí;2000;NVMe PCIe 4.0;M.2 2280;7000;6900
+REF-STO-NVME-G4.0-ALTO-RENDIMIENTO-4-TB;SSD NVMe PCIe 4.0 alto rendimiento 4 TB (M.2 2280);Almacenamiento;;;Sí;4000;NVMe PCIe 4.0;M.2 2280;7000;6900
+REF-STO-NVME-G5.0-1-TB;SSD NVMe PCIe 5.0 1 TB (M.2 2280);Almacenamiento;;;Sí;1000;NVMe PCIe 5.0;M.2 2280;12000;10000
+REF-STO-NVME-G5.0-2-TB;SSD NVMe PCIe 5.0 2 TB (M.2 2280);Almacenamiento;;;Sí;2000;NVMe PCIe 5.0;M.2 2280;14000;12000
+REF-STO-NVME-G5.0-4-TB;SSD NVMe PCIe 5.0 4 TB (M.2 2280);Almacenamiento;;;Sí;4000;NVMe PCIe 5.0;M.2 2280;14000;12000
+REF-STO-SATA-SSD-500-GB;"SSD SATA 500 GB (2,5"")";Almacenamiento;;;Sí;500;SATA III;"2,5""";550;520
+REF-STO-SATA-SSD-1-TB;"SSD SATA 1 TB (2,5"")";Almacenamiento;;;Sí;1000;SATA III;"2,5""";550;520
+REF-STO-SATA-SSD-2-TB;"SSD SATA 2 TB (2,5"")";Almacenamiento;;;Sí;2000;SATA III;"2,5""";550;520
+REF-STO-SATA-SSD-4-TB;"SSD SATA 4 TB (2,5"")";Almacenamiento;;;Sí;4000;SATA III;"2,5""";550;520
+REF-STO-HDD-7200-1-TB;"Disco duro 1 TB 7200 RPM (3,5"")";Almacenamiento;;;Sí;1000;SATA III;"3,5""";200;200
+REF-STO-HDD-7200-2-TB;"Disco duro 2 TB 7200 RPM (3,5"")";Almacenamiento;;;Sí;2000;SATA III;"3,5""";200;200
+REF-STO-HDD-7200-4-TB;"Disco duro 4 TB 7200 RPM (3,5"")";Almacenamiento;;;Sí;4000;SATA III;"3,5""";220;220
+REF-STO-HDD-7200-8-TB;"Disco duro 8 TB 7200 RPM (3,5"")";Almacenamiento;;;Sí;8000;SATA III;"3,5""";220;220
+REF-STO-HDD-5400-2-TB;"Disco duro 2 TB 5400 RPM (3,5"")";Almacenamiento;;;Sí;2000;SATA III;"3,5""";160;160

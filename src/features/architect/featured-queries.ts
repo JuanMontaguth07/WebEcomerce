@@ -16,7 +16,11 @@ export async function getFeaturedBuilds(): Promise<FeaturedBuild[]> {
   return ((data as FeaturedBuild[] | null) ?? []).map((build) => ({
     ...build,
     total: Number(build.total),
-    components: build.components.map((part) => ({ ...part, price: Number(part.price) })),
+    unpriced: Number(build.unpriced ?? 0),
+    components: build.components.map((part) => ({
+      ...part,
+      price: part.price === null ? null : Number(part.price),
+    })),
   }));
 }
 

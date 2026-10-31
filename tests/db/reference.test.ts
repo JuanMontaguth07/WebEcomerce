@@ -155,3 +155,94 @@ describe("ofertas en otras tiendas", () => {
     expect(deleted.affectedRows ?? 0).toBe(0);
   });
 });
+
+describe("piezas de referencia sin precio propio", () => {
+  let unpriced: string;
+
+  it("una de referencia puede ir sin precio; una que se vende, no", async () => {
+    await asRole(db, "authenticated", ADMIN, async () => {
+      const category = await one<{ id: string }>(
+        db,
+        "select category_id as id from public.products where id = $1",
+        [reference],
+      );
+      unpriced = (
+        await one<{ id: string }>(
+          db,
+          `insert into public.products (name, slug, sku, category_id, is_reference)
+           values ('RX 9070 XT', 'rx-9070-xt', 'REF-9070XT', $1, true) returning id`,
+          [category.id],
+        )
+      ).id;
+      await expect(
+        db.query(
+          `insert into public.products (name, slug, sku, category_id)
+           values ('Sin precio', 'sin-precio', 'SIN-PRECIO', $1)`,
+          [category.id],
+        ),
+      ).rejects.toThrow(/products_price_required/);
+    });
+    await expect(
+      asRole(db, "authenticated", ADMIN, () =>
+        db.query("update public.products set is_reference = false where id = $1", [unpriced]),
+      ),
+    ).rejects.toThrow(/products_price_required/);
+  });
+
+  it("se puede armar con ella; en el total cuenta 0", async () => {
+    const code = await asRole(db, "anon", null, () =>
+      one<{ code: string }>(db, "select public.save_build($1::jsonb) as code", [
+        JSON.stringify({
+          name: "Sin precio",
+          mode: "free",
+          source: "catalog",
+          components: [
+            { kind: "gpu", product_id: unpriced },
+            { kind: "gpu", product_id: reference },
+          ],
+        }),
+      ]),
+    ).then((row) => row.code);
+    const build = await asRole(db, "anon", null, () =>
+      one<{ build: { total: number } }>(db, "select public.get_build($1) as build", [code]),
+    );
+    expect(Number(build.build.total)).toBe(2_300_000);
+
+    // Destacada: cada pieza va con su mejor precio de hoy.
+    await asRole(db, "authenticated", ADMIN, async () => {
+      const row = await one<{ id: string }>(
+        db,
+        "select id from public.builds where share_code = $1",
+        [code],
+      );
+      await db.query(
+        "insert into public.featured_builds (build_id, title) values ($1, 'Con referencia')",
+        [row.id],
+      );
+    });
+    type Featured = {
+      total: number;
+      unpriced: number;
+      components: { name: string; price: number | null }[];
+    };
+    const featured = () =>
+      asRole(db, "anon", null, () =>
+        one<{ list: Featured[] }>(db, "select public.get_featured_builds() as list"),
+      ).then((row) => row.list[0] as Featured);
+
+    // La de 2.300.000 tiene ofertas (429 USD sin tasa no cuenta; 2.499.900 COP):
+    // la más barata en pesos manda sobre su precio de referencia.
+    let list = await featured();
+    expect(list.components.map((part) => part.price)).toEqual([null, 2_499_900]);
+    expect(Number(list.total)).toBe(2_499_900);
+    expect(list.unpriced).toBe(1);
+
+    // Con tasa, la de dólares entra convertida.
+    await asRole(db, "authenticated", ADMIN, () =>
+      db.query("update public.store_settings set usd_cop_rate = 4000"),
+    );
+    list = await featured();
+    expect(list.components[1]?.price).toBe(1_716_000);
+    expect(Number(list.total)).toBe(1_716_000);
+  });
+});

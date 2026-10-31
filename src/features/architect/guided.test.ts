@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { checkBuild } from "@/features/compatibility/engine";
 import { numberSpec } from "@/features/compatibility/values";
-import { indexParts, toBuild } from "./build";
+import { coversAllKinds, indexParts, toBuild } from "./build";
 import { budgetShares, DEFAULT_ANSWERS, recommendBuild, type GuidedAnswers } from "./guided";
 import { demoArchitectParts } from "./parts";
 
@@ -134,6 +134,20 @@ describe("recomendación", () => {
     expect(pick(result, "gpu")).toBeUndefined();
     expect(result.notes.join(" ")).toMatch(/gráficos integrados/);
     expect(result.total).toBeLessThanOrEqual(result.towerBudget);
+  });
+
+  it("no recomienda piezas sin ningún precio conocido", () => {
+    const gpus = parts.filter((part) => part.kind === "gpu");
+    const unpriced = { ...(gpus.at(-1) as (typeof parts)[number]), id: "sin-precio", price: null };
+    const result = recommendBuild(answers({ budget: 50_000_000 }), [...parts, unpriced]);
+    expect(pick(result, "gpu")?.id).not.toBe("sin-precio");
+    expect(result.picks.every((item) => item.better?.id !== "sin-precio")).toBe(true);
+  });
+
+  it("el demo sobra cuando hay al menos una pieza de cada tipo", () => {
+    expect(coversAllKinds(parts)).toBe(true);
+    expect(coversAllKinds(parts.filter((part) => part.kind !== "cooler"))).toBe(false);
+    expect(coversAllKinds([])).toBe(false);
   });
 
   it("el aviso de presupuesto da el costo real del equipo más económico", () => {

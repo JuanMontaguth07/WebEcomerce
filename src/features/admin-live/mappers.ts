@@ -85,7 +85,7 @@ export function toProductRef(row: {
   id: string;
   name: string;
   sku: string;
-  price: number;
+  price: number | null;
   stock: number;
   low_stock_threshold: number;
   is_active: boolean;

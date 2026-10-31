@@ -1043,7 +1043,7 @@ export type Database = {
           is_reference: boolean
           low_stock_threshold: number
           name: string
-          price: number
+          price: number | null
           product_type: Database["public"]["Enums"]["product_type"]
           rarity_id: string | null
           search_vector: unknown
@@ -1070,7 +1070,7 @@ export type Database = {
           is_reference?: boolean
           low_stock_threshold?: number
           name: string
-          price: number
+          price?: number | null
           product_type?: Database["public"]["Enums"]["product_type"]
           rarity_id?: string | null
           search_vector?: unknown
@@ -1097,7 +1097,7 @@ export type Database = {
           is_reference?: boolean
           low_stock_threshold?: number
           name?: string
-          price?: number
+          price?: number | null
           product_type?: Database["public"]["Enums"]["product_type"]
           rarity_id?: string | null
           search_vector?: unknown

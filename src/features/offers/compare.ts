@@ -1,5 +1,13 @@
 import type { ArchitectPart } from "@/features/architect/types";
+import { formatCOP } from "@/lib/format";
 import { storeLabel, type ProductOffer } from "./stores";
+
+/** Un precio en pesos, o «En tiendas» si la pieza no tiene ninguno conocido. */
+export const priceLabel = (price: number | null) =>
+  price === null ? "En tiendas" : formatCOP(price);
+
+/** Para ordenar por precio: las piezas sin precio conocido van al final. */
+export const priceOrder = (price: number | null) => price ?? Number.POSITIVE_INFINITY;
 
 /** Una forma de conseguir la pieza: en la tienda o en otra, con su precio en pesos si se sabe. */
 export type PriceOption =
@@ -24,7 +32,7 @@ export type PartPricing = {
 
 export function partPricing(part: ArchitectPart, rate: number | null): PartPricing {
   const here =
-    part.demo || part.reference
+    part.demo || part.reference || part.price === null
       ? null
       : {
           source: "here" as const,
@@ -52,8 +60,11 @@ export function partPricing(part: ArchitectPart, rate: number | null): PartPrici
   return { here, offers, cheapest };
 }
 
-/** El precio a mostrar y ordenar: el de aquí, o el más barato afuera si no se vende aquí. */
-export function displayPrice(part: ArchitectPart, rate: number | null): number {
+/**
+ * El precio a mostrar y ordenar: el de aquí, o el más barato afuera si no se
+ * vende aquí (o su precio de referencia). null si no se conoce ninguno.
+ */
+export function displayPrice(part: ArchitectPart, rate: number | null): number | null {
   if (part.demo || !part.reference) return part.price;
   const best = partPricing(part, rate).offers.find((option) => option.cop !== null);
   return best?.cop ?? part.price;

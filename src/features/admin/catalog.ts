@@ -59,7 +59,7 @@ export async function listAdminProducts({
       name: row.name,
       slug: row.slug,
       sku: row.sku,
-      price: Number(row.price),
+      price: row.price === null ? null : Number(row.price),
       stock: row.stock,
       lowStockThreshold: row.low_stock_threshold,
       isActive: row.is_active,

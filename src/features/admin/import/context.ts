@@ -79,7 +79,7 @@ export async function loadImportContext(supabase: Supabase): Promise<ImportConte
         rarityId: row.rarity_id,
         flagId: row.flag_id,
         uniqueNote: row.unique_note,
-        price: Number(row.price),
+        price: row.price === null ? null : Number(row.price),
         compareAtPrice: row.compare_at_price === null ? null : Number(row.compare_at_price),
         lowStockThreshold: row.low_stock_threshold,
         warrantyMonths: row.warranty_months,

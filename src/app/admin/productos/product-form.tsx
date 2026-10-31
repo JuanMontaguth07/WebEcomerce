@@ -250,6 +250,7 @@ export function ProductForm({
             label="Precio (COP)"
             errors={errors}
             inputMode="numeric"
+            hint="En una pieza de referencia puede ir vacío: su precio sale de las ofertas."
             {...text("price")}
           />
           <TextField

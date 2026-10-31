@@ -9,14 +9,14 @@ import { describeSpecs } from "./parts";
 import { SHARE_CODE, type SavedBuild } from "./saved";
 import type { ArchitectPart } from "./types";
 
-/** Tope de productos por consulta: alcanza para un catálogo de tienda propia. */
-const MAX_PARTS = 600;
+/** Tope de productos por consulta (el máximo que entrega la API): tienda + referencia. */
+const MAX_PARTS = 1000;
 
 type PartRow = {
   id: string;
   name: string;
   slug: string;
-  price: number;
+  price: number | null;
   stock: number;
   low_stock_threshold: number;
   category_id: string;
@@ -85,7 +85,7 @@ export async function getArchitectParts(): Promise<ArchitectPart[]> {
       kind: kindOf.get(row.category_id) as PartKind,
       name: row.name,
       brand: row.brand?.name ?? null,
-      price: Number(row.price),
+      price: row.price === null ? null : Number(row.price),
       stock: row.stock,
       lowStockThreshold: row.low_stock_threshold,
       slug: row.slug,

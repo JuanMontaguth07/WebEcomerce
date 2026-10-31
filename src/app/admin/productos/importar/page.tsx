@@ -10,7 +10,8 @@ export const metadata: Metadata = { title: "Importar productos" };
 
 const TIPS = [
   "El SKU identifica cada producto: si ya existe se actualiza, si no se crea.",
-  "Para un producto nuevo hacen falta Producto, Categoría y Precio.",
+  "Para un producto nuevo hacen falta Producto, Categoría y Precio (en una pieza «Solo referencia» el precio puede ir vacío).",
+  "La categoría debe existir; las marcas que no existan se crean al importar.",
   "Una celda vacía no borra nada: deja igual lo que ya tenía.",
   "Stock es la cantidad total que quieres tener (queda registrado como movimiento).",
   "La ficha técnica va en columnas «Ficha: Núcleos», «Ficha: Socket»…",

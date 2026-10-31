@@ -10,9 +10,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { candidateStatus, isChosen, MAX_DRIVES, type PartIndex } from "@/features/architect/build";
 import type { ArchitectPart, Selection } from "@/features/architect/types";
 import { PART_LABELS, type PartKind } from "@/features/compatibility/types";
-import { formatCOP } from "@/lib/format";
+import { numberSpec } from "@/features/compatibility/values";
 import { cn } from "@/lib/utils";
-import { displayPrice } from "@/features/offers/compare";
+import { displayPrice, priceLabel, priceOrder } from "@/features/offers/compare";
 import { PartThumb } from "./part-thumb";
 import { PriceCompare } from "./price-compare";
 import { StatusLabel } from "./status";
@@ -56,12 +56,19 @@ export function PartPicker({
     const rated = parts
       .filter((part) => part.kind === kind)
       .map((part) => ({ part, check: candidateStatus(selection, index, part) }));
+    const byName = (a: ArchitectPart, b: ArchitectPart) => a.name.localeCompare(b.name, "es");
+    // A igual precio (o sin precio), primero la de más rendimiento.
+    const byPerf = (a: ArchitectPart, b: ArchitectPart) =>
+      (numberSpec(b.specs, "perf_score") ?? 0) - (numberSpec(a.specs, "perf_score") ?? 0) ||
+      byName(a, b);
     const sorted = [...rated].sort((a, b) =>
       sort === "name"
-        ? a.part.name.localeCompare(b.part.name, "es")
-        : sort === "price-asc"
-          ? displayPrice(a.part, rate) - displayPrice(b.part, rate)
-          : displayPrice(b.part, rate) - displayPrice(a.part, rate),
+        ? byName(a.part, b.part)
+        : (sort === "price-asc"
+            ? priceOrder(displayPrice(a.part, rate)) - priceOrder(displayPrice(b.part, rate))
+            : // Al revés, pero las sin precio siguen al final.
+              (displayPrice(b.part, rate) ?? -1) - (displayPrice(a.part, rate) ?? -1)) ||
+          byPerf(a.part, b.part),
     );
     const hidden = sorted.filter(
       ({ part, check }) => check?.status === "error" && !isChosen(selection, part),
@@ -118,7 +125,7 @@ export function PartPicker({
             {drives.map((part, position) => (
               <li key={`${part.id}-${position}`} className="flex items-center gap-3 text-sm">
                 <span className="min-w-0 flex-1 truncate">{part.name}</span>
-                <span className="font-mono text-xs tabular-nums">{formatCOP(part.price)}</span>
+                <span className="font-mono text-xs tabular-nums">{priceLabel(part.price)}</span>
                 <Button
                   type="button"
                   variant="ghost"
@@ -190,12 +197,12 @@ export function PartPicker({
                   <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 sm:col-span-1 sm:grid sm:justify-items-end">
                     <span className="grid gap-1 sm:justify-items-end">
                       <span className="font-heading text-base font-bold font-stretch-112% tabular-nums">
-                        {part.reference && (
+                        {part.reference && displayPrice(part, rate) !== null && (
                           <span className="mr-1 font-sans text-xs font-normal text-muted-foreground">
                             Desde
                           </span>
                         )}
-                        {formatCOP(displayPrice(part, rate))}
+                        {priceLabel(displayPrice(part, rate))}
                       </span>
                       {part.reference ? (
                         <span className="text-xs text-muted-foreground">No se vende aquí</span>

@@ -188,6 +188,8 @@ export const m2Slots: Rule = ({ storage = [], motherboard }) => {
 
 export const coolerHeight: Rule = ({ cooler, case: chassis }) => {
   if (!cooler || !chassis) return null;
+  // En una líquida lo que tiene que caber es el radiador (regla aparte).
+  if (/l[ií]quid|aio/i.test(textSpec(cooler.specs, "cooling_type") ?? "")) return null;
   const make = result.bind(null, "cooler-height", ["cooler", "case"], "Altura del disipador");
   const height = numberSpec(cooler.specs, "height");
   const max = numberSpec(chassis.specs, "max_cooler_height");

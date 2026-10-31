@@ -8,8 +8,11 @@ export type ArchitectPart = {
   kind: PartKind;
   name: string;
   brand: string | null;
-  /** Precio en COP (entero). En las piezas demo es de ejemplo. */
-  price: number;
+  /**
+   * Precio en COP (entero). En las piezas demo es de ejemplo. null en una pieza
+   * de referencia sin precio propio: su precio sale de las ofertas.
+   */
+  price: number | null;
   /** null en las piezas demo: no tienen inventario ni se pueden comprar. */
   stock: number | null;
   lowStockThreshold: number;

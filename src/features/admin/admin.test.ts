@@ -55,6 +55,18 @@ describe("productSchema", () => {
   });
 });
 
+describe("precio de una pieza de referencia", () => {
+  it("puede ir vacío solo si es de referencia", () => {
+    const reference = { ...product, price: "", isActive: false, isReference: true };
+    expect(productSchema.parse(reference).price).toBeNull();
+    const sold = productSchema.safeParse({ ...product, price: "" });
+    expect(sold.success).toBe(false);
+    expect(sold.error?.issues[0]?.message).toBe("Escribe el precio de venta.");
+    // Sin precio no hay «precio anterior» que comparar.
+    expect(productSchema.safeParse({ ...reference, compareAtPrice: "100" }).success).toBe(false);
+  });
+});
+
 describe("otros esquemas del panel", () => {
   it("valida categorías, marcas y especificaciones", () => {
     expect(

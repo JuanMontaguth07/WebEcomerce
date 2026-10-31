@@ -55,7 +55,7 @@ export function buildPayload(
     name: meta.name.trim(),
     components: selectedParts(selection, index).map((part) =>
       part.demo
-        ? { kind: part.kind, demo_part_id: part.id, name: part.name, price: part.price }
+        ? { kind: part.kind, demo_part_id: part.id, name: part.name, price: part.price ?? 0 }
         : { kind: part.kind, product_id: part.id },
     ),
   };
@@ -81,7 +81,8 @@ export function restoreSelection(saved: SavedBuild, index: PartIndex): RestoredB
       missing.push(component.name);
       continue;
     }
-    if (part.price !== component.price) {
+    // En una de referencia el precio va por las ofertas: no se compara con lo guardado.
+    if (!part.reference && part.price !== null && part.price !== component.price) {
       priceChanges.push({ name: part.name, before: component.price, now: part.price });
     }
     selection =
@@ -111,16 +112,20 @@ export function quoteMessage({
   const lines = PART_KINDS.flatMap((kind) =>
     parts
       .filter((part) => part.kind === kind)
-      .map((part) => `• ${PART_LABELS[kind]}: ${part.name} (${formatCOP(part.price)})`),
+      .map(
+        (part) =>
+          `• ${PART_LABELS[kind]}: ${part.name} (${part.price === null ? "precio por cotizar" : formatCOP(part.price)})`,
+      ),
   );
-  const total = parts.reduce((sum, part) => sum + part.price, 0);
+  const total = parts.reduce((sum, part) => sum + (part.price ?? 0), 0);
+  const unpriced = parts.filter((part) => part.price === null).length;
   return [
     `Hola ${storeName}, quiero cotizar este equipo armado en Arma tu PC: «${name}».`,
     ...(demo ? ["(Lo armé con piezas demo para tener una idea.)"] : []),
     "",
     ...lines,
     "",
-    `Total: ${formatCOP(total)}`,
+    `Total: ${formatCOP(total)}${unpriced ? ` (sin ${unpriced === 1 ? "1 pieza" : `${unpriced} piezas`} por cotizar)` : ""}`,
     `Ver el equipo: ${url}`,
   ].join("\n");
 }

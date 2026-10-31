@@ -17,7 +17,7 @@ describe("estadísticas del equipo", () => {
       5_000_000,
     );
     expect(stats.performance).toEqual({ gaming: 56, work: 61 });
-    expect(stats.tier?.label).toBe("1440p alto");
+    expect(stats.tier?.label).toBe("1440p ultra");
     expect(stats.balance?.kind).toBe("balanced");
     expect(stats.power).toEqual({ estimate: 445, psu: 750, headroom: 305 / 750, level: "ok" });
     expect(stats.value).toBe(11.2);
@@ -30,6 +30,20 @@ describe("estadísticas del equipo", () => {
     // Sin el límite serían ~80; el procesador lo baja.
     expect(stats.performance?.gaming).toBe(50);
     expect(stats.value).toBeNull();
+  });
+
+  it("un procesador potente no convierte en gamer a una gráfica floja", () => {
+    const integrated = buildStats({ cpu: part({ perf_score: 96, integrated_graphics: true }) }, 0);
+    expect(integrated.tier?.label).toBe("Oficina y estudio");
+    // Una RTX 4060 (≈20) con un Ryzen 5 7600 (≈52) alcanza para 1080p alto.
+    const entry = buildStats({ cpu: part({ perf_score: 52 }), gpu: part({ perf_score: 20 }) }, 0);
+    expect(entry.tier?.label).toBe("1080p alto");
+    expect(entry.balance?.kind).toBe("balanced");
+    const weak = buildStats({ cpu: part({ perf_score: 90 }), gpu: part({ perf_score: 15 }) }, 0);
+    expect(weak.balance?.kind).toBe("gpu-limits");
+    // Una RTX 4090 (≈76) con un Ryzen 7 9800X3D (≈80): 4K.
+    const top = buildStats({ cpu: part({ perf_score: 80 }), gpu: part({ perf_score: 76 }) }, 0);
+    expect(top.tier?.label).toBe("4K alto");
   });
 
   it("sin gráfica usa la integrada y avisa", () => {

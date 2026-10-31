@@ -37,7 +37,8 @@ export type ProductRow = {
   id: string;
   name: string;
   sku: string;
-  price: number;
+  /** null en piezas de referencia sin precio propio. */
+  price: number | null;
   stock: number;
   lowStockThreshold: number;
   isActive: boolean;
@@ -387,7 +388,11 @@ export function ProductsTable({
                   {product.brand && <div className="text-xs">{product.brand}</div>}
                 </td>
                 <td className="text-right font-semibold whitespace-nowrap tabular-nums">
-                  {formatCOP(product.price)}
+                  {product.price === null ? (
+                    <span className="font-normal text-muted-foreground">En tiendas</span>
+                  ) : (
+                    formatCOP(product.price)
+                  )}
                 </td>
                 <td>
                   <StockBadge stock={product.stock} lowStockThreshold={product.lowStockThreshold} />

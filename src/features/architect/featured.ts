@@ -11,9 +11,11 @@ export type FeaturedBuild = {
   /** Código de la configuración: /arma-tu-pc/<code>. */
   code: string;
   source: "catalog" | "demo";
-  /** Total con los precios de hoy. */
+  /** Total con los precios de hoy (en las de referencia, la oferta más barata). */
   total: number;
-  components: { kind: PartKind; name: string; price: number; available: boolean }[];
+  /** Piezas sin ningún precio conocido: no suman al total. */
+  unpriced: number;
+  components: { kind: PartKind; name: string; price: number | null; available: boolean }[];
 };
 
 /** El código de una configuración a partir de su enlace o del código solo. */

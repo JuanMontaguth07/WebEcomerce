@@ -45,7 +45,7 @@ export async function productsCsv(products: ExportProduct[]): Promise<string> {
       productType: PRODUCT_TYPE_LABELS[product.product_type],
       category: product.category?.name,
       brand: product.brand?.name,
-      price: Number(product.price),
+      price: product.price === null ? null : Number(product.price),
       compareAtPrice: product.compare_at_price === null ? null : Number(product.compare_at_price),
       stock: product.stock,
       lowStockThreshold: product.low_stock_threshold,
@@ -61,7 +61,7 @@ export async function productsCsv(products: ExportProduct[]): Promise<string> {
     return [
       ...PRODUCT_COLUMNS.map((column) => byField[column.field]),
       ...labels.map((label) => specs.get(label)),
-      product.stock * Number(product.price),
+      product.stock * Number(product.price ?? 0),
       csvDate(product.updated_at),
     ];
   });

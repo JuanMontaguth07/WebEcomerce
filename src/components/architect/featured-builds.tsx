@@ -76,9 +76,21 @@ export function FeaturedBuilds({ builds }: { builds: FeaturedBuild[] }) {
                     {build.components.length} piezas
                   </span>
                   <span className="font-heading text-xl font-bold font-stretch-112% tabular-nums">
-                    {formatCOP(build.total)}
+                    {build.total > 0 && build.unpriced > 0 && (
+                      <span className="mr-1 font-sans text-xs font-normal text-muted-foreground">
+                        Desde
+                      </span>
+                    )}
+                    {build.total > 0 ? formatCOP(build.total) : "Ver precios"}
                   </span>
                 </p>
+                {build.unpriced > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    {build.unpriced === 1
+                      ? "1 pieza sin precio: compárala en tiendas al abrirla."
+                      : `${build.unpriced} piezas sin precio: compáralas en tiendas al abrirla.`}
+                  </p>
+                )}
                 {missing && (
                   <p className="text-xs text-warning">
                     Alguna pieza ya no está: al abrirla te mostramos qué cambiar.

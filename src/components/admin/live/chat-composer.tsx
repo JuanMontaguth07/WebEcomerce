@@ -252,7 +252,7 @@ export function ChatComposer({
             }
             detail={
               attachedProduct
-                ? `${formatCOP(attachedProduct.price)} · se compartirá su tarjeta`
+                ? `${attachedProduct.price === null ? "Solo referencia" : formatCOP(attachedProduct.price)} · se compartirá su tarjeta`
                 : "Quítalo para enviar solo el texto"
             }
             cancelLabel="Quitar el producto"
@@ -487,7 +487,8 @@ function ProductPicker({ onPick }: { onPick: (product: ProductRef) => void }) {
                   <span className="grid min-w-0">
                     <span className="truncate text-sm font-semibold">{product.name}</span>
                     <span className="truncate text-xs text-muted-foreground">
-                      {formatCOP(product.price)} · {product.stock} en stock
+                      {product.price === null ? "Solo referencia" : formatCOP(product.price)} ·{" "}
+                      {product.stock} en stock
                     </span>
                   </span>
                 </button>

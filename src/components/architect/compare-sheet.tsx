@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sheet";
 import { compareParts } from "@/features/architect/build";
 import type { ArchitectPart } from "@/features/architect/types";
+import { priceLabel } from "@/features/offers/compare";
 import { formatCOP } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { PartThumb } from "./part-thumb";
@@ -30,8 +31,10 @@ export function CompareSheet({
   if (!parts) return null;
   const [a, b] = parts;
   const rows = compareParts(a, b);
-  const priceGap = Math.abs(a.price - b.price);
-  const cheaper = a.price === b.price ? null : a.price < b.price ? "a" : "b";
+  const known = a.price !== null && b.price !== null;
+  const priceGap = known ? Math.abs((a.price ?? 0) - (b.price ?? 0)) : 0;
+  const cheaper =
+    !known || a.price === b.price ? null : (a.price ?? 0) < (b.price ?? 0) ? "a" : "b";
 
   const cell = (
     side: "a" | "b",
@@ -102,7 +105,7 @@ export function CompareSheet({
                   return (
                     <td key={side} className="px-3 py-2.5 align-top">
                       <span className="grid gap-1">
-                        <span className="font-mono tabular-nums">{formatCOP(part.price)}</span>
+                        <span className="font-mono tabular-nums">{priceLabel(part.price)}</span>
                         {cheaper === side && (
                           <Badge variant="soft" className="w-fit">
                             {formatCOP(priceGap)} menos

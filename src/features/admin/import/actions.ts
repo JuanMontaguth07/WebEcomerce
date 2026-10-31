@@ -4,10 +4,11 @@ import { z } from "zod";
 import { revalidateCatalog } from "@/features/catalog/revalidate";
 import { adminAction } from "@/lib/admin-action";
 import { toAppError } from "@/lib/errors";
+import { slugify } from "@/lib/format";
 import { toProductRow } from "../product-row";
 import { loadImportContext } from "./context";
 import { APPLY_CHUNK, MAX_IMPORT_ROWS } from "./parse";
-import { planImport, type ImportAction, type PlannedRow } from "./plan";
+import { missingBrands, planImport, type ImportAction, type PlannedRow } from "./plan";
 
 /** Las filas como las lee el navegador; el servidor vuelve a validar todo. */
 const rowsSchema = z
@@ -72,8 +73,28 @@ function rowError(error: unknown): string {
 export const applyProductImport = adminAction(
   z.object({ rows: rowsSchema.max(APPLY_CHUNK) }),
   async ({ rows }, { supabase }) => {
-    const context = await loadImportContext(supabase);
-    const plan = planImport(rows, context);
+    let context = await loadImportContext(supabase);
+    let plan = planImport(rows, context);
+
+    // Primero las marcas que no existen; luego se vuelve a planear con ellas.
+    const brands = missingBrands(plan);
+    if (brands.length) {
+      const usedSlugs = new Set(context.brands.map((brand) => brand.slug));
+      const created = brands.map((name) => {
+        const root = slugify(name) || "marca";
+        let slug = root;
+        for (let suffix = 2; usedSlugs.has(slug); suffix += 1) slug = `${root}-${suffix}`;
+        usedSlugs.add(slug);
+        return { name, slug };
+      });
+      const { error } = await supabase.from("brands").insert(created);
+      // Si otra tanda la creó al mismo tiempo, basta con volver a leerlas.
+      if (error && error.code !== "23505") throw error;
+      revalidateCatalog({ brands: true });
+      context = await loadImportContext(supabase);
+      plan = planImport(rows, context);
+    }
+
     const previousSlugs = new Map(
       context.products.map((product) => [product.id, product.values.slug]),
     );
