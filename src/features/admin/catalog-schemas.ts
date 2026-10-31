@@ -74,6 +74,8 @@ export const productSchema = z
     isFeatured: z.boolean(),
     // Solo referencia: no se vende; aparece en Arma tu PC para comparar.
     isReference: z.boolean().default(false),
+    // Pieza de referencia de la que este producto es una versión («Disponible aquí»).
+    referenceId: optionalUuid,
     seoTitle: optionalText(70),
     seoDescription: optionalText(160),
   })
@@ -83,6 +85,13 @@ export const productSchema = z
         code: "custom",
         path: ["isActive"],
         message: "Una pieza de referencia no se vende aquí: no puede estar visible en la tienda.",
+      });
+    }
+    if (value.isReference && value.referenceId) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["referenceId"],
+        message: "Una pieza de referencia no puede ser versión de otra.",
       });
     }
     if (value.price === null && !value.isReference) {

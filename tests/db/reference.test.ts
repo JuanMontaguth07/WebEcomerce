@@ -246,3 +246,51 @@ describe("piezas de referencia sin precio propio", () => {
     expect(Number(list.total)).toBe(1_716_000);
   });
 });
+
+describe("versiones en la tienda de una pieza de referencia", () => {
+  it("un producto de la tienda apunta a una pieza de referencia, y solo a una de referencia", async () => {
+    await asRole(db, "authenticated", ADMIN, async () => {
+      await db.query("update public.products set reference_id = $1 where id = $2", [
+        reference,
+        hidden,
+      ]);
+      const other = await one<{ id: string }>(
+        db,
+        "select id from public.products where sku = 'REF-9070XT'",
+      );
+      // Una de referencia no puede ser versión de otra.
+      await expect(
+        db.query("update public.products set reference_id = $1 where id = $2", [
+          reference,
+          other.id,
+        ]),
+      ).rejects.toThrow(/products_reference_version/);
+    });
+    // No se puede apuntar a un producto que no es de referencia.
+    await expect(
+      asRole(db, "authenticated", ADMIN, () =>
+        db.query(
+          `insert into public.products (name, slug, sku, price, category_id, reference_id)
+           select 'Otra', 'otra-version', 'OTRA-1', 1000, category_id, id
+           from public.products where id = $1`,
+          [hidden],
+        ),
+      ),
+    ).rejects.toThrow(/REFERENCE_NOT_FOUND/);
+  });
+
+  it("si la pieza deja de ser de referencia, sus versiones se sueltan", async () => {
+    await asRole(db, "authenticated", ADMIN, async () => {
+      await db.query("update public.products set is_reference = false where id = $1", [
+        reference,
+      ]);
+      const row = await one<{ reference_id: string | null }>(
+        db,
+        "select reference_id from public.products where id = $1",
+        [hidden],
+      );
+      expect(row.reference_id).toBeNull();
+      await db.query("update public.products set is_reference = true where id = $1", [reference]);
+    });
+  });
+});

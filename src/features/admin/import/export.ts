@@ -26,6 +26,7 @@ async function specColumns() {
  */
 export async function productsCsv(products: ExportProduct[]): Promise<string> {
   const { labels, byId } = await specColumns();
+  const skuById = new Map(products.map((product) => [product.id, product.sku]));
   const headers = [
     ...PRODUCT_COLUMNS.map((column) => column.header),
     ...labels.map((label) => `${SPEC_PREFIX}${label}`),
@@ -53,6 +54,7 @@ export async function productsCsv(products: ExportProduct[]): Promise<string> {
       isActive: product.is_active,
       isFeatured: product.is_featured,
       isReference: product.is_reference,
+      referenceOf: product.reference_id ? skuById.get(product.reference_id) : null,
       shortDescription: product.short_description,
       description: product.description,
       seoTitle: product.seo_title,

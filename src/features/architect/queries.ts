@@ -7,7 +7,7 @@ import { toOffer } from "@/features/offers/mappers";
 import { createPublicClient } from "@/lib/supabase/public";
 import { describeSpecs } from "./parts";
 import { SHARE_CODE, type SavedBuild } from "./saved";
-import type { ArchitectPart } from "./types";
+import type { ArchitectPart, HereVersion } from "./types";
 
 /** Tope de productos por consulta (el máximo que entrega la API): tienda + referencia. */
 const MAX_PARTS = 1000;
@@ -22,6 +22,7 @@ type PartRow = {
   category_id: string;
   brand: { name: string } | null;
   is_reference: boolean;
+  reference_id: string | null;
   images: { storage_path: string; alt_text: string; position: number }[];
   specs: RawSpec[];
   offers: OfferRow[];
@@ -57,7 +58,7 @@ export async function getArchitectParts(): Promise<ArchitectPart[]> {
   const { data, error: productsError } = await client
     .from("products")
     .select(
-      `id, name, slug, price, stock, low_stock_threshold, category_id, is_reference,
+      `id, name, slug, price, stock, low_stock_threshold, category_id, is_reference, reference_id,
        brand:brands(name),
        images:product_images(storage_path, alt_text, position),
        specs:product_specs(
@@ -78,6 +79,21 @@ export async function getArchitectParts(): Promise<ArchitectPart[]> {
     throw new Error(`[architect] productos: ${productsError.message.slice(0, 300)}`);
   }
 
+  // Versiones en la tienda de cada pieza de referencia («Disponible aquí»).
+  const versions = new Map<string, HereVersion[]>();
+  for (const row of data) {
+    if (!row.reference_id || row.is_reference || row.price === null) continue;
+    const list = versions.get(row.reference_id) ?? [];
+    list.push({
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      price: Number(row.price),
+      stock: row.stock,
+    });
+    versions.set(row.reference_id, list);
+  }
+
   return data.map((row) => {
     const image = row.images[0];
     return {
@@ -92,6 +108,7 @@ export async function getArchitectParts(): Promise<ArchitectPart[]> {
       image: image ? { path: image.storage_path, alt: image.alt_text } : null,
       demo: false,
       reference: row.is_reference,
+      ...(row.is_reference && versions.has(row.id) ? { hereVersions: versions.get(row.id) } : {}),
       offers: [...row.offers].sort((a, b) => a.position - b.position).map(toOffer),
       ...describeSpecs(row.specs),
     };

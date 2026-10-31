@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDownIcon, ExternalLinkIcon, SearchIcon, StoreIcon, TrophyIcon } from "lucide-react";
+import Link from "next/link";
 import { useId, useState } from "react";
 import type { ArchitectPart } from "@/features/architect/types";
 import { partPricing, type PartPricing } from "@/features/offers/compare";
@@ -58,20 +59,40 @@ export function PriceList({ part, rate }: { part: ArchitectPart; rate: number | 
       <ul className="grid divide-y rounded-xl border bg-background text-sm">
         {here && (
           <li className="flex flex-wrap items-center justify-between gap-2 p-2.5">
-            <span className="flex items-center gap-2 font-semibold">
-              <StoreIcon className="size-4 text-primary" aria-hidden />
-              {here.label}
-              {cheapest?.source === "here" && (
-                <span className="rounded-full bg-success/10 px-1.5 py-0.5 text-[0.6875rem] text-success">
-                  Más barato
-                </span>
+            <span className="grid min-w-0 gap-0.5">
+              <span className="flex items-center gap-2 font-semibold">
+                <StoreIcon className="size-4 text-primary" aria-hidden />
+                {here.label}
+                {cheapest?.source === "here" && offers.length > 0 && (
+                  <span className="rounded-full bg-success/10 px-1.5 py-0.5 text-[0.6875rem] text-success">
+                    Más barato
+                  </span>
+                )}
+              </span>
+              {here.version && (
+                <span className="text-xs text-muted-foreground">{here.version.name}</span>
               )}
             </span>
-            <span className="text-right">
-              <span className="block font-semibold tabular-nums">{formatCOP(here.cop)}</span>
-              <span className={cn("text-xs", here.inStock ? "text-success" : "text-destructive")}>
-                {here.inStock ? "En stock" : "Agotado"}
+            <span className="flex items-center gap-3">
+              <span className="text-right">
+                <span className="block font-semibold tabular-nums">{formatCOP(here.cop)}</span>
+                <span className={cn("text-xs", here.inStock ? "text-success" : "text-destructive")}>
+                  {here.inStock ? "En stock" : "Agotado"}
+                </span>
               </span>
+              {here.version && (
+                <Link
+                  href={`/productos/${here.version.slug}`}
+                  target="_blank"
+                  className="inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-xs font-medium transition-colors hover:border-primary/50 hover:text-primary"
+                >
+                  Ver
+                  <ExternalLinkIcon className="size-3" aria-hidden />
+                  <span className="sr-only">
+                    {here.version.name} en la tienda (se abre en otra pestaña)
+                  </span>
+                </Link>
+              )}
             </span>
           </li>
         )}

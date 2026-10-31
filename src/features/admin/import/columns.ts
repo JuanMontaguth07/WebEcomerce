@@ -36,6 +36,11 @@ export const PRODUCT_COLUMNS = [
   { field: "isActive", header: "Visible", aliases: ["activo", "publicado"] },
   { field: "isFeatured", header: "Destacado", aliases: [] },
   { field: "isReference", header: "Solo referencia", aliases: ["referencia externa"] },
+  {
+    field: "referenceOf",
+    header: "Versión de",
+    aliases: ["pieza de referencia", "version de referencia"],
+  },
   { field: "shortDescription", header: "Descripción corta", aliases: ["resumen"] },
   { field: "description", header: "Descripción", aliases: ["descripcion larga", "detalle"] },
   { field: "seoTitle", header: "Título SEO", aliases: ["titulo seo"] },

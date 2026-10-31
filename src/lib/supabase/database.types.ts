@@ -1046,6 +1046,7 @@ export type Database = {
           price: number | null
           product_type: Database["public"]["Enums"]["product_type"]
           rarity_id: string | null
+          reference_id: string | null
           search_vector: unknown
           seo_description: string | null
           seo_title: string | null
@@ -1073,6 +1074,7 @@ export type Database = {
           price?: number | null
           product_type?: Database["public"]["Enums"]["product_type"]
           rarity_id?: string | null
+          reference_id?: string | null
           search_vector?: unknown
           seo_description?: string | null
           seo_title?: string | null
@@ -1100,6 +1102,7 @@ export type Database = {
           price?: number | null
           product_type?: Database["public"]["Enums"]["product_type"]
           rarity_id?: string | null
+          reference_id?: string | null
           search_vector?: unknown
           seo_description?: string | null
           seo_title?: string | null
@@ -1138,6 +1141,13 @@ export type Database = {
             columns: ["rarity_id"]
             isOneToOne: false
             referencedRelation: "rarities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_reference_id_fkey"
+            columns: ["reference_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]

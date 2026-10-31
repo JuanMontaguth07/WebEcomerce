@@ -130,6 +130,35 @@ describe("selección", () => {
     };
     expect(cartLines(selection, mixed)).toEqual([{ part: real, quantity: 2 }]);
   });
+
+  it("una de referencia va al carrito por su versión de la tienda (la más barata con stock)", () => {
+    const gpu = get("demo-gpu-12");
+    const store = (id: string, price: number, stock: number): ArchitectPart => ({
+      ...gpu,
+      id,
+      demo: false,
+      price,
+      stock,
+    });
+    const cheapOut = store("asus", 2_000_000, 0);
+    const inStock = store("msi", 2_200_000, 4);
+    const reference: ArchitectPart = {
+      ...gpu,
+      id: "ref-gpu",
+      demo: false,
+      reference: true,
+      price: null,
+      stock: 0,
+      hereVersions: [
+        { id: "asus", name: "ASUS", slug: "asus", price: 2_000_000, stock: 0 },
+        { id: "msi", name: "MSI", slug: "msi", price: 2_200_000, stock: 4 },
+      ],
+    };
+    const lone: ArchitectPart = { ...reference, id: "ref-sola", kind: "case", hereVersions: [] };
+    const mixed = indexParts([cheapOut, inStock, reference, lone]);
+    const selection: Selection = { parts: { gpu: "ref-gpu", case: "ref-sola" }, storage: [] };
+    expect(cartLines(selection, mixed)).toEqual([{ part: inStock, quantity: 1 }]);
+  });
 });
 
 describe("comparar", () => {

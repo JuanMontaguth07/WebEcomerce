@@ -12,6 +12,7 @@ import {
   getBrandOptions,
   getCategoryOptions,
   getProductHistoryCounts,
+  getReferenceOptions,
   getSpecDefinitions,
 } from "@/features/admin/catalog";
 import { listActivity } from "@/features/activity/queries";
@@ -65,6 +66,7 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
     rarities,
     flags,
     offers,
+    references,
   ] = await Promise.all([
     getCategoryOptions(),
     getBrandOptions(),
@@ -75,6 +77,7 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
     listAdminRarities(),
     listAdminFlags(),
     getProductOffers(id),
+    getReferenceOptions(),
   ]);
 
   const initial: ProductFormValues = {
@@ -88,6 +91,7 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
     flagId: product.flag_id ?? "",
     uniqueNote: product.unique_note ?? "",
     price: product.price === null ? "" : String(product.price),
+    referenceId: product.reference_id ?? "",
     compareAtPrice: product.compare_at_price === null ? "" : String(product.compare_at_price),
     lowStockThreshold: String(product.low_stock_threshold),
     warrantyMonths: product.warranty_months === null ? "" : String(product.warranty_months),
@@ -135,6 +139,7 @@ export default async function EditProductPage({ params }: PageProps<"/admin/prod
               brands={brands}
               rarities={rarities}
               flags={flags}
+              references={references.filter((item) => item.id !== product.id)}
             />
             <Card title="Imágenes" id="imagenes">
               <ImageManager

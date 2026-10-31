@@ -838,3 +838,20 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
   modo guiado compara procesadores y gráficas por puntaje cuando lo tienen (antes por núcleos y
   VRAM). La regla de altura del disipador no aplica a las líquidas (vale la del radiador). En la
   lista, a igual precio va primero la de más rendimiento.
+
+## D52 — «Disponible aquí» en las piezas de referencia (2026-10-31)
+
+- **`products.reference_id`** (migración `20261118120000_reference_versions`): un producto de la
+  tienda puede ser versión de una pieza «Solo referencia» (check: no a sí mismo ni desde otra de
+  referencia; trigger: el destino debe ser de referencia; si deja de serlo, sus versiones se
+  sueltan). Se elige en el formulario («Versión de», con las piezas de la misma familia de
+  categorías) o en la importación (columna «Versión de» con el SKU o nombre); la exportación la
+  incluye.
+- **En Arma tu PC**: la pieza de referencia trae sus versiones (`hereVersions`); su opción «aquí»
+  es la más barata con stock (`bestHereVersion`), entra a la comparación de precios, al precio
+  mostrado y al presupuesto del modo guiado, y el carrito agrega esa versión. La lista muestra
+  «Disponible aquí» con enlace a la versión.
+- **Corrección**: «Ver ficha» en una pieza de referencia llevaba a una página inexistente (no se
+  muestran en la tienda); ahora lleva a su versión en la tienda o no aparece.
+- Los CSV del catálogo no traen enlaces directos a otras tiendas (no se pueden verificar); cada
+  pieza trae las búsquedas automáticas y el admin carga ofertas exactas cuando quiera.

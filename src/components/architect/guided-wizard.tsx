@@ -378,7 +378,9 @@ function GuidedResultView({
                   ? "El catálogo todavía no tiene piezas con precio para repartir el presupuesto. Compara precios en el modo libre"
                   : `No hay ${result.missing
                       .map((kind) => PART_LABELS[kind].toLocaleLowerCase("es-CO"))
-                      .join(", ")} con precio y ficha que encaje en el catálogo. Elígelas en el modo libre`}
+                      .join(
+                        ", ",
+                      )} con precio y ficha que encaje en el catálogo. Elígelas en el modo libre`}
                 {demoAvailable ? " o cambia a piezas demo" : ""}.
               </span>
             </li>

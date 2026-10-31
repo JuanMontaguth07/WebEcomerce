@@ -12,7 +12,7 @@ import type { ArchitectPart, Selection } from "@/features/architect/types";
 import { PART_LABELS, type PartKind } from "@/features/compatibility/types";
 import { numberSpec } from "@/features/compatibility/values";
 import { cn } from "@/lib/utils";
-import { displayPrice, priceLabel, priceOrder } from "@/features/offers/compare";
+import { bestHereVersion, displayPrice, priceLabel, priceOrder } from "@/features/offers/compare";
 import { PartThumb } from "./part-thumb";
 import { PriceCompare } from "./price-compare";
 import { StatusLabel } from "./status";
@@ -147,6 +147,9 @@ export function PartPicker({
             const chosen = isChosen(selection, part);
             const comparing = compare.includes(part.id);
             const full = kind === "storage" && selection.storage.length >= MAX_DRIVES;
+            // Una de referencia puede venderse aquí en alguna versión.
+            const version = part.reference ? bestHereVersion(part) : null;
+            const fichaSlug = part.reference ? version?.slug : part.slug;
             return (
               <li key={part.id}>
                 <article
@@ -162,7 +165,7 @@ export function PartPicker({
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       <h3 className="text-sm leading-snug font-semibold">{part.name}</h3>
                       {part.demo && <Badge variant="outline">Demo</Badge>}
-                      {part.reference && (
+                      {part.reference && !version && (
                         <Badge
                           variant="outline"
                           title="No se vende aquí: compárala en otras tiendas"
@@ -204,7 +207,16 @@ export function PartPicker({
                         )}
                         {priceLabel(displayPrice(part, rate))}
                       </span>
-                      {part.reference ? (
+                      {version ? (
+                        <span
+                          className={cn(
+                            "text-xs font-medium",
+                            version.stock > 0 ? "text-success" : "text-muted-foreground",
+                          )}
+                        >
+                          {version.stock > 0 ? "Disponible aquí" : "Agotado aquí"}
+                        </span>
+                      ) : part.reference ? (
                         <span className="text-xs text-muted-foreground">No se vende aquí</span>
                       ) : part.stock === null ? (
                         <span className="text-xs text-muted-foreground">Precio de ejemplo</span>
@@ -248,13 +260,13 @@ export function PartPicker({
                         </Button>
                       )}
                     </span>
-                    {part.slug && (
+                    {fichaSlug && (
                       <Link
-                        href={`/productos/${part.slug}`}
+                        href={`/productos/${fichaSlug}`}
                         target="_blank"
                         className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                       >
-                        Ver ficha
+                        {version ? "Ver en la tienda" : "Ver ficha"}
                         <ExternalLinkIcon className="size-3" aria-hidden />
                         <span className="sr-only">(se abre en otra pestaña)</span>
                       </Link>

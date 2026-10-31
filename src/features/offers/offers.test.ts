@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ArchitectPart } from "@/features/architect/types";
 import {
+  bestHereVersion,
   buildPricing,
   displayPrice,
   offerInCop,
@@ -74,6 +75,26 @@ describe("precios en otras tiendas", () => {
     const reference = part({ reference: true, stock: 0, offers: [offer({ price: 1_950_000 })] });
     expect(partPricing(reference, null).here).toBeNull();
     expect(displayPrice(reference, null)).toBe(1_950_000);
+  });
+
+  it("una de referencia que se vende aquí en alguna versión compara también con esa", () => {
+    const reference = part({
+      reference: true,
+      price: null,
+      stock: 0,
+      offers: [offer({ price: 2_100_000 })],
+      hereVersions: [
+        { id: "a", name: "ASUS Dual", slug: "asus-dual", price: 1_900_000, stock: 0 },
+        { id: "b", name: "MSI Ventus", slug: "msi-ventus", price: 2_050_000, stock: 2 },
+      ],
+    });
+    // La agotada no cuenta: va la más barata con stock.
+    expect(bestHereVersion(reference)?.id).toBe("b");
+    const pricing = partPricing(reference, null);
+    expect(pricing.here).toMatchObject({ cop: 2_050_000, inStock: true, version: { id: "b" } });
+    expect(pricing.cheapest?.source).toBe("here");
+    expect(displayPrice(reference, null)).toBe(2_050_000);
+    expect(buildPricing([reference], null).here).toEqual({ total: 2_050_000, count: 1 });
   });
 
   it("sin precio propio ni ofertas con precio, no inventa uno", () => {

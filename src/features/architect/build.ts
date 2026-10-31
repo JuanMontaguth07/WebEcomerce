@@ -5,6 +5,7 @@ import {
   type CompatibilityStatus,
   type PartKind,
 } from "@/features/compatibility/types";
+import { bestHereVersion } from "@/features/offers/compare";
 import type { ArchitectPart, Selection, SingleKind } from "./types";
 
 /** Unidades de almacenamiento que se pueden agregar a un equipo. */
@@ -107,9 +108,13 @@ export function candidateStatus(
 /** Cantidad de cada producto real elegido, para pasarlo al carrito. */
 export function cartLines(selection: Selection, index: PartIndex) {
   const lines = new Map<string, { part: ArchitectPart; quantity: number }>();
-  for (const part of selectedParts(selection, index)) {
-    // Ni las demo ni las de referencia se venden aquí.
-    if (part.demo || part.reference) continue;
+  for (const chosen of selectedParts(selection, index)) {
+    // Las demo no se venden; una de referencia, solo si tiene una versión aquí
+    // (va esa al carrito).
+    if (chosen.demo) continue;
+    const version = chosen.reference ? bestHereVersion(chosen) : null;
+    const part = version ? index.get(version.id) : chosen.reference ? undefined : chosen;
+    if (!part) continue;
     const line = lines.get(part.id);
     lines.set(part.id, { part, quantity: (line?.quantity ?? 0) + 1 });
   }

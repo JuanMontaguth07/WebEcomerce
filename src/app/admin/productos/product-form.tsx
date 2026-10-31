@@ -21,7 +21,9 @@ import type { AdminRarity } from "@/features/rarities/queries";
 import { slugify } from "@/lib/format";
 import { useProductDraft } from "./product-draft";
 
-type Option = { id: string; name: string; is_active?: boolean };
+type Option = { id: string; name: string; is_active?: boolean; parent_id?: string | null };
+/** Pieza «Solo referencia» de la que un producto puede ser versión. */
+export type ReferenceOption = { id: string; name: string; categoryId: string };
 type Errors = Partial<Record<string, string[]>>;
 
 export type ProductFormValues = {
@@ -43,6 +45,7 @@ export type ProductFormValues = {
   isActive: boolean;
   isFeatured: boolean;
   isReference: boolean;
+  referenceId: string;
   seoTitle: string;
   seoDescription: string;
 };
@@ -66,6 +69,7 @@ export const EMPTY_PRODUCT: ProductFormValues = {
   isActive: false,
   isFeatured: false,
   isReference: false,
+  referenceId: "",
   seoTitle: "",
   seoDescription: "",
 };
@@ -86,6 +90,7 @@ export function ProductForm({
   brands,
   rarities,
   flags,
+  references = [],
 }: {
   productId?: string;
   initial: ProductFormValues;
@@ -93,6 +98,7 @@ export function ProductForm({
   brands: Option[];
   rarities: AdminRarity[];
   flags: AdminFlag[];
+  references?: ReferenceOption[];
 }) {
   const router = useRouter();
   // Si la página comparte el borrador (vista previa de la tarjeta), se usa ese estado.
@@ -159,6 +165,25 @@ export function ProductForm({
       value: b.id,
       label: b.is_active === false ? `${b.name} (oculta)` : b.name,
     })),
+  ];
+
+  // Las piezas de referencia de la misma familia de categorías (una «Nvidia»
+  // dentro de «Tarjetas de video» ve las de toda la familia).
+  const rootOf = (id: string) => {
+    let current = categories.find((category) => category.id === id);
+    while (current?.parent_id) {
+      const parent = categories.find((category) => category.id === current?.parent_id);
+      if (!parent) break;
+      current = parent;
+    }
+    return current?.id ?? id;
+  };
+  const family = values.categoryId ? rootOf(values.categoryId) : null;
+  const referenceOptions = [
+    { value: "", label: "Ninguna" },
+    ...references
+      .filter((item) => item.id === values.referenceId || rootOf(item.categoryId) === family)
+      .map((item) => ({ value: item.id, label: item.name })),
   ];
 
   const selectedRarity = rarities.find((rarity) => rarity.id === values.rarityId);
@@ -308,9 +333,27 @@ export function ProductForm({
           checked={values.isReference}
           onCheckedChange={(checked) => {
             update("isReference", checked);
-            if (checked) update("isActive", false);
+            if (checked) {
+              update("isActive", false);
+              update("referenceId", "");
+            }
           }}
         />
+        {!values.isReference && (
+          <SelectField
+            name="referenceId"
+            label="Versión de (pieza de referencia)"
+            optional
+            errors={errors}
+            options={referenceOptions}
+            hint={
+              references.length
+                ? "Si este producto es una versión de una pieza del catálogo de referencia (p. ej. una ASUS RTX 5060 Ti de la «RTX 5060 Ti»), en Arma tu PC esa pieza muestra «Disponible aquí» con este precio."
+                : "Cuando tengas piezas «Solo referencia», aquí puedes enlazar este producto a la suya para que muestre «Disponible aquí»."
+            }
+            {...text("referenceId")}
+          />
+        )}
         <CheckboxField
           name="isFeatured"
           label="Destacado"

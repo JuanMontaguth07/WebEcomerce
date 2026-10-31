@@ -21,6 +21,12 @@
 
 Para agregar piezas después, edita el archivo (o uno nuevo con las mismas columnas) y vuelve a importarlo: el SKU identifica cada pieza, así que lo que ya existe se actualiza y no se duplica.
 
+## Enlaces de compra y «Disponible aquí»
+
+- **Búsquedas**: cada pieza trae sola los botones «Buscar en Amazon, MercadoLibre y Google Shopping» con su nombre. No hacen falta cargar.
+- **Ofertas con precio**: en el producto (sección de ofertas) pegas el enlace exacto de Amazon, MercadoLibre, etc., con su precio. Los archivos no traen enlaces directos porque no se pueden verificar sin entrar a cada tienda.
+- **Disponible aquí**: cuando vendas una versión de una pieza (p. ej. una ASUS RTX 5060 Ti de la «NVIDIA GeForce RTX 5060 Ti 16 GB»), en el producto de la tienda elige «Versión de (pieza de referencia)», o en la importación usa la columna «Versión de» con el SKU de la pieza (`REF-GPU-…`). La pieza de referencia pasa a mostrar «Disponible aquí» con tu precio y stock, y «Agregar todo al carrito» agrega tu versión.
+
 ## Qué revisar
 
 - **Puntaje de rendimiento** (procesadores y gráficas): es aproximado, de 1 a 100. En gráficas, 100 = RTX 5090 y la escala es lineal (RTX 4090 ≈ 76, RTX 4060 ≈ 20). En procesadores mezcla multinúcleo y juegos, con 100 = Ryzen 9 9950X3D.

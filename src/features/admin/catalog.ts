@@ -115,6 +115,19 @@ export async function getCategoryOptions() {
   return data;
 }
 
+/** Piezas «Solo referencia», para enlazar un producto de la tienda como versión de una. */
+export async function getReferenceOptions() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("id, name, category_id")
+    .eq("is_reference", true)
+    .order("name")
+    .limit(2000);
+  if (error) throw error;
+  return data.map((row) => ({ id: row.id, name: row.name, categoryId: row.category_id }));
+}
+
 export async function getBrandOptions() {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -232,7 +245,7 @@ export async function listProductsForExport(maxRows = 20_000) {
     supabase
       .from("products")
       .select(
-        `name, sku, slug, product_type, price, compare_at_price, stock, low_stock_threshold,
+        `id, reference_id, name, sku, slug, product_type, price, compare_at_price, stock, low_stock_threshold,
          warranty_months, is_active, is_featured, is_reference, short_description, description, seo_title,
          seo_description, updated_at, brand:brands(name), category:categories(name),
          specs:product_specs(spec_id, value_text, value_number, value_boolean)`,

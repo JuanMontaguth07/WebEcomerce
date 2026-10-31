@@ -1,4 +1,4 @@
-import type { ArchitectPart } from "@/features/architect/types";
+import type { ArchitectPart, HereVersion } from "@/features/architect/types";
 import { formatCOP } from "@/lib/format";
 import { storeLabel, type ProductOffer } from "./stores";
 
@@ -11,7 +11,14 @@ export const priceOrder = (price: number | null) => price ?? Number.POSITIVE_INF
 
 /** Una forma de conseguir la pieza: en la tienda o en otra, con su precio en pesos si se sabe. */
 export type PriceOption =
-  | { source: "here"; label: string; cop: number; inStock: boolean }
+  | {
+      source: "here";
+      label: string;
+      cop: number;
+      inStock: boolean;
+      /** En una pieza de referencia: la versión que se vende aquí. */
+      version?: HereVersion;
+    }
   | { source: "offer"; label: string; cop: number | null; offer: ProductOffer };
 
 /** Precio de una oferta en pesos (las de dólares, con la tasa de la tienda). */
@@ -30,12 +37,26 @@ export type PartPricing = {
   cheapest: PriceOption | null;
 };
 
+/** De las versiones que se venden aquí, la mejor: la más barata con stock (o la más barata). */
+export function bestHereVersion(part: ArchitectPart): HereVersion | null {
+  const versions = [...(part.hereVersions ?? [])].sort((a, b) => a.price - b.price);
+  return versions.find((version) => version.stock > 0) ?? versions[0] ?? null;
+}
+
 export function partPricing(part: ArchitectPart, rate: number | null): PartPricing {
-  const here =
-    part.demo || part.reference || part.price === null
+  const version = part.reference ? bestHereVersion(part) : null;
+  const here: PartPricing["here"] = version
+    ? {
+        source: "here",
+        label: "Disponible aquí",
+        cop: version.price,
+        inStock: version.stock > 0,
+        version,
+      }
+    : part.demo || part.reference || part.price === null
       ? null
       : {
-          source: "here" as const,
+          source: "here",
           label: "Disponible aquí",
           cop: part.price,
           inStock: (part.stock ?? 0) > 0,
@@ -66,8 +87,11 @@ export function partPricing(part: ArchitectPart, rate: number | null): PartPrici
  */
 export function displayPrice(part: ArchitectPart, rate: number | null): number | null {
   if (part.demo || !part.reference) return part.price;
-  const best = partPricing(part, rate).offers.find((option) => option.cop !== null);
-  return best?.cop ?? part.price;
+  // Lo más barato que se puede comprar ya (aquí o afuera); si no, la oferta más
+  // barata aunque esté agotada aquí, o el precio de referencia.
+  const pricing = partPricing(part, rate);
+  const best = pricing.offers.find((option) => option.cop !== null);
+  return pricing.cheapest?.cop ?? best?.cop ?? pricing.here?.cop ?? part.price;
 }
 
 export type BuildPricing = {

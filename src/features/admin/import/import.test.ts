@@ -195,6 +195,42 @@ describe("planear la importación", () => {
     expect(missingBrands(plan)).toEqual(["Gigabyte"]);
   });
 
+  it("«Versión de» enlaza un producto de la tienda con su pieza de referencia por SKU", () => {
+    const withReference: typeof context = {
+      ...context,
+      products: [
+        ...context.products,
+        {
+          id: "99999999-9999-4999-8999-999999999999",
+          stock: 0,
+          specs: {},
+          values: {
+            ...(context.products[0]?.values as NonNullable<(typeof context.products)[0]>["values"]),
+            name: "NVIDIA GeForce RTX 5060 Ti 16 GB",
+            slug: "rtx-5060-ti",
+            sku: "REF-GPU-RTX-5060-TI-16-GB",
+            price: null,
+            isActive: false,
+            isReference: true,
+            referenceId: null,
+          },
+        },
+      ],
+    };
+    const [linked, missing, onReference] = planImport(
+      sheet([
+        "SKU;Producto;Categoría;Precio;Versión de;Solo referencia",
+        "GPU-ASUS-5060TI;ASUS Dual RTX 5060 Ti;procesadores;2100000;ref-gpu-rtx-5060-ti-16-gb;",
+        "GPU-X;Otra;procesadores;100000;REF-NO-EXISTE;",
+        "REF-X;Referencia;procesadores;;REF-GPU-RTX-5060-TI-16-GB;Sí",
+      ]).rows,
+      withReference,
+    );
+    expect(linked?.values?.referenceId).toBe("99999999-9999-4999-8999-999999999999");
+    expect(missing?.errors[0]).toMatch(/Versión de: no hay una pieza «Solo referencia»/);
+    expect(onReference?.errors[0]).toMatch(/no puede ser versión de otra/);
+  });
+
   it("explica cada error en palabras y por campo", () => {
     const plan = planImport(
       sheet([

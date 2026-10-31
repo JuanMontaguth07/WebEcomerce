@@ -75,6 +75,7 @@ const COMPARED: (keyof ProductValues)[] = [
   "isActive",
   "isFeatured",
   "isReference",
+  "referenceId",
   "shortDescription",
   "description",
   "seoTitle",
@@ -145,6 +146,7 @@ const DEFAULTS = {
   isActive: false,
   isFeatured: false,
   isReference: false,
+  referenceId: null,
   seoTitle: null,
   seoDescription: null,
 } satisfies Partial<ProductValues>;
@@ -254,6 +256,26 @@ export function planImport(rows: RawProductRow[], context: ImportContext): Plann
       "seoDescription",
     ] as const) {
       if (fields[field]) draft[field] = fields[field];
+    }
+
+    // «Versión de»: el SKU (o el nombre) de una pieza «Solo referencia».
+    if (fields.referenceOf) {
+      const wanted = fields.referenceOf.trim();
+      if (NO_BRAND.has(normalizeName(wanted))) draft.referenceId = null;
+      else {
+        const target = context.products.find(
+          (product) =>
+            product.values.isReference &&
+            (product.values.sku === wanted.toUpperCase() ||
+              normalizeName(product.values.name) === normalizeName(wanted)),
+        );
+        if (target) draft.referenceId = target.id;
+        else {
+          errors.push(
+            `Versión de: no hay una pieza «Solo referencia» con SKU o nombre «${wanted}». Impórtala primero.`,
+          );
+        }
+      }
     }
 
     // Una pieza de referencia nunca está visible: si el archivo no dice nada, se oculta sola.

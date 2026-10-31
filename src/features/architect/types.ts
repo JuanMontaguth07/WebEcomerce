@@ -24,6 +24,12 @@ export type ArchitectPart = {
   reference: boolean;
   /** Dónde más se consigue (Amazon, MercadoLibre…), con el precio que cargó el admin. */
   offers: ProductOffer[];
+  /**
+   * En una pieza de referencia: los productos de la tienda que son versiones de
+   * ella (la «ASUS Dual RTX 5060 Ti» de la «RTX 5060 Ti»). Con eso muestra
+   * «Disponible aquí» y el carrito agrega la versión.
+   */
+  hereVersions?: HereVersion[];
   /** Valores tal como están en la ficha, para el motor de compatibilidad. */
   specs: PartSpecs;
   /** Ficha legible en su orden, para comparar. */
@@ -31,6 +37,8 @@ export type ArchitectPart = {
   /** Hasta 3 especificaciones cortas para la lista. */
   keySpecs: CardSpec[];
 };
+
+export type HereVersion = { id: string; name: string; slug: string; price: number; stock: number };
 
 export type PartDetail = {
   key: string;

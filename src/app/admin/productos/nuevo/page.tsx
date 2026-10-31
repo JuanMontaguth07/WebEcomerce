@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { AdminPageHeader } from "@/components/admin/admin-ui";
-import { getBrandOptions, getCategoryOptions } from "@/features/admin/catalog";
+import { getBrandOptions, getCategoryOptions, getReferenceOptions } from "@/features/admin/catalog";
 import { requireAdmin } from "@/features/auth/session";
 import { listAdminFlags } from "@/features/flags/queries";
 import { listAdminRarities } from "@/features/rarities/queries";
@@ -11,11 +11,12 @@ export const metadata: Metadata = { title: "Nuevo producto" };
 
 export default async function NewProductPage() {
   await requireAdmin("/admin/productos/nuevo");
-  const [categories, brands, rarities, flags] = await Promise.all([
+  const [categories, brands, rarities, flags, references] = await Promise.all([
     getCategoryOptions(),
     getBrandOptions(),
     listAdminRarities(),
     listAdminFlags(),
+    getReferenceOptions(),
   ]);
 
   return (
@@ -33,6 +34,7 @@ export default async function NewProductPage() {
             brands={brands}
             rarities={rarities}
             flags={flags}
+            references={references}
           />
           <section
             aria-label="Así se verá en la tienda"
