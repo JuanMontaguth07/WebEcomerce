@@ -112,7 +112,7 @@ async function SavedBuildContent({ params }: PageProps<"/arma-tu-pc/[code]">) {
 
 export default function SavedBuildPage(props: PageProps<"/arma-tu-pc/[code]">) {
   return (
-    <main id="contenido" className="container-page grid gap-8 py-8 md:py-10">
+    <main id="contenido" className="architect-zone container-page grid gap-8 py-8 md:py-10">
       <Suspense
         fallback={
           <div className="grid gap-6" aria-busy>

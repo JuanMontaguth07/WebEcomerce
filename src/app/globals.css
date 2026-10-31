@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "./architect-zone.css";
 
 /* El tema oscuro se activa con la clase .dark en <html> (next-themes). */
 @custom-variant dark (&:where(.dark, .dark *));

@@ -1,0 +1,345 @@
+/* =============================================================================
+   Arma tu PC: zona con acento propio (rosa → violeta) dentro de la tienda lima.
+   Cambia los tokens de marca solo dentro de `.architect-zone`; el resto de la
+   tienda (cabecera, pie) sigue igual. Contrastes: texto rosa ≥ 4,5:1 sobre
+   fondo, tarjeta y fondo suave en ambos temas.
+   ============================================================================= */
+.architect-zone {
+  --primary: #c0267a; /* sobre el fondo 5.2:1, blanco encima 5.7:1 */
+  --primary-foreground: #ffffff;
+  --primary-soft: #fbe6f1; /* rosa encima 4.9:1 */
+  --zone-2: #7c3aed; /* violeta del degradado */
+  --lime: #ff5fa8;
+  --ring: #c0267a;
+  --zone-glow: rgb(192 38 122 / 0.28);
+  --zone-grid: rgb(192 38 122 / 0.07);
+  --elevation-glow: 0 0 0 1px rgb(192 38 122 / 0.35), 0 18px 44px -18px rgb(192 38 122 / 0.4);
+}
+.dark .architect-zone {
+  --primary: #ff5fa8; /* sobre el fondo 7.1:1, tarjeta 6.1:1 */
+  --primary-foreground: #16070f;
+  --primary-soft: #33142a; /* rosa encima 5.3:1 */
+  --zone-2: #a855f7;
+  --ring: #ff5fa8;
+  --zone-glow: rgb(255 95 168 / 0.38);
+  --zone-grid: rgb(255 95 168 / 0.07);
+  --elevation-glow: 0 0 0 1px rgb(255 95 168 / 0.45), 0 18px 48px -16px rgb(255 95 168 / 0.35);
+}
+
+.zone-gradient {
+  background: linear-gradient(120deg, var(--primary), var(--zone-2));
+  color: var(--primary-foreground);
+}
+.zone-text {
+  background: linear-gradient(110deg, var(--primary) 20%, var(--zone-2) 50%, var(--primary) 80%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.zone-grid {
+  background-image:
+    linear-gradient(var(--zone-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--zone-grid) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse at 72% 45%, #000 20%, transparent 70%);
+}
+/* Reflejo que cruza un botón de vez en cuando. */
+.zone-shine {
+  position: relative;
+  overflow: hidden;
+}
+.zone-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.4) 50%, transparent 70%);
+  transform: translateX(-120%);
+}
+
+/* Brillo que sigue al cursor (--mx/--my los pone PointerGlow). */
+.glow-follow {
+  position: relative;
+  isolation: isolate;
+}
+.glow-follow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    220px circle at var(--mx, 50%) var(--my, 50%),
+    var(--zone-glow, var(--primary-soft)),
+    transparent 65%
+  );
+  transition: opacity 0.3s var(--expo-out);
+}
+@media (hover: hover) {
+  .glow-follow:hover::before {
+    opacity: 1;
+  }
+}
+
+/* PC en 3D del hero: una caja de seis caras que gira con el cursor (--tilt-x/-y). */
+.pc3d-stage {
+  perspective: 1100px;
+  touch-action: pan-y;
+}
+.pc3d {
+  --tilt-x: -10deg;
+  --tilt-y: -32deg;
+  position: relative;
+  width: 200px;
+  height: 300px;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+  transition: transform 0.35s var(--expo-out);
+}
+.pc3d-face {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: 6px;
+  backface-visibility: hidden;
+}
+.pc3d-front {
+  width: 200px;
+  height: 300px;
+  margin: -150px 0 0 -100px;
+  transform: translateZ(120px);
+  background: linear-gradient(160deg, #262e39, #12161c);
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 14px;
+}
+.pc3d-back {
+  width: 200px;
+  height: 300px;
+  margin: -150px 0 0 -100px;
+  transform: rotateY(180deg) translateZ(120px);
+  background: #0f1217;
+}
+.pc3d-glass {
+  width: 240px;
+  height: 300px;
+  margin: -150px 0 0 -120px;
+  transform: rotateY(90deg) translateZ(100px);
+  background: #0b0e12;
+  overflow: hidden;
+}
+.pc3d-left {
+  width: 240px;
+  height: 300px;
+  margin: -150px 0 0 -120px;
+  transform: rotateY(-90deg) translateZ(100px);
+  background: linear-gradient(160deg, #222a34, #12161c);
+}
+.pc3d-top {
+  width: 200px;
+  height: 240px;
+  margin: -120px 0 0 -100px;
+  transform: rotateX(90deg) translateZ(150px);
+  background: repeating-linear-gradient(90deg, #2a323d 0 6px, #1f262f 6px 10px);
+}
+.pc3d-bottom {
+  width: 200px;
+  height: 240px;
+  margin: -120px 0 0 -100px;
+  transform: rotateX(-90deg) translateZ(150px);
+  background: #090b0e;
+}
+.pc3d-fan {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #101318 0 10%, transparent 11%),
+    conic-gradient(
+      var(--lime) 0 12%,
+      transparent 12% 20%,
+      var(--lime) 20% 32%,
+      transparent 32% 40%,
+      var(--lime) 40% 52%,
+      transparent 52% 60%,
+      var(--lime) 60% 72%,
+      transparent 72% 80%,
+      var(--lime) 80% 92%,
+      transparent 92%
+    );
+  box-shadow:
+    0 0 0 3px rgb(255 255 255 / 0.1),
+    0 0 26px var(--zone-glow);
+}
+.pc3d-board {
+  position: absolute;
+  left: 22px;
+  top: 22px;
+  width: 150px;
+  height: 170px;
+  border-radius: 6px;
+  background: #161b22;
+  border: 1px solid #2c3542;
+}
+.pc3d-cpu {
+  position: absolute;
+  left: 30px;
+  top: 26px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #101318 0 28%, transparent 30%),
+    conic-gradient(var(--lime), var(--zone-2), var(--lime));
+  box-shadow: 0 0 22px var(--zone-glow);
+}
+.pc3d-ram {
+  position: absolute;
+  top: 18px;
+  width: 7px;
+  height: 70px;
+  border-radius: 3px;
+  background: linear-gradient(var(--lime), var(--zone-2));
+}
+.pc3d-gpu {
+  position: absolute;
+  left: 14px;
+  top: 150px;
+  width: 200px;
+  height: 38px;
+  border-radius: 5px;
+  background: linear-gradient(#2a323d, #161b22);
+  border: 1px solid #3a4452;
+}
+.pc3d-gpu::after,
+.pc3d-strip {
+  content: "";
+  position: absolute;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--lime), var(--zone-2), var(--lime));
+  background-size: 200% 200%;
+  box-shadow: 0 0 14px var(--zone-glow);
+}
+.pc3d-gpu::after {
+  left: 10px;
+  right: 10px;
+  bottom: 6px;
+  height: 3px;
+}
+.pc3d-strip {
+  right: 10px;
+  top: 14px;
+  bottom: 14px;
+  width: 4px;
+}
+.pc3d-psu {
+  position: absolute;
+  left: 14px;
+  bottom: 16px;
+  width: 120px;
+  height: 56px;
+  border-radius: 5px;
+  background: #161b22;
+  border: 1px solid #2c3542;
+}
+.pc3d-reflection {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    rgb(255 255 255 / 0.09),
+    transparent 40%,
+    rgb(255 255 255 / 0.05)
+  );
+}
+.pc3d-chip {
+  translate: calc(var(--px, 0) * var(--depth, 10) * 1px) calc(var(--py, 0) * var(--depth, 10) * 1px);
+  transition: translate 0.6s var(--expo-out);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .zone-text {
+    animation: zone-sheen 5s linear infinite;
+  }
+  .zone-shine::after {
+    animation: zone-shine 3.4s ease-in-out infinite;
+  }
+  .pc3d[data-idle] {
+    animation: pc3d-sway 7s ease-in-out infinite;
+  }
+  .pc3d-fan {
+    animation: zone-spin 1.6s linear infinite;
+  }
+  .pc3d-fan:nth-child(2) {
+    animation-duration: 1.9s;
+  }
+  .pc3d-fan:nth-child(3) {
+    animation-duration: 1.4s;
+  }
+  .pc3d-cpu {
+    animation: zone-spin 3s linear infinite;
+  }
+  .pc3d-ram {
+    animation: zone-blink 2.4s ease-in-out infinite;
+  }
+  .pc3d-gpu::after,
+  .pc3d-strip {
+    animation: zone-sheen 2.4s linear infinite;
+  }
+  .zone-breathe {
+    animation: zone-breathe 4s ease-in-out infinite;
+  }
+}
+
+@keyframes zone-sheen {
+  to {
+    background-position: -200% -200%;
+  }
+}
+@keyframes zone-shine {
+  60%,
+  100% {
+    transform: translateX(120%);
+  }
+}
+@keyframes zone-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes zone-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+@keyframes zone-breathe {
+  50% {
+    opacity: 0.55;
+    scale: 0.92;
+  }
+}
+@keyframes pc3d-sway {
+  0%,
+  100% {
+    transform: rotateX(-10deg) rotateY(-32deg);
+  }
+  50% {
+    transform: rotateX(-6deg) rotateY(-18deg);
+  }
+}
+
+/* Lo que se enfoca o se desplaza a la vista no queda bajo la cabecera fija ni,
+   en celular y tablet, bajo la barra del resumen. */
+html:has(.architect-zone) {
+  scroll-padding-top: 6rem;
+}
+@media (width < 80rem) {
+  html:has([data-architect-bar]) {
+    scroll-padding-bottom: 7rem;
+  }
+}

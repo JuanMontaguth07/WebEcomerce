@@ -855,3 +855,23 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
   muestran en la tienda); ahora lleva a su versión en la tienda o no aparece.
 - Los CSV del catálogo no traen enlaces directos a otras tiendas (no se pueden verificar); cada
   pieza trae las búsquedas automáticas y el admin carga ofertas exactas cuando quiera.
+
+## D53 — Arma tu PC dinámica, parte 1 (2026-10-31)
+
+- Rediseño de `/arma-tu-pc` a partir de las referencias del usuario (propuesta aprobada en un
+  artifact): zona con acento propio **rosa → violeta** (`.architect-zone` en
+  `src/app/architect-zone.css`, solo cambia los tokens dentro de la página; cabecera, pie y el resto
+  de la tienda siguen en lima). También la página de una configuración guardada.
+- **Portada**: titular con degradado animado, botones «Armar la mía» / «Ver PCs armadas», **PC en
+  3D hecho con CSS** (`pc-3d.tsx`, sin imágenes de otras marcas ni librerías) que gira con el
+  cursor o el dedo y se balancea solo, con fichas que se desplazan por profundidad; contadores del
+  catálogo (piezas, tipos, sockets) que suben al cargar (`catalogSummary`).
+- **/marcas**: franja en movimiento con las marcas de las piezas (logo si se subió en Marcas).
+  **/empieza-por-una-pieza**: una tarjeta por tipo con cuántas opciones hay; abre el configurador
+  en esa pieza (`?tipo=`). **/pcs-armadas**: tabla al estilo «ready solutions» con chips de piezas
+  y precio de hoy. **Estadísticas** en tarjetas con números grandes. Brillo que sigue al cursor
+  (`PointerGlow`, un solo oyente).
+- Todo el movimiento se detiene con «reducir movimiento». `scroll-padding` en la página para que lo
+  enfocado no quede bajo la cabecera fija ni bajo la barra del resumen en celular.
+- Pendiente (partes 2–4): PC de la semana con cuenta regresiva (panel), opiniones de compradores
+  verificados con aprobación, suscripción a novedades con autorización de datos.
