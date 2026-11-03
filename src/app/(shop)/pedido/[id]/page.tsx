@@ -3,10 +3,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { OrderReviewForm } from "@/components/support/order-review";
 import { PaymentInstructions } from "@/components/support/payment-instructions";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getOrderByToken, ORDER_STATUS_LABELS } from "@/features/orders/queries";
+import { getOrderReview } from "@/features/reviews/queries";
+import { suggestedName } from "@/features/reviews/types";
 import { getStoreSettings } from "@/features/store-settings/queries";
 import { whatsappLink } from "@/features/store-settings/types";
 import { formatCOP } from "@/lib/format";
@@ -34,6 +37,9 @@ async function OrderContent({ params, searchParams }: PageProps<"/pedido/[id]">)
   if (!order) notFound();
 
   const isNew = order.status === "pending";
+  // Solo quien recibió su pedido puede opinar.
+  const review =
+    order.status === "delivered" && token ? await getOrderReview(order.id, token) : null;
 
   return (
     <div className="grid gap-8">
@@ -64,6 +70,16 @@ async function OrderContent({ params, searchParams }: PageProps<"/pedido/[id]">)
       </div>
 
       <PaymentInstructions order={order} settings={settings} token={token ?? ""} />
+
+      {order.status === "delivered" && token && (
+        <OrderReviewForm
+          orderId={order.id}
+          token={token}
+          initial={review}
+          suggestedName={suggestedName(order.customerName)}
+          city={order.city}
+        />
+      )}
 
       <div className="grid items-start gap-6 lg:grid-cols-[1fr_22rem]">
         <section aria-labelledby="productos" className="rounded-xl border bg-card p-5 sm:p-6">

@@ -8,6 +8,7 @@ export const ALERT_KINDS = [
   "stock_low",
   "stock_out",
   "payment_receipt",
+  "review_new",
 ] as const;
 export type AlertKind = (typeof ALERT_KINDS)[number];
 
@@ -71,6 +72,7 @@ export const ALERT_META: Record<LiveAlert["kind"], { app: string; tone: AlertTon
   stock_low: { app: "Inventario", tone: "amber" },
   stock_out: { app: "Inventario", tone: "red" },
   payment_receipt: { app: "Pagos", tone: "teal" },
+  review_new: { app: "Opiniones", tone: "amber" },
   chat: { app: "Chat", tone: "violet" },
   mention: { app: "Menciones", tone: "pink" },
 };

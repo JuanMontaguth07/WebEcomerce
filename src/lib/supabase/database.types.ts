@@ -1319,6 +1319,63 @@ export type Database = {
           },
         ]
       }
+      store_reviews: {
+        Row: {
+          body: string
+          city: string | null
+          created_at: string
+          display_name: string
+          id: string
+          order_id: string
+          rating: number
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          city?: string | null
+          created_at?: string
+          display_name: string
+          id?: string
+          order_id: string
+          rating: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          city?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          order_id?: string
+          rating?: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_reviews_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_settings: {
         Row: {
           announcement_enabled: boolean
@@ -1576,9 +1633,18 @@ export type Database = {
         Args: { p_order_id: string; p_token: string }
         Returns: Json
       }
+      get_order_review: {
+        Args: { p_order_id: string; p_token: string }
+        Returns: Json
+      }
+      get_store_reviews: { Args: { p_limit?: number }; Returns: Json }
       immutable_unaccent: { Args: { value: string }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       mark_admin_read: { Args: { p_what: string }; Returns: undefined }
+      moderate_store_review: {
+        Args: { p_review_id: string; p_status: string }
+        Returns: undefined
+      }
       normalize_place: { Args: { value: string }; Returns: string }
       reorder_product_images: {
         Args: { p_image_ids: string[]; p_product_id: string }
@@ -1627,6 +1693,17 @@ export type Database = {
           p_order_id: string
           p_token: string
           p_width?: number
+        }
+        Returns: Json
+      }
+      submit_store_review: {
+        Args: {
+          p_body: string
+          p_name: string
+          p_order_id: string
+          p_rating: number
+          p_show_city?: boolean
+          p_token: string
         }
         Returns: Json
       }

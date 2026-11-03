@@ -10,6 +10,7 @@ import { ConfiguratorSkeleton } from "@/components/architect/configurator-skelet
 import { FeaturedBuilds } from "@/components/architect/featured-builds";
 import { PcOfTheWeek } from "@/components/architect/pc-of-the-week";
 import { PointerGlow } from "@/components/architect/pointer-glow";
+import { StoreReviews } from "@/components/architect/store-reviews";
 import { Breadcrumbs } from "@/components/shop/breadcrumbs";
 import { siteConfig } from "@/config/site";
 import { spotlightOf } from "@/features/architect/featured";
@@ -18,6 +19,7 @@ import { demoArchitectParts } from "@/features/architect/parts";
 import { getArchitectParts } from "@/features/architect/queries";
 import { catalogSummary } from "@/features/architect/summary";
 import { getBrands } from "@/features/catalog/queries";
+import { getStoreReviews } from "@/features/reviews/queries";
 import { getStoreSettings } from "@/features/store-settings/queries";
 import { baseOpenGraph } from "@/lib/seo";
 
@@ -41,10 +43,11 @@ const breadcrumbs = <Breadcrumbs items={[{ name: "Inicio", href: "/" }, { name: 
 
 /** Portada, marcas y tipos de pieza: salen del catálogo de Arma tu PC. */
 async function Landing() {
-  const [parts, featured, brands] = await Promise.all([
+  const [parts, featured, brands, reviews] = await Promise.all([
     getArchitectParts(),
     getFeaturedBuilds(),
     getBrands(),
+    getStoreReviews(20),
   ]);
   const summary = catalogSummary(parts);
   const spotlight = spotlightOf(featured);
@@ -64,6 +67,7 @@ async function Landing() {
       <PartKindCards summary={summary} />
       {spotlight && <PcOfTheWeek build={spotlight} />}
       <FeaturedBuilds builds={featured} />
+      <StoreReviews summary={reviews} />
     </>
   );
 }

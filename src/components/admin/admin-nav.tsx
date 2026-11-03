@@ -11,6 +11,7 @@ import {
   HistoryIcon,
   LayoutDashboardIcon,
   MegaphoneIcon,
+  MessageSquareQuoteIcon,
   SettingsIcon,
   TagIcon,
   TruckIcon,
@@ -115,6 +116,13 @@ export const ADMIN_NAV: { title: string | null; items: AdminNavItem[] }[] = [
         Icon: MegaphoneIcon,
         tone: "red",
         keywords: "anuncios banners inicio publicidad armamos asesoria",
+      },
+      {
+        href: "/admin/opiniones",
+        label: "Opiniones",
+        Icon: MessageSquareQuoteIcon,
+        tone: "amber",
+        keywords: "reseñas resenas comentarios estrellas clientes testimonios",
       },
       {
         href: "/admin/pcs-armadas",

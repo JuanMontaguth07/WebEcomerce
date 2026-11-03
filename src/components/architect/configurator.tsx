@@ -2,7 +2,7 @@
 
 import { FlaskConicalIcon, ScaleIcon, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { siteConfig } from "@/config/site";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,8 @@ import { EMPTY_SELECTION, type ArchitectPart, type Selection } from "@/features/
 import { whatsappLink } from "@/features/store-settings/types";
 import { useCart } from "@/features/cart/store";
 import { checkBuild, overallStatus } from "@/features/compatibility/engine";
-import { STATUS_LABELS, type PartKind } from "@/features/compatibility/types";
+import { PART_KINDS, STATUS_LABELS, type PartKind } from "@/features/compatibility/types";
+import { mascotStore } from "@/features/mascot/store";
 import { formatCOP } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { buildStats } from "@/features/architect/stats";
@@ -124,6 +125,36 @@ export function Configurator({
 
   const chosenParts = selectedParts(selection, index);
   const count = chosenParts.length;
+
+  // Kovi reacciona al equipo: se preocupa si algo no encaja y celebra cuando está completo.
+  const problem = results.find((result) => result.status === "error") ?? null;
+  const complete = PART_KINDS.every((kind) =>
+    kind === "storage" ? selection.storage.length > 0 : selection.parts[kind],
+  );
+  const mascotKey =
+    count < 2
+      ? null
+      : problem
+        ? `error:${problem.rule}:${problem.message}`
+        : complete && status === "ok"
+          ? `ok:${source}`
+          : null;
+  useEffect(() => {
+    if (!mascotKey) return mascotStore.signal(null);
+    mascotStore.signal(
+      problem
+        ? { key: mascotKey, mood: "worried", title: "Ojo con esto", text: problem.message }
+        : {
+            key: mascotKey,
+            mood: "happy",
+            title: "¡Todo encaja!",
+            text: "Tu equipo está completo. Guárdalo para compartirlo o mira dónde conseguir cada pieza.",
+          },
+    );
+    // problem.message ya va en la clave.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mascotKey]);
+  useEffect(() => () => mascotStore.signal(null), []);
   // Solo vale la pena comparar si alguna pieza tiene ofertas afuera o no se vende aquí.
   const pricing = chosenParts.some((part) => part.offers.length || part.reference)
     ? buildPricing(chosenParts, usdRate)

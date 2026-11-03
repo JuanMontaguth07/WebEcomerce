@@ -36,6 +36,7 @@ import type { PartKind } from "@/features/compatibility/types";
 import { getStoreSettings } from "@/features/store-settings/queries";
 import { whatsappLink } from "@/features/store-settings/types";
 import { formatWarranty } from "@/lib/format";
+import { MascotTopicSetter } from "@/components/mascot/mascot-topic";
 import { storageImageUrl } from "@/lib/images";
 import { absoluteUrl, baseOpenGraph } from "@/lib/seo";
 import { slugParams } from "@/lib/static-params";
@@ -249,6 +250,7 @@ async function ProductContent({ params }: PageProps<"/productos/[slug]">) {
   return (
     <>
       <JsonLd data={productJsonLd(product)} />
+      <MascotTopicSetter topic={architect} />
       <div className="container-page grid gap-6 pt-8">
         <Breadcrumbs
           items={[

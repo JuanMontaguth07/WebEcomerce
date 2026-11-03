@@ -11,6 +11,8 @@ const port = 3100;
 
 export default defineConfig({
   testDir: "e2e",
+  // Visita una vez las páginas principales para que el servidor recién iniciado no haga fallar las primeras pruebas.
+  globalSetup: "./e2e/global-setup.ts",
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
@@ -22,6 +24,9 @@ export default defineConfig({
     locale: "es-CO",
     timezoneId: "America/Bogota",
     trace: "retain-on-failure",
+    // Sin animaciones (la tienda respeta «reducir movimiento»): el navegador de pruebas dibuja sin
+    // tarjeta gráfica y el 3D y los brillos le quitarían tiempo a las pruebas en paralelo.
+    contextOptions: { reducedMotion: "reduce" },
     // En local se usa el Edge instalado; en CI, el Chromium de Playwright.
     channel: process.env.CI ? undefined : (process.env.E2E_CHANNEL ?? "msedge"),
   },

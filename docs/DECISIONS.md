@@ -890,3 +890,40 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
 - Propuesta de **mascota** (3 personajes hechos con piezas de PC, en SVG, que siguen el cursor, dan
   consejos reales al tocarlos y reaccionan al estado de compatibilidad) en un artifact, pendiente
   de que el usuario elija.
+
+## D55 — Kovi, la mascota (2026-11-03)
+
+- El usuario eligió **Kovi** (robot con cabeza de monitor, antena con luz y ventilador en el pecho)
+  de la propuesta. SVG propio (`components/mascot/kovi.tsx`), sin imágenes ni librerías; el neón
+  sale de `--lime`, así que es lima en la tienda y rosa en Arma tu PC (`mascot.css`).
+- Flota abajo a la izquierda (WhatsApp va a la derecha) en todas las páginas de la tienda (no en el
+  panel). Entra un momento después de cargar; sigue el cursor con la mirada y parpadea; **saluda una
+  vez por visita** (sessionStorage) con el primer consejo de la página, salvo en el pago y el
+  pedido. Al tocarlo da un consejo; «Otro consejo» sigue la lista; «Esconder a Kovi» lo deja
+  asomado en el borde (localStorage) y vuelve con un toque. Con «reducir movimiento» queda quieto.
+- **Consejos** (`features/mascot/tips.ts`): generales y ciertos, por tipo de pieza en la ficha de
+  producto (`MascotTopicSetter` con la pieza de la categoría) y por página en el resto. Si cambian
+  pagos o envíos, revisar estos textos.
+- **Arma tu PC**: el configurador le avisa por `mascotStore.signal` (se preocupa y dice el problema
+  si algo no encaja; celebra cuando el equipo está completo y compatible). Un aviso igual no se
+  repite. En celular sube por encima de la barra del resumen.
+- Va en `<Suspense>` en el layout porque lee la dirección (`usePathname`).
+
+## D56 — Opiniones de compradores verificados (2026-11-03)
+
+- Migración `20261120120000_store_reviews`: tabla `store_reviews` (una por pedido; estrellas 1–5,
+  comentario de 10 a 600 letras, nombre para mostrar, ciudad solo si el cliente quiere) sin acceso
+  directo del público. `submit_store_review` exige el **token del pedido** y que esté
+  **entregado**; mientras está en revisión se puede corregir (sin volver a avisar) y una ya revisada
+  no se cambia. Avisa al panel con una alerta nueva (`review_new`). `get_order_review` la muestra al
+  comprador; `get_store_reviews` entrega solo las **aprobadas**, sin datos del pedido, con promedio
+  y total; `moderate_store_review` (solo admin) publica, deja sin publicar o devuelve a revisión.
+- **Pedido entregado** (`/pedido/[id]`): formulario «¿Qué tal tu compra?» (estrellas, comentario,
+  nombre sugerido «Laura M.», mostrar ciudad) y luego su estado.
+- **Panel** `/admin/opiniones` (menú Tienda): por revisar, publicadas y no publicadas, con enlace al
+  pedido. Nada sale sin aprobación.
+- **Arma tu PC**: sección «/opiniones» con promedio y tarjetas «Compra verificada» (franja que se
+  mueve con 4 o más; fila quieta con menos; nada si no hay aprobadas). Caché `store-reviews`.
+- **e2e**: precalentamiento de las páginas principales (`e2e/global-setup.ts`) y «reducir
+  movimiento» en el navegador de pruebas: dibuja sin tarjeta gráfica y las animaciones nuevas le
+  quitaban tiempo a las pruebas en paralelo (fallaban de vez en cuando las primeras de escritorio).

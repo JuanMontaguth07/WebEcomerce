@@ -1,0 +1,137 @@
+/* =============================================================================
+   Kovi, la mascota (components/mascot). Flota abajo a la izquierda (WhatsApp va
+   a la derecha); en Arma tu PC toma el rosa de la zona y, en celular, sube por
+   encima de la barra del resumen. Con «reducir movimiento» queda quieto.
+   ============================================================================= */
+.kovi-halo {
+  fill: var(--lime);
+  opacity: 0.35;
+  filter: blur(3px);
+}
+.kovi-led {
+  fill: var(--lime);
+}
+.kovi[data-mood="worried"] .kovi-led,
+.kovi[data-mood="worried"] .kovi-halo {
+  fill: var(--warning);
+}
+.kovi-eyes {
+  transition: transform 0.15s ease-out;
+}
+.kovi-eye {
+  transition: height 0.08s;
+}
+.kovi[data-blink] .kovi-eye {
+  height: 2px;
+}
+
+/* En Arma tu PC, el mismo rosa de la página. */
+html:has(.architect-zone) [data-mascot] {
+  --lime: #ff5fa8;
+  --primary: #c0267a;
+  --primary-foreground: #ffffff;
+}
+.dark:has(.architect-zone) [data-mascot] {
+  --primary: #ff5fa8;
+  --primary-foreground: #16070f;
+}
+
+.mascot-dock {
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  left: max(1rem, env(safe-area-inset-left));
+}
+@media (width < 80rem) {
+  body:has([data-architect-bar]) .mascot-dock {
+    bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 4.75rem);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .kovi {
+    animation: kovi-bob 3.2s ease-in-out infinite;
+    transform-origin: 50% 100%;
+  }
+  .kovi[data-hop] {
+    animation: kovi-hop 0.6s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+  .kovi-fan {
+    animation: kovi-spin 1.4s linear infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .kovi[data-mood="happy"] .kovi-fan {
+    animation-duration: 0.7s;
+  }
+  .kovi[data-mood="worried"] .kovi-fan {
+    animation-duration: 3s;
+  }
+  .kovi-wave {
+    animation: kovi-wave 2.6s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: 20% 90%;
+  }
+  .kovi-led {
+    animation: kovi-led 2s ease-in-out infinite;
+  }
+  .mascot-in {
+    animation: kovi-in 0.7s var(--expo-out) both;
+  }
+  .mascot-bubble-in {
+    animation: kovi-bubble 0.35s var(--expo-out) both;
+  }
+}
+
+@keyframes kovi-bob {
+  50% {
+    translate: 0 -5px;
+  }
+}
+@keyframes kovi-hop {
+  30% {
+    translate: 0 -18px;
+    scale: 1.04 0.96;
+  }
+  60% {
+    translate: 0 0;
+    scale: 0.96 1.04;
+  }
+}
+@keyframes kovi-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes kovi-wave {
+  0%,
+  60%,
+  100% {
+    rotate: 0deg;
+  }
+  70% {
+    rotate: -28deg;
+  }
+  80% {
+    rotate: 6deg;
+  }
+  90% {
+    rotate: -20deg;
+  }
+}
+@keyframes kovi-led {
+  50% {
+    opacity: 0.45;
+  }
+}
+@keyframes kovi-in {
+  from {
+    opacity: 0;
+    translate: 0 2rem;
+  }
+}
+@keyframes kovi-bubble {
+  from {
+    opacity: 0;
+    translate: 0 0.5rem;
+    scale: 0.96;
+  }
+}
