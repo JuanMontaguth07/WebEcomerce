@@ -979,3 +979,15 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
   verifica con el token antes de escribir). Los correos de estado no llevan el enlace del pedido
   (la base solo guarda el hash del token): remiten al correo de confirmación. Los vencimientos
   automáticos no envían correo.
+
+## D60 — Kovi con vida (2026-11-04)
+
+- Gestos (`playKovi`, `mascot.css` `.kovi[data-act]`): mirar a los lados, saludar, saltar, girar,
+  ladear la cabeza (`.kovi-head` aparte), estirarse, sacudirse y bailar. Cada 7–14 s hace uno solo
+  (si la pestaña se ve y no duerme); se **inclina hacia el cursor** mientras lo sigue con la mirada.
+- Gestos nuevos de la cara: **dormido** (ojos cerrados, respira, ventilador lento, luz apagada,
+  «Zz») y **emocionado** (ojos ^ ^, boca abierta, ventilador rápido).
+- Reacciones de la Kovi flotante: **agregar al carrito** = baile + corazones; **pasar el mouse** =
+  saluda; **bajar rápido** = se sacude; **30 s sin actividad** = se duerme y despierta estirándose
+  con cualquier movimiento. Ninguna abre burbujas de texto. «Conoce a Kovi» cambia de gesto con
+  cada consejo. Todo se detiene con «reducir movimiento» (las e2e corren así).

@@ -154,3 +154,198 @@ html:has(.architect-zone) [data-mascot] {
     scale: 0.96;
   }
 }
+
+/* -----------------------------------------------------------------------------
+   Kovi con vida: gestos (`data-act`, los pone use-kovi-eyes), sueño y emotes.
+   ----------------------------------------------------------------------------- */
+.kovi {
+  rotate: var(--kovi-lean, 0deg);
+  transition: rotate 0.5s var(--expo-out);
+}
+.kovi-head {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+.kovi-emotes {
+  position: absolute;
+  left: 50%;
+  top: -0.5rem;
+  pointer-events: none;
+}
+.kovi-emote {
+  position: absolute;
+  left: calc(var(--x, 0) * 1px);
+  color: var(--lime);
+  opacity: 0;
+}
+.kovi-z {
+  position: absolute;
+  font: 800 0.95rem/1 var(--font-heading, sans-serif);
+  color: var(--lime);
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .kovi[data-act="jump"] {
+    animation: kovi-hop 0.7s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+  .kovi[data-act="spin"] {
+    animation: kovi-twirl 0.9s var(--expo-out);
+  }
+  .kovi[data-act="stretch"] {
+    animation: kovi-stretch 1.2s ease-in-out;
+  }
+  .kovi[data-act="shake"] {
+    animation: kovi-shake 0.6s ease-in-out;
+  }
+  .kovi[data-act="dance"] {
+    animation: kovi-dance 2s ease-in-out;
+  }
+  .kovi[data-act="look"] .kovi-eyes {
+    animation: kovi-look 1.8s ease-in-out;
+  }
+  .kovi[data-act="tilt"] .kovi-head {
+    animation: kovi-tilt 1.4s ease-in-out;
+  }
+  .kovi:is([data-act="wave"], [data-act="dance"]) .kovi-wave {
+    animation: kovi-wave-big 0.8s ease-in-out 2;
+  }
+  .kovi[data-act="dance"] .kovi-arm-left {
+    animation: kovi-arm 0.5s ease-in-out 4 alternate;
+    transform-box: fill-box;
+    transform-origin: 80% 10%;
+  }
+  /* Dormido: respira despacio, el ventilador casi se detiene y la luz se apaga. */
+  .kovi[data-mood="sleepy"] {
+    animation: kovi-breathe 4s ease-in-out infinite;
+  }
+  .kovi[data-mood="sleepy"] .kovi-fan {
+    animation-duration: 6s;
+  }
+  .kovi[data-mood="sleepy"] .kovi-led {
+    animation: none;
+    opacity: 0.3;
+  }
+  .kovi[data-mood="excited"] .kovi-fan {
+    animation-duration: 0.35s;
+  }
+  .kovi-emote {
+    animation: kovi-float 1.6s var(--expo-out) var(--delay, 0s) forwards;
+  }
+  .kovi-z {
+    animation: kovi-z 2.4s ease-in-out var(--delay, 0s) infinite;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kovi-emote,
+  .kovi-z {
+    opacity: 1;
+  }
+}
+
+@keyframes kovi-twirl {
+  30% {
+    translate: 0 -14px;
+    scale: 0.95 1.05;
+  }
+  100% {
+    rotate: y 360deg;
+  }
+}
+@keyframes kovi-stretch {
+  30% {
+    scale: 0.94 1.12;
+  }
+  55% {
+    scale: 1.06 0.94;
+  }
+}
+@keyframes kovi-shake {
+  20%,
+  60% {
+    translate: -4px 0;
+  }
+  40%,
+  80% {
+    translate: 4px 0;
+  }
+}
+@keyframes kovi-dance {
+  0%,
+  100% {
+    rotate: 0deg;
+    translate: 0 0;
+  }
+  25% {
+    rotate: -8deg;
+    translate: 0 -6px;
+  }
+  50% {
+    rotate: 8deg;
+    translate: 0 0;
+  }
+  75% {
+    rotate: -6deg;
+    translate: 0 -6px;
+  }
+}
+@keyframes kovi-look {
+  25% {
+    transform: translate(-6px, 0);
+  }
+  65% {
+    transform: translate(6px, -1px);
+  }
+}
+@keyframes kovi-tilt {
+  30% {
+    rotate: -12deg;
+  }
+  70% {
+    rotate: 9deg;
+  }
+}
+@keyframes kovi-wave-big {
+  50% {
+    rotate: -40deg;
+  }
+}
+@keyframes kovi-arm {
+  to {
+    rotate: 30deg;
+  }
+}
+@keyframes kovi-breathe {
+  50% {
+    scale: 1.02 0.98;
+  }
+}
+@keyframes kovi-float {
+  0% {
+    opacity: 0;
+    translate: 0 0.5rem;
+    scale: 0.6;
+  }
+  20% {
+    opacity: 1;
+    scale: 1.1;
+  }
+  100% {
+    opacity: 0;
+    translate: calc(var(--x, 0) * 0.5px) -3.5rem;
+    scale: 0.9;
+  }
+}
+@keyframes kovi-z {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: 1.2rem -2.4rem;
+  }
+}

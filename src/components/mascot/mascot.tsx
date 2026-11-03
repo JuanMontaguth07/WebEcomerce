@@ -1,13 +1,14 @@
 "use client";
 
-import { XIcon } from "lucide-react";
+import { HeartIcon, XIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCart } from "@/features/cart/store";
 import { mascotStore, type MascotMood } from "@/features/mascot/store";
 import { tipsFor, topicFromPath, type Tip } from "@/features/mascot/tips";
 import { cn } from "@/lib/utils";
 import { Kovi } from "./kovi";
-import { useKoviEyes } from "./use-kovi-eyes";
+import { playKovi, useKoviEyes } from "./use-kovi-eyes";
 
 const HIDDEN_KEY = "kova-kovi";
 const HELLO_KEY = "kova-kovi-hola";
@@ -22,6 +23,10 @@ const INTRO: Tip = {
 const ENTER_MS = 1200;
 const HELLO_MS = 2200;
 const BUBBLE_MS = 8000;
+/** Sin que nadie mueva el mouse, toque o baje por la página, se queda dormido. */
+const SLEEP_MS = 30_000;
+/** Lo que dura la alegría cuando agregan algo al carrito. */
+const CHEER_MS = 2600;
 
 /** `auto`: lo dijo solo (saludo o aviso) y se cierra al rato; si lo pidieron, se queda. */
 type Bubble = Tip & { mood: MascotMood; auto: boolean };
@@ -64,6 +69,24 @@ export function Mascot() {
   const [mood, setMood] = useState<MascotMood>("happy");
   const next = useRef(0);
   const svgBox = useRef<HTMLSpanElement>(null);
+  const [asleep, setAsleep] = useState(false);
+  const asleepRef = useRef(false);
+  // Se alegra (y le salen corazones) cuando agregan algo al carrito.
+  const { units } = useCart();
+  const [cheer, setCheer] = useState(0);
+  const [seenUnits, setSeenUnits] = useState(units);
+  if (seenUnits !== units) {
+    setSeenUnits(units);
+    if (ready && !hidden && units > seenUnits) {
+      setCheer((value) => value + 1);
+      setAsleep(false);
+    }
+  }
+  const [cheering, setCheering] = useState(0);
+  if (cheering !== cheer && cheer > 0) setCheering(cheer);
+  const [cheerDone, setCheerDone] = useState(0);
+  const celebrating = cheering > cheerDone;
+  const face: MascotMood = asleep ? "sleepy" : celebrating ? "excited" : mood;
 
   const show = (value: Bubble) => {
     setBubble(value);
@@ -84,6 +107,7 @@ export function Mascot() {
     setSeenSignal(signal?.key);
     if (signal) {
       setMood(signal.mood);
+      setAsleep(false);
       if (ready && !hidden) setBubble({ ...signal, auto: true });
     }
   }
@@ -135,8 +159,65 @@ export function Mascot() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, hidden]);
 
-  // Mirada que sigue al cursor y parpadeo.
+  // Mirada que sigue al cursor, se inclina hacia él, parpadea y hace gestos solo.
   useKoviEyes(svgBox, ready && !hidden);
+
+  // Al agregar al carrito: salta y le salen corazones; luego vuelve a la normalidad.
+  useEffect(() => {
+    if (!cheering) return;
+    playKovi(svgBox.current, "dance");
+    const timer = window.setTimeout(() => setCheerDone(cheering), CHEER_MS);
+    return () => window.clearTimeout(timer);
+  }, [cheering]);
+
+  // Se duerme si nadie hace nada un rato; despierta estirándose con cualquier movimiento.
+  useEffect(() => {
+    if (!ready || hidden) return;
+    let timer = 0;
+    const arm = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        asleepRef.current = true;
+        setAsleep(true);
+        setBubble((value) => (value?.auto ? null : value));
+      }, SLEEP_MS);
+    };
+    const wake = () => {
+      if (asleepRef.current) {
+        asleepRef.current = false;
+        setAsleep(false);
+        window.setTimeout(() => playKovi(svgBox.current, "stretch"), 50);
+      }
+      arm();
+    };
+    const events = ["pointermove", "pointerdown", "keydown", "scroll"] as const;
+    for (const name of events) window.addEventListener(name, wake, { passive: true });
+    arm();
+    return () => {
+      window.clearTimeout(timer);
+      for (const name of events) window.removeEventListener(name, wake);
+    };
+  }, [ready, hidden]);
+
+  // Si bajan rápido por la página, se sacude un poco.
+  useEffect(() => {
+    if (!ready || hidden) return;
+    let lastY = window.scrollY;
+    let lastT = performance.now();
+    let cooldown = 0;
+    const onScroll = () => {
+      const now = performance.now();
+      const speed = Math.abs(window.scrollY - lastY) / Math.max(1, now - lastT);
+      lastY = window.scrollY;
+      lastT = now;
+      if (speed > 4 && now > cooldown) {
+        cooldown = now + 2500;
+        playKovi(svgBox.current, "shake");
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [ready, hidden]);
 
   if (!ready) return null;
 
@@ -238,6 +319,9 @@ export function Mascot() {
         }}
         aria-label={bubble ? "Cerrar el consejo de Kovi" : "Kovi, la mascota: toca para un consejo"}
         aria-expanded={Boolean(bubble)}
+        onPointerEnter={(event) => {
+          if (event.pointerType === "mouse" && !asleep) playKovi(svgBox.current, "wave");
+        }}
         className="relative rounded-2xl outline-none focus-visible:ring-3 focus-visible:ring-ring/40"
       >
         {!introduced && (
@@ -247,7 +331,27 @@ export function Mascot() {
           />
         )}
         <span ref={svgBox} className={cn("relative block w-16 sm:w-20")}>
-          <Kovi mood={mood} className="w-full" />
+          <span aria-hidden className="kovi-emotes">
+            {celebrating &&
+              [-16, 0, 16].map((x, index) => (
+                <HeartIcon
+                  key={`${cheering}-${x}`}
+                  style={{ "--x": x, "--delay": `${index * 0.18}s` } as React.CSSProperties}
+                  className="kovi-emote size-4 -translate-x-1/2 fill-current"
+                />
+              ))}
+            {asleep &&
+              ["Z", "z", "z"].map((letter, index) => (
+                <span
+                  key={index}
+                  style={{ "--delay": `${index * 0.8}s` } as React.CSSProperties}
+                  className="kovi-z"
+                >
+                  {letter}
+                </span>
+              ))}
+          </span>
+          <Kovi mood={face} className="w-full" />
         </span>
       </button>
     </div>

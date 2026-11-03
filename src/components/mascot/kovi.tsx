@@ -5,6 +5,8 @@ const MOUTH: Record<MascotMood, string> = {
   happy: "M48 66 Q60 77 72 66",
   worried: "M49 72 Q60 64 71 72",
   thinking: "M51 70 Q57 68 69 70",
+  sleepy: "M55 71 Q60 74 65 71",
+  excited: "M46 64 Q60 82 74 64 Z",
 };
 
 function Eyes({ mood }: { mood: MascotMood }) {
@@ -31,6 +33,30 @@ function Eyes({ mood }: { mood: MascotMood }) {
       </>
     );
   }
+  if (mood === "sleepy") {
+    // Ojos cerrados: dos rayitas.
+    return (
+      <path
+        d="M42 56 Q47.5 59 53 56 M67 56 Q72.5 59 78 56"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+        fill="none"
+      />
+    );
+  }
+  if (mood === "excited") {
+    // Ojos felices: dos arcos ^ ^.
+    return (
+      <path
+        d="M41 58 Q47.5 46 54 58 M66 58 Q72.5 46 79 58"
+        stroke="currentColor"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+        fill="none"
+      />
+    );
+  }
   return (
     <>
       <rect className="kovi-eye" x="42" y="46" width="11" height="16" rx="5.5" />
@@ -42,7 +68,8 @@ function Eyes({ mood }: { mood: MascotMood }) {
 /**
  * Kovi, la mascota de Kova: un robot con cabeza de monitor, antena con luz y
  * un ventilador en el pecho. Dibujado en SVG; el neón sale de --lime (lima en
- * la tienda, rosa en Arma tu PC). Las animaciones están en mascot.css.
+ * la tienda, rosa en Arma tu PC). La cabeza va aparte (`.kovi-head`) para que
+ * la pueda ladear. Animaciones y gestos en mascot.css.
  */
 export function Kovi({ mood = "happy", className }: { mood?: MascotMood; className?: string }) {
   return (
@@ -52,38 +79,42 @@ export function Kovi({ mood = "happy", className }: { mood?: MascotMood; classNa
       aria-hidden
       className={cn("kovi overflow-visible", className)}
     >
-      <line x1="60" y1="20" x2="60" y2="8" stroke="#2c3542" strokeWidth="3" />
-      <circle cx="60" cy="7" r="9" className="kovi-halo" />
-      <circle cx="60" cy="7" r="4.5" className="kovi-led" />
-      <rect
-        x="12"
-        y="20"
-        width="96"
-        height="76"
-        rx="20"
-        fill="#1f262f"
-        stroke="var(--lime)"
-        strokeOpacity="0.55"
-        strokeWidth="2"
-      />
-      <rect x="22" y="30" width="76" height="56" rx="12" fill="#0b0e12" />
-      <g className="kovi-eyes" fill="var(--lime)" color="var(--lime)">
-        <Eyes mood={mood} />
+      <g className="kovi-head">
+        <line x1="60" y1="20" x2="60" y2="8" stroke="#2c3542" strokeWidth="3" />
+        <circle cx="60" cy="7" r="9" className="kovi-halo" />
+        <circle cx="60" cy="7" r="4.5" className="kovi-led" />
+        <rect
+          x="12"
+          y="20"
+          width="96"
+          height="76"
+          rx="20"
+          fill="#1f262f"
+          stroke="var(--lime)"
+          strokeOpacity="0.55"
+          strokeWidth="2"
+        />
+        <rect x="22" y="30" width="76" height="56" rx="12" fill="#0b0e12" />
+        <g className="kovi-eyes" fill="var(--lime)" color="var(--lime)">
+          <Eyes mood={mood} />
+        </g>
+        <path
+          className="kovi-mouth"
+          d={MOUTH[mood]}
+          stroke="var(--lime)"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill={mood === "excited" ? "var(--lime)" : "none"}
+          fillOpacity={mood === "excited" ? 0.35 : undefined}
+        />
+        {(mood === "happy" || mood === "excited") && (
+          <>
+            <circle cx="38" cy="67" r="4" fill="var(--tech)" opacity="0.35" />
+            <circle cx="82" cy="67" r="4" fill="var(--tech)" opacity="0.35" />
+          </>
+        )}
       </g>
-      <path
-        className="kovi-mouth"
-        d={MOUTH[mood]}
-        stroke="var(--lime)"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-        fill="none"
-      />
-      {mood === "happy" && (
-        <>
-          <circle cx="38" cy="67" r="4" fill="var(--tech)" opacity="0.35" />
-          <circle cx="82" cy="67" r="4" fill="var(--tech)" opacity="0.35" />
-        </>
-      )}
       <rect x="52" y="96" width="16" height="8" fill="#1f262f" />
       <rect
         x="32"
@@ -108,13 +139,15 @@ export function Kovi({ mood = "happy", className }: { mood?: MascotMood; classNa
         </g>
         <circle r="2.9" fill="#1f262f" />
       </g>
-      <path
-        d="M32 112 Q20 116 18 128"
-        stroke="#1f262f"
-        strokeWidth="8"
-        strokeLinecap="round"
-        fill="none"
-      />
+      <g className="kovi-arm-left">
+        <path
+          d="M32 112 Q20 116 18 128"
+          stroke="#1f262f"
+          strokeWidth="8"
+          strokeLinecap="round"
+          fill="none"
+        />
+      </g>
       <g className="kovi-wave">
         <path
           d="M88 112 Q100 104 102 92"

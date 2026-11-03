@@ -7,7 +7,9 @@ import type { MascotMood } from "@/features/mascot/store";
 import { tipsFor } from "@/features/mascot/tips";
 import { PART_KINDS } from "@/features/compatibility/types";
 import { Kovi } from "./kovi";
-import { useKoviEyes } from "./use-kovi-eyes";
+import { playKovi, useKoviEyes, type KoviAct } from "./use-kovi-eyes";
+
+const TIP_ACTS: KoviAct[] = ["jump", "spin", "tilt", "dance", "wave", "stretch"];
 
 /** Un consejo de cada pieza, para que se vea de todo. */
 const SAMPLE = PART_KINDS.flatMap((kind) => tipsFor(kind).slice(0, 1));
@@ -43,13 +45,11 @@ export function MeetKovi() {
 
   function next() {
     setIndex((value) => value + 1);
-    setMood((value) => (value === "happy" ? "thinking" : "happy"));
-    const svg = box.current?.querySelector("svg");
-    if (svg) {
-      svg.removeAttribute("data-hop");
-      void svg.getBoundingClientRect();
-      svg.setAttribute("data-hop", "");
-    }
+    setMood((value) =>
+      value === "happy" ? "excited" : value === "excited" ? "thinking" : "happy",
+    );
+    // Cada consejo con un gesto distinto.
+    playKovi(box.current, TIP_ACTS[index % TIP_ACTS.length] ?? "jump");
   }
 
   return (
@@ -123,6 +123,9 @@ export function MeetKovi() {
             ref={box}
             type="button"
             onClick={next}
+            onPointerEnter={(event) => {
+              if (event.pointerType === "mouse") playKovi(box.current, "wave");
+            }}
             aria-label="Pedirle otro consejo a Kovi"
             className="w-40 rounded-3xl outline-none focus-visible:ring-3 focus-visible:ring-ring/40 md:w-52"
           >

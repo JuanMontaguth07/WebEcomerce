@@ -1,6 +1,6 @@
 import type { MascotTopic, Tip } from "./tips";
 
-export type MascotMood = "happy" | "worried" | "thinking";
+export type MascotMood = "happy" | "worried" | "thinking" | "sleepy" | "excited";
 
 /** Algo que Kovi debe decir solo (p. ej. «algo no encaja» en Arma tu PC). */
 export type MascotSignal = Tip & { mood: MascotMood; key: string };
