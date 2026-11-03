@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/legal/legal-page";
 import { StoreFact } from "@/components/support/store-fact";
@@ -41,6 +42,11 @@ export default function PrivacyPage() {
         <li>Contactar al titular para coordinar pago, envío, garantías y devoluciones.</li>
         <li>Expedir facturas y cumplir obligaciones legales, contables y tributarias.</li>
         <li>Atender peticiones, quejas, reclamos y solicitudes de garantía.</li>
+        <li>
+          Enviar novedades y ofertas por correo solo a quien lo autorice expresamente al
+          suscribirse. Se puede retirar esa autorización en cualquier momento desde{" "}
+          <Link href="/novedades/baja">Darse de baja</Link>.
+        </li>
       </ul>
 
       <h2>Derechos del titular</h2>

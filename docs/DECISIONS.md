@@ -927,3 +927,21 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
 - **e2e**: precalentamiento de las páginas principales (`e2e/global-setup.ts`) y «reducir
   movimiento» en el navegador de pruebas: dibuja sin tarjeta gráfica y las animaciones nuevas le
   quitaban tiempo a las pruebas en paralelo (fallaban de vez en cuando las primeras de escritorio).
+
+## D57 — Novedades (suscripción por correo) (2026-11-03)
+
+- Migración `20261121120000_newsletter`: `newsletter_subscribers` (correo en minúsculas y único,
+  estado, de dónde se suscribió, versión y fecha de la autorización), solo legible y borrable por
+  admins. `subscribe_newsletter` exige la **autorización** (Ley 1581) y un correo válido, reactiva
+  a quien se había dado de baja y responde igual aunque el correo ya estuviera (no deja averiguar
+  quién está suscrito); freno de 60 cada 10 minutos. `unsubscribe_newsletter` da de baja con el
+  correo.
+- Formulario `NewsletterSignup` con el texto de autorización (enlaces a la política y a la baja):
+  banda «/novedades» al final de Arma tu PC y versión compacta en el pie de página. Página
+  `/novedades/baja` (sin indexar). La política de datos suma la finalidad de enviar novedades a
+  quien lo autorice.
+- Panel `/admin/novedades` (menú Tienda): lista con búsqueda, estado y fecha de la autorización;
+  **Exportar activos** (CSV para cargar en el servicio de envío) y borrar un correo si el titular
+  pide suprimir sus datos. La tienda no envía correos todavía: eso queda para cuando se conecte un
+  servicio de envío (cada correo debe llevar cómo darse de baja).
+- Cierra el rediseño de Arma tu PC (D53–D57).

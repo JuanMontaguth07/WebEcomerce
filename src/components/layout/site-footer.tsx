@@ -4,6 +4,7 @@ import { siteConfig } from "@/config/site";
 import { getCategories } from "@/features/catalog/queries";
 import { getStoreSettings } from "@/features/store-settings/queries";
 import { formatNit } from "@/features/store-settings/types";
+import { NewsletterSignup } from "@/components/support/newsletter-signup";
 import { Logo } from "./logo";
 
 async function CopyrightYear() {
@@ -33,6 +34,13 @@ export async function SiteFooter() {
         <div className="grid max-w-sm content-start gap-4">
           <Logo />
           <p className="text-sm text-muted-foreground">{siteConfig.shortDescription}</p>
+          <div className="grid gap-2 pt-2">
+            <h2 className="text-eyebrow font-mono text-muted-foreground">Novedades</h2>
+            <p className="text-sm text-muted-foreground">
+              Nuevas piezas, PCs armadas y ofertas en tu correo.
+            </p>
+            <NewsletterSignup source="pie" variant="compact" />
+          </div>
         </div>
 
         {categories.length > 0 && (

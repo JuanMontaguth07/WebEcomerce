@@ -10,6 +10,7 @@ import {
   GemIcon,
   HistoryIcon,
   LayoutDashboardIcon,
+  MailIcon,
   MegaphoneIcon,
   MessageSquareQuoteIcon,
   SettingsIcon,
@@ -116,6 +117,13 @@ export const ADMIN_NAV: { title: string | null; items: AdminNavItem[] }[] = [
         Icon: MegaphoneIcon,
         tone: "red",
         keywords: "anuncios banners inicio publicidad armamos asesoria",
+      },
+      {
+        href: "/admin/novedades",
+        label: "Novedades",
+        Icon: MailIcon,
+        tone: "sky",
+        keywords: "newsletter correos suscritos suscripciones boletin email",
       },
       {
         href: "/admin/opiniones",

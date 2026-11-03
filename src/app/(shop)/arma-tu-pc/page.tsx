@@ -8,6 +8,7 @@ import {
 import { ConfiguratorEntry } from "@/components/architect/configurator-entry";
 import { ConfiguratorSkeleton } from "@/components/architect/configurator-skeleton";
 import { FeaturedBuilds } from "@/components/architect/featured-builds";
+import { NewsletterBand } from "@/components/architect/newsletter-band";
 import { PcOfTheWeek } from "@/components/architect/pc-of-the-week";
 import { PointerGlow } from "@/components/architect/pointer-glow";
 import { StoreReviews } from "@/components/architect/store-reviews";
@@ -107,6 +108,7 @@ export default function ArchitectPage() {
           <ConfiguratorWithParts />
         </Suspense>
       </section>
+      <NewsletterBand />
     </main>
   );
 }

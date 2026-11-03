@@ -583,6 +583,42 @@ export type Database = {
           },
         ]
       }
+      newsletter_subscribers: {
+        Row: {
+          consent_version: string
+          consented_at: string
+          created_at: string
+          email: string
+          id: string
+          source: string
+          status: string
+          unsubscribed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          consent_version: string
+          consented_at?: string
+          created_at?: string
+          email: string
+          id?: string
+          source?: string
+          status?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          consent_version?: string
+          consented_at?: string
+          created_at?: string
+          email?: string
+          id?: string
+          source?: string
+          status?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -1707,7 +1743,17 @@ export type Database = {
         }
         Returns: Json
       }
+      subscribe_newsletter: {
+        Args: {
+          p_consent: boolean
+          p_consent_version?: string
+          p_email: string
+          p_source?: string
+        }
+        Returns: undefined
+      }
       touch_admin_seen: { Args: never; Returns: undefined }
+      unsubscribe_newsletter: { Args: { p_email: string }; Returns: undefined }
       update_order_status: {
         Args: {
           p_note?: string
