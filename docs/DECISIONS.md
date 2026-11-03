@@ -959,3 +959,23 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
   luces muy difuminadas que se mueven despacio, una con el acento del admin y dos con el **color del
   módulo** donde estás (cambian al navegar). Sin desenfoque por tarjeta (no se notaría y crearía
   problemas con lo que va fijo dentro). Quieto con «reducir movimiento».
+
+## D59 — Correos automáticos con Resend (2026-11-04)
+
+- El usuario eligió: pedido recibido, cambios de estado y aviso a los admins (sin el correo de
+  «opinar»); va a comprar un dominio. Los correos quedan **programados y apagados** hasta que haya
+  dominio verificado en Resend y las variables `RESEND_API_KEY`, `EMAIL_FROM` y
+  `ADMIN_NOTIFY_EMAILS` en Vercel (pasos en `docs/DESPLIEGUE.md` §5).
+- `src/lib/email.ts`: envío por la API de Resend con `fetch` (sin dependencia nueva); sin
+  configuración no hace nada; un error se registra y nunca hace fallar el pedido o la acción.
+- `features/notifications/templates.ts` (puras, probadas): HTML con estilos en línea + texto plano,
+  todo lo del cliente escapado. Pedido recibido (resumen, envío, cómo pagar por Nequi si está
+  configurado, botón con el enlace privado), confirmado / despachado / cancelado (con la nota del
+  admin), comprobante rechazado (motivo) y avisos a admins (pedido nuevo, comprobante subido, con
+  enlace al panel).
+- Disparadores con `after()` (no demoran la respuesta): `placeOrder`, `changeOrderStatus`
+  (confirmed, shipped, cancelled), `reviewPaymentReceipt` (aprobar un pendiente = confirmado;
+  rechazar = motivo) y la subida del comprobante (el navegador avisa a `receiptUploaded`, que lo
+  verifica con el token antes de escribir). Los correos de estado no llevan el enlace del pedido
+  (la base solo guarda el hash del token): remiten al correo de confirmación. Los vencimientos
+  automáticos no envían correo.

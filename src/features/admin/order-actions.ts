@@ -1,8 +1,15 @@
 "use server";
 
+import { after } from "next/server";
 import { z } from "zod";
 import { revalidateCatalog } from "@/features/catalog/revalidate";
 import { adminAction } from "@/lib/admin-action";
+import {
+  isNotifiedStatus,
+  notifyOrderStatus,
+  notifyReceiptRejected,
+  orderForEmail,
+} from "@/features/notifications/notify";
 import { AppError } from "@/lib/errors";
 
 const changeStatusSchema = z.object({
@@ -19,6 +26,13 @@ export const changeOrderStatus = adminAction(changeStatusSchema, async (input, {
     p_note: input.note || undefined,
   });
   if (error) throw error;
+
+  // Correo al cliente cuando se confirma, se despacha o se cancela.
+  if (isNotifiedStatus(input.status)) {
+    const order = await orderForEmail(supabase, input.orderId);
+    const status = input.status;
+    if (order) after(() => notifyOrderStatus(order, status, input.note));
+  }
 
   if (input.status === "cancelled") {
     // El stock volvió: la tienda debe mostrarlo de inmediato.
@@ -74,6 +88,12 @@ export const reviewPaymentReceipt = adminAction(
     note: z.string().trim().max(300).optional(),
   }),
   async ({ receiptId, approve, note }, { supabase }) => {
+    // Para el correo: de qué pedido es y si estaba pendiente (aprobar lo confirma).
+    const { data: receipt } = await supabase
+      .from("payment_receipts")
+      .select("order_id, order:orders(status)")
+      .eq("id", receiptId)
+      .maybeSingle();
     const { error } = await supabase.rpc("review_payment_receipt", {
       p_receipt_id: receiptId,
       p_approve: approve,
@@ -83,6 +103,13 @@ export const reviewPaymentReceipt = adminAction(
       const message = RECEIPT_ERRORS[error.message];
       if (message) throw new AppError("VALIDATION", { message });
       throw error;
+    }
+    if (receipt) {
+      const order = await orderForEmail(supabase, receipt.order_id);
+      if (order && approve && receipt.order?.status === "pending") {
+        after(() => notifyOrderStatus(order, "confirmed"));
+      }
+      if (order && !approve && note) after(() => notifyReceiptRejected(order, note));
     }
     return { approved: approve };
   },

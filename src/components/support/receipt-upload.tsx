@@ -4,6 +4,7 @@ import { CheckCircle2Icon, ImageUpIcon, Loader2Icon, XCircleIcon } from "lucide-
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { receiptUploaded } from "@/features/notifications/actions";
 import type { PublicOrder } from "@/features/orders/queries";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -138,6 +139,8 @@ export function ReceiptUpload({
         p_note: note.trim() || undefined,
       });
       if (rpcError) throw new Error(rpcError.message);
+      // Aviso por correo a los admins (si está configurado); no se espera.
+      void receiptUploaded({ orderId, token }).catch(() => undefined);
       choose(null);
       setNote("");
       setAnother(false);

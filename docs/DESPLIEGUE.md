@@ -73,7 +73,33 @@ Son pruebas de solo lectura: no crean pedidos ni cambian datos.
 - **Dominio**: Vercel → Settings → Domains. Luego actualiza `NEXT_PUBLIC_SITE_URL` y
   `[remotes.produccion.auth]` (`site_url` y `additional_redirect_urls`) y vuelve a hacer
   `config push`.
-- **Correo (SMTP)**: el SMTP incluido en Supabase solo envía a miembros del equipo. Configura
-  uno propio (Resend, Brevo…) con el dominio en Supabase → Authentication → Emails → SMTP.
+- **Correos de la tienda**: ver la sección 5.
+- **Correo de la cuenta (SMTP)**: el SMTP incluido en Supabase solo envía a miembros del equipo.
+  Con el dominio verificado en Resend (sección 5), en Supabase → Authentication → Emails → SMTP
+  usa `smtp.resend.com`, puerto 465, usuario `resend` y como contraseña una clave de Resend.
 - **Pagos**: integración con Wompi o Mercado Pago (ver `docs/ARCHITECTURE.md` → Pagos).
 - **Datos del negocio** en `src/config/site.ts` y textos legales revisados por un abogado.
+
+## 5. Correos de la tienda (Resend)
+
+La tienda ya trae los correos programados (`src/features/notifications`): **pedido recibido**
+al cliente (con su enlace y cómo pagar por Nequi), **confirmado / despachado / cancelado**,
+**comprobante rechazado** con el motivo, y a los administradores **pedido nuevo** y
+**comprobante subido**. Están apagados hasta completar estos pasos:
+
+1. **Dominio propio** (p. ej. `kovastudio.co`): cómpralo en Vercel → Domains (o en otro registrador
+   y apunta sus DNS a Vercel). Conéctalo al proyecto y actualiza `NEXT_PUBLIC_SITE_URL` (los
+   enlaces de los correos salen de ahí) y las URL de Supabase Auth de la sección 4.
+2. **Resend** (resend.com): crea la cuenta → Domains → Add domain con tu dominio. Te muestra
+   registros DNS (MX, TXT de SPF y DKIM): agrégalos en Vercel → Domains → DNS Records y espera a
+   que Resend lo marque como verificado.
+3. **Clave**: Resend → API Keys → Create (permiso «Sending access»).
+4. **Vercel → Settings → Environment Variables** (Production), sin `NEXT_PUBLIC_`:
+   - `RESEND_API_KEY` = la clave (`re_…`)
+   - `EMAIL_FROM` = `Kova Studio <pedidos@kovastudio.co>` (cualquier dirección de tu dominio)
+   - `ADMIN_NOTIFY_EMAILS` = los correos de los admins separados por coma
+5. **Redeploy** y haz un pedido de prueba: debe llegar la confirmación al correo del pedido y el
+   aviso a los admins. Las respuestas del cliente van al correo de soporte de Configuración.
+
+Si Resend falla, el pedido igual se crea: el error queda en los registros de Vercel (`sendEmail`).
+Los pedidos que vencen solos (48 h) no envían correo.

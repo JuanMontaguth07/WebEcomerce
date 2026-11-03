@@ -1,8 +1,10 @@
 "use server";
 
+import { after } from "next/server";
 import { z } from "zod";
 import { revalidateCatalog } from "@/features/catalog/revalidate";
 import { quoteItems } from "@/features/cart/queries";
+import { notifyOrderPlaced } from "@/features/notifications/notify";
 import { AppError, failure, logError, success, type ActionResult } from "@/lib/errors";
 import { createPublicClient } from "@/lib/supabase/public";
 import { checkoutSchema } from "./schemas";
@@ -58,6 +60,9 @@ export async function placeOrder(input: unknown): Promise<PlaceOrderResult> {
     revalidateCatalog({
       productSlugs: quote.lines.flatMap((line) => (line.product ? [line.product.slug] : [])),
     });
+
+    // Correo de confirmación al cliente y aviso a los admins, sin hacer esperar la respuesta.
+    after(() => notifyOrderPlaced(order.order_id, order.access_token));
 
     return success({
       orderId: order.order_id,
