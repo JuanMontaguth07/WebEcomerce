@@ -8,9 +8,11 @@ import {
 import { ConfiguratorEntry } from "@/components/architect/configurator-entry";
 import { ConfiguratorSkeleton } from "@/components/architect/configurator-skeleton";
 import { FeaturedBuilds } from "@/components/architect/featured-builds";
+import { PcOfTheWeek } from "@/components/architect/pc-of-the-week";
 import { PointerGlow } from "@/components/architect/pointer-glow";
 import { Breadcrumbs } from "@/components/shop/breadcrumbs";
 import { siteConfig } from "@/config/site";
+import { spotlightOf } from "@/features/architect/featured";
 import { getFeaturedBuilds } from "@/features/architect/featured-queries";
 import { demoArchitectParts } from "@/features/architect/parts";
 import { getArchitectParts } from "@/features/architect/queries";
@@ -45,6 +47,7 @@ async function Landing() {
     getBrands(),
   ]);
   const summary = catalogSummary(parts);
+  const spotlight = spotlightOf(featured);
   const logos = new Map(brands.map((brand) => [brand.name.toLowerCase(), brand.logoPath]));
   return (
     <>
@@ -59,6 +62,7 @@ async function Landing() {
           .map((brand) => ({ ...brand, logoPath: logos.get(brand.name.toLowerCase()) ?? null }))}
       />
       <PartKindCards summary={summary} />
+      {spotlight && <PcOfTheWeek build={spotlight} />}
       <FeaturedBuilds builds={featured} />
     </>
   );

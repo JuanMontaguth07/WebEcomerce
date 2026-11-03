@@ -875,3 +875,18 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
   enfocado no quede bajo la cabecera fija ni bajo la barra del resumen en celular.
 - Pendiente (partes 2–4): PC de la semana con cuenta regresiva (panel), opiniones de compradores
   verificados con aprobación, suscripción a novedades con autorización de datos.
+
+## D54 — PC de la semana (2026-11-03)
+
+- Una PC armada se marca como **PC de la semana** desde /admin/pcs-armadas (estrella): fecha de fin
+  (máximo 60 días) y texto corto opcional (si no, su descripción). Migración
+  `20261119120000_pc_of_the_week`: `featured_builds.spotlight_until` y `spotlight_note`, con índice
+  único parcial para que haya **una sola a la vez** (la acción quita la anterior y la deja visible).
+- `get_featured_builds` entrega la fecha y el texto solo mientras no ha vencido: al pasar la fecha
+  deja de mostrarse sin tocar nada. En Arma tu PC sale como banda en degradado con gráfica,
+  procesador, total de hoy, «Ver la PC» y **cuenta regresiva** en vivo (`countdown`, puro; reloj
+  con `useSyncExternalStore`, en el servidor se pinta «--»). Al llegar a cero la banda se oculta
+  sola en el navegador.
+- Propuesta de **mascota** (3 personajes hechos con piezas de PC, en SVG, que siguen el cursor, dan
+  consejos reales al tocarlos y reaccionan al estado de compatibilidad) en un artifact, pendiente
+  de que el usuario elija.

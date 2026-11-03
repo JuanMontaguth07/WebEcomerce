@@ -13,8 +13,14 @@ export async function getFeaturedBuilds(): Promise<FeaturedBuild[]> {
 
   const { data, error } = await createPublicClient({ retry: true }).rpc("get_featured_builds");
   if (error) throw new Error(`[architect] PCs armadas: ${error.message.slice(0, 300)}`);
-  return ((data as FeaturedBuild[] | null) ?? []).map((build) => ({
+  type Row = Omit<FeaturedBuild, "spotlightUntil" | "spotlightNote"> & {
+    spotlight_until?: string | null;
+    spotlight_note?: string | null;
+  };
+  return ((data as Row[] | null) ?? []).map(({ spotlight_until, spotlight_note, ...build }) => ({
     ...build,
+    spotlightUntil: spotlight_until ?? null,
+    spotlightNote: spotlight_note ?? null,
     total: Number(build.total),
     unpriced: Number(build.unpriced ?? 0),
     components: build.components.map((part) => ({
@@ -33,6 +39,9 @@ export type AdminFeaturedBuild = {
   code: string;
   name: string;
   total: number;
+  /** Hasta cuándo es la «PC de la semana» (null: no lo es). */
+  spotlightUntil: string | null;
+  spotlightNote: string | null;
 };
 
 /** Las recomendadas, también las ocultas, para el panel. */
@@ -40,7 +49,9 @@ export async function listAdminFeaturedBuilds(): Promise<AdminFeaturedBuild[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("featured_builds")
-    .select("id, title, tag, description, is_active, build:builds(share_code, name, total)")
+    .select(
+      "id, title, tag, description, is_active, spotlight_until, spotlight_note, build:builds(share_code, name, total)",
+    )
     .order("position")
     .order("created_at");
   if (error) throw error;
@@ -56,6 +67,8 @@ export async function listAdminFeaturedBuilds(): Promise<AdminFeaturedBuild[]> {
             code: row.build.share_code,
             name: row.build.name,
             total: Number(row.build.total),
+            spotlightUntil: row.spotlight_until,
+            spotlightNote: row.spotlight_note,
           },
         ]
       : [],

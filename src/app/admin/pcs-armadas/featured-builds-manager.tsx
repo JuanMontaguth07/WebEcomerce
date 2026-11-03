@@ -9,6 +9,8 @@ import {
   PencilIcon,
   PlusIcon,
   SparklesIcon,
+  StarIcon,
+  StarOffIcon,
   Trash2Icon,
 } from "lucide-react";
 import Link from "next/link";
@@ -21,8 +23,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   addFeaturedBuild,
+  clearSpotlightBuild,
   deleteFeaturedBuild,
   reorderFeaturedBuilds,
+  setSpotlightBuild,
   updateFeaturedBuild,
 } from "@/features/architect/featured-actions";
 import type { AdminFeaturedBuild, RecentBuild } from "@/features/architect/featured-queries";
@@ -44,6 +48,9 @@ export function FeaturedBuildsManager({
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [errors, setErrors] = useState<Errors>({});
   const [editing, setEditing] = useState<string | null>(null);
+  const [spotlighting, setSpotlighting] = useState<string | null>(null);
+  // Hora al abrir la página, para saber si la PC de la semana ya terminó.
+  const [openedAt] = useState(() => Date.now());
   const [pending, startTransition] = useTransition();
   const id = useId();
 
@@ -114,6 +121,31 @@ export function FeaturedBuildsManager({
     });
   }
 
+  function spotlight(build: AdminFeaturedBuild, until: string, note: string) {
+    startTransition(async () => {
+      const result = await setSpotlightBuild({ id: build.id, until, note });
+      if (!result.ok) {
+        toast.error(result.error.fieldErrors?.until?.[0] ?? result.error.message);
+        return;
+      }
+      setSpotlighting(null);
+      toast.success(`«${build.title}» es la PC de la semana`);
+      router.refresh();
+    });
+  }
+
+  function unspotlight(build: AdminFeaturedBuild) {
+    startTransition(async () => {
+      const result = await clearSpotlightBuild({ id: build.id });
+      if (!result.ok) {
+        toast.error(result.error.message);
+        return;
+      }
+      toast.success("Ya no es la PC de la semana");
+      router.refresh();
+    });
+  }
+
   function remove(build: AdminFeaturedBuild) {
     startTransition(async () => {
       const result = await deleteFeaturedBuild({ id: build.id });
@@ -137,7 +169,14 @@ export function FeaturedBuildsManager({
             <ul className="grid gap-3">
               {order.map((build, index) => (
                 <li key={build.id} className="grid gap-3 rounded-2xl border bg-card p-4">
-                  {editing === build.id ? (
+                  {spotlighting === build.id ? (
+                    <SpotlightForm
+                      build={build}
+                      pending={pending}
+                      onCancel={() => setSpotlighting(null)}
+                      onSave={(until, note) => spotlight(build, until, note)}
+                    />
+                  ) : editing === build.id ? (
                     <EditForm
                       build={build}
                       pending={pending}
@@ -151,6 +190,13 @@ export function FeaturedBuildsManager({
                           <span className="font-semibold">{build.title}</span>
                           {build.tag && <Badge variant="soft">{build.tag}</Badge>}
                           {!build.isActive && <Badge variant="outline">Oculta</Badge>}
+                          {build.spotlightUntil && (
+                            <Badge className="bg-primary text-primary-foreground">
+                              {Date.parse(build.spotlightUntil) > openedAt
+                                ? `PC de la semana · hasta ${dateTime.format(new Date(build.spotlightUntil))}`
+                                : "PC de la semana · terminó"}
+                            </Badge>
+                          )}
                         </p>
                         {build.description && (
                           <p className="text-sm text-muted-foreground">{build.description}</p>
@@ -200,6 +246,29 @@ export function FeaturedBuildsManager({
                           onClick={() => save(build, { isActive: !build.isActive })}
                         >
                           {build.isActive ? <EyeOffIcon aria-hidden /> : <EyeIcon aria-hidden />}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={
+                            build.spotlightUntil
+                              ? `Quitar ${build.title} como PC de la semana`
+                              : `Hacer ${build.title} la PC de la semana`
+                          }
+                          title={
+                            build.spotlightUntil ? "Quitar de PC de la semana" : "PC de la semana"
+                          }
+                          disabled={pending}
+                          onClick={() =>
+                            build.spotlightUntil ? unspotlight(build) : setSpotlighting(build.id)
+                          }
+                        >
+                          {build.spotlightUntil ? (
+                            <StarOffIcon aria-hidden />
+                          ) : (
+                            <StarIcon aria-hidden />
+                          )}
                         </Button>
                         <Button
                           type="button"
@@ -393,6 +462,83 @@ function EditForm({
       <div className="flex gap-2">
         <Button type="submit" size="sm" isLoading={pending}>
           Guardar
+        </Button>
+        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+          Cancelar
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+/** «AAAA-MM-DDTHH:mm» en la hora del navegador, para un campo datetime-local. */
+function localInput(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function SpotlightForm({
+  build,
+  pending,
+  onCancel,
+  onSave,
+}: {
+  build: AdminFeaturedBuild;
+  pending: boolean;
+  onCancel: () => void;
+  onSave: (until: string, note: string) => void;
+}) {
+  // Por defecto, una semana: hasta el mismo día de la próxima semana a las 11:59 p. m.
+  const [until, setUntil] = useState(() => {
+    const date = new Date(Date.now() + 7 * 86_400_000);
+    date.setHours(23, 59, 0, 0);
+    return localInput(date);
+  });
+  const [note, setNote] = useState(build.spotlightNote ?? "");
+  const [min] = useState(() => localInput(new Date(Date.now() + 60_000)));
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        const date = new Date(until);
+        if (Number.isNaN(date.getTime())) return;
+        onSave(date.toISOString(), note);
+      }}
+      className="grid gap-3"
+    >
+      <p className="text-sm">
+        <span className="font-semibold">«{build.title}» como PC de la semana.</span>{" "}
+        <span className="text-muted-foreground">
+          Sale en una banda con cuenta regresiva en Arma tu PC y desaparece sola al terminar. Si
+          había otra, la reemplaza.
+        </span>
+      </p>
+      <div className="grid gap-3 sm:grid-cols-[14rem_minmax(0,1fr)]">
+        <TextField
+          name="until"
+          label="Hasta"
+          type="datetime-local"
+          errors={{}}
+          min={min}
+          value={until}
+          onChange={(event) => setUntil(event.target.value)}
+        />
+        <TextField
+          name="note"
+          label="Texto de la banda"
+          optional
+          errors={{}}
+          maxLength={140}
+          placeholder="Con envío gratis a todo el país"
+          hint="Si lo dejas vacío, se usa la descripción."
+          value={note}
+          onChange={(event) => setNote(event.target.value)}
+        />
+      </div>
+      <div className="flex gap-2">
+        <Button type="submit" size="sm" isLoading={pending}>
+          <StarIcon aria-hidden />
+          Hacer PC de la semana
         </Button>
         <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
           Cancelar

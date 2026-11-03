@@ -104,3 +104,52 @@ describe("PCs ya armadas", () => {
     expect(rows.affectedRows ?? 0).toBe(0);
   });
 });
+
+describe("PC de la semana", () => {
+  it("solo una a la vez, y vencida no se muestra", async () => {
+    await asRole(db, "authenticated", ADMIN, async () => {
+      await db.query("update public.featured_builds set is_active = true");
+      // La prueba anterior la sacó de la tienda.
+      await db.query("update public.products set is_active = true where id = $1", [productId]);
+      await db.query(
+        "update public.featured_builds set spotlight_until = now() + interval '2 days', spotlight_note = 'Envío gratis'",
+      );
+    });
+    type Spot = { spotlight_until: string | null; spotlight_note: string | null };
+    let [build] = (await featured()) as unknown as Spot[];
+    expect(build?.spotlight_note).toBe("Envío gratis");
+    expect(build?.spotlight_until).not.toBeNull();
+
+    // Una segunda a la vez no se puede.
+    const otherCode = await asRole(db, "anon", null, () =>
+      one<{ code: string }>(db, "select public.save_build($1::jsonb) as code", [
+        JSON.stringify({
+          name: "Otra",
+          mode: "free",
+          source: "catalog",
+          components: [{ kind: "cpu", product_id: productId }],
+        }),
+      ]),
+    ).then((row) => row.code);
+    await asRole(db, "authenticated", ADMIN, async () => {
+      const other = await one<{ id: string }>(
+        db,
+        "select id from public.builds where share_code = $1",
+        [otherCode],
+      );
+      await expect(
+        db.query(
+          "insert into public.featured_builds (build_id, title, spotlight_until) values ($1, 'Otra', now() + interval '1 day')",
+          [other.id],
+        ),
+      ).rejects.toThrow(/featured_builds_one_spotlight/);
+      // Vencida: el público ya no la ve como PC de la semana.
+      await db.query(
+        "update public.featured_builds set spotlight_until = now() - interval '1 minute'",
+      );
+    });
+    [build] = (await featured()) as unknown as Spot[];
+    expect(build?.spotlight_until).toBeNull();
+    expect(build?.spotlight_note).toBeNull();
+  });
+});

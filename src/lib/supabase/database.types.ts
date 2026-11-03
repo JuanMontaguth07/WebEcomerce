@@ -429,6 +429,8 @@ export type Database = {
           id: string
           is_active: boolean
           position: number
+          spotlight_note: string | null
+          spotlight_until: string | null
           tag: string | null
           title: string
           updated_at: string
@@ -440,6 +442,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           position?: number
+          spotlight_note?: string | null
+          spotlight_until?: string | null
           tag?: string | null
           title: string
           updated_at?: string
@@ -451,6 +455,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           position?: number
+          spotlight_note?: string | null
+          spotlight_until?: string | null
           tag?: string | null
           title?: string
           updated_at?: string

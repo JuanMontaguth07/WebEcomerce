@@ -106,3 +106,64 @@ export const reorderFeaturedBuilds = adminAction(
     return { count: ids.length };
   },
 );
+
+/** Como máximo se programa la «PC de la semana» con dos meses de anticipación. */
+const MAX_SPOTLIGHT_DAYS = 60;
+
+/** Marca una PC armada como «PC de la semana» hasta la fecha dada (quita la anterior). */
+export const setSpotlightBuild = adminAction(
+  z.object({
+    id: z.uuid(),
+    until: z.iso.datetime({ offset: true, message: "Elige hasta cuándo." }),
+    note: z
+      .string()
+      .trim()
+      .max(140, "Máximo 140 caracteres.")
+      .transform((value) => value || null)
+      .refine((value) => value === null || value.length >= 3, "El texto es muy corto."),
+  }),
+  async ({ id, until, note }, { supabase }) => {
+    const ends = Date.parse(until);
+    if (ends <= Date.now()) {
+      throw new AppError("VALIDATION", {
+        details: { until: ["Elige una fecha que no haya pasado."] },
+      });
+    }
+    if (ends > Date.now() + MAX_SPOTLIGHT_DAYS * 86_400_000) {
+      throw new AppError("VALIDATION", {
+        details: { until: [`Como máximo ${MAX_SPOTLIGHT_DAYS} días desde hoy.`] },
+      });
+    }
+    // Solo una a la vez: primero se quita la que estaba.
+    const { error: clearError } = await supabase
+      .from("featured_builds")
+      .update({ spotlight_until: null, spotlight_note: null })
+      .not("spotlight_until", "is", null)
+      .neq("id", id);
+    if (clearError) throw clearError;
+    const { error } = await supabase
+      .from("featured_builds")
+      .update({
+        spotlight_until: new Date(ends).toISOString(),
+        spotlight_note: note,
+        is_active: true,
+      })
+      .eq("id", id);
+    if (error) throw error;
+    updateTag(FEATURED_BUILDS_TAG);
+    return { id };
+  },
+);
+
+export const clearSpotlightBuild = adminAction(
+  z.object({ id: z.uuid() }),
+  async ({ id }, { supabase }) => {
+    const { error } = await supabase
+      .from("featured_builds")
+      .update({ spotlight_until: null, spotlight_note: null })
+      .eq("id", id);
+    if (error) throw error;
+    updateTag(FEATURED_BUILDS_TAG);
+    return { id };
+  },
+);
