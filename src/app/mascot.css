@@ -36,6 +36,12 @@ html:has(.architect-zone) [data-mascot] {
   --primary-foreground: #16070f;
 }
 
+/* Anillo que invita a tocarlo hasta que se presenta. */
+.kovi-ring {
+  box-shadow: 0 0 0 2px var(--lime);
+  opacity: 0.6;
+}
+
 .mascot-dock {
   bottom: max(1rem, env(safe-area-inset-bottom));
   left: max(1rem, env(safe-area-inset-left));
@@ -72,6 +78,9 @@ html:has(.architect-zone) [data-mascot] {
   }
   .kovi-led {
     animation: kovi-led 2s ease-in-out infinite;
+  }
+  .kovi-ring {
+    animation: kovi-ring 1.8s var(--expo-out) infinite;
   }
   .mascot-in {
     animation: kovi-in 0.7s var(--expo-out) both;
@@ -120,6 +129,16 @@ html:has(.architect-zone) [data-mascot] {
 @keyframes kovi-led {
   50% {
     opacity: 0.45;
+  }
+}
+@keyframes kovi-ring {
+  from {
+    scale: 0.85;
+    opacity: 0.8;
+  }
+  to {
+    scale: 1.35;
+    opacity: 0;
   }
 }
 @keyframes kovi-in {

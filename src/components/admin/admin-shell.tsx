@@ -10,6 +10,7 @@ import { initials } from "@/features/account/initials";
 import type { TeamMember } from "@/features/account/team";
 import type { AdminLiveData } from "@/features/admin-live/queries";
 import { cn } from "@/lib/utils";
+import { AdminBackdrop } from "./admin-backdrop";
 import { AdminNav } from "./admin-nav";
 import { AdminPresenceProvider, PresenceDot, TeamPresence } from "./admin-presence";
 import { CommandPalette } from "./command-palette";
@@ -44,6 +45,7 @@ export function AdminShell({
           initialCollapsed={sidebarCollapsed}
           data-admin-accent={admin.accent}
           data-admin-font={admin.font}
+          data-admin-glass=""
           className={cn(
             "grid min-h-full flex-1 font-sans",
             plex.variable,
@@ -51,9 +53,10 @@ export function AdminShell({
             hanken.variable,
           )}
         >
+          <AdminBackdrop />
           <aside
             id="admin-sidebar"
-            className="min-w-0 border-t-3 border-b border-t-primary bg-sidebar lg:sticky lg:top-0 lg:h-dvh lg:border-r lg:border-b-0"
+            className="min-w-0 border-t-3 border-b border-t-primary bg-sidebar backdrop-blur-xl backdrop-saturate-150 lg:sticky lg:top-0 lg:h-dvh lg:border-r lg:border-b-0"
           >
             <div className="flex h-full flex-col gap-6 p-4 lg:overflow-x-hidden lg:overflow-y-auto lg:group-data-[collapsed=true]/shell:px-3">
               <div className="flex items-center justify-between gap-2 lg:group-data-[collapsed=true]/shell:justify-center">
@@ -108,7 +111,7 @@ export function AdminShell({
 
           {/* Brillo suave del acento arriba del contenido: identifica el panel sin distraer. */}
           <div className="flex min-w-0 flex-col bg-[radial-gradient(ellipse_80%_40%_at_50%_0%,color-mix(in_oklab,var(--primary)_9%,transparent),transparent)] bg-no-repeat">
-            <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b bg-card/90 px-4 backdrop-blur md:px-6">
+            <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b bg-card/55 px-4 backdrop-blur-xl backdrop-saturate-150 md:px-6">
               <CommandPalette />
               <div className="ml-auto flex items-center gap-3">
                 <TeamPresence />

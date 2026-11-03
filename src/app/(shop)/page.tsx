@@ -1,3 +1,4 @@
+import { MeetKovi } from "@/components/mascot/meet-kovi";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AboutSection } from "@/components/shop/about-section";
@@ -192,6 +193,7 @@ export default function HomePage() {
         <Benefits />
       </div>
       <AboutSection />
+      <MeetKovi />
       <HomeCategories />
       <HomeBrands />
       <Suspense fallback={<ProductGridSkeleton className="container-page" />}>

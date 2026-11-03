@@ -3,6 +3,7 @@
 @import "shadcn/tailwind.css";
 @import "./architect-zone.css";
 @import "./mascot.css";
+@import "./admin-glass.css";
 
 /* El tema oscuro se activa con la clase .dark en <html> (next-themes). */
 @custom-variant dark (&:where(.dark, .dark *));

@@ -7,6 +7,7 @@ export default function NotFound() {
   return (
     <StatusMessage
       code="404"
+      mood="worried"
       title="No encontramos esta página"
       description="Revisa la dirección o vuelve al catálogo."
     />

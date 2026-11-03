@@ -1,0 +1,104 @@
+/* =============================================================================
+   Panel con vidrio y fondo vivo (components/admin/admin-backdrop.tsx).
+   Dentro de `[data-admin-glass]` las superficies (tarjetas, menú, cabecera) son
+   un poco transparentes y dejan ver las luces difuminadas del fondo, que toman
+   el color del módulo. Los contrastes del texto no cambian: el vidrio sigue
+   siendo casi opaco.
+   ============================================================================= */
+[data-admin-glass] {
+  --card: rgb(255 255 255 / 0.74);
+  --sidebar: rgb(255 255 255 / 0.62);
+  --glass-edge: rgb(255 255 255 / 0.7);
+  --blob-opacity: 0.32;
+  isolation: isolate;
+  background: var(--background);
+}
+.dark [data-admin-glass] {
+  --card: rgb(27 34 44 / 0.66);
+  --sidebar: rgb(20 25 32 / 0.58);
+  --glass-edge: rgb(255 255 255 / 0.06);
+  --blob-opacity: 0.3;
+}
+
+/* Filo de luz arriba en las tarjetas, como vidrio. */
+[data-admin-glass] .rounded-2xl.border.bg-card,
+[data-admin-glass] .rounded-xl.border.bg-card {
+  box-shadow:
+    inset 0 1px 0 var(--glass-edge),
+    0 10px 30px -18px rgb(0 0 0 / 0.35);
+}
+
+.admin-backdrop {
+  --module: var(--primary);
+}
+.admin-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: var(--blob-opacity);
+  transition: background-color 1.2s var(--expo-out);
+}
+.admin-blob-a {
+  width: 46vw;
+  height: 46vw;
+  top: -14vw;
+  right: -10vw;
+  background-color: var(--module);
+}
+.admin-blob-b {
+  width: 38vw;
+  height: 38vw;
+  bottom: -16vw;
+  left: 10vw;
+  background-color: var(--primary);
+}
+.admin-blob-c {
+  width: 30vw;
+  height: 30vw;
+  top: 30%;
+  left: 40%;
+  background-color: var(--module);
+  opacity: calc(var(--blob-opacity) * 0.6);
+}
+/* Grano muy fino para que el degradado no se vea en franjas. */
+.admin-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .admin-blob-a {
+    animation: admin-drift-a 26s ease-in-out infinite alternate;
+  }
+  .admin-blob-b {
+    animation: admin-drift-b 32s ease-in-out infinite alternate;
+  }
+  .admin-blob-c {
+    animation: admin-drift-c 38s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes admin-drift-a {
+  to {
+    translate: -12vw 10vw;
+    scale: 1.15;
+  }
+}
+@keyframes admin-drift-b {
+  to {
+    translate: 16vw -8vw;
+    scale: 0.9;
+  }
+}
+@keyframes admin-drift-c {
+  50% {
+    translate: -14vw 6vw;
+    scale: 1.2;
+  }
+  to {
+    translate: 10vw -10vw;
+    scale: 0.85;
+  }
+}

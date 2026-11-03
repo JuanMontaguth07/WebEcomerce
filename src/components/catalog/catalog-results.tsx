@@ -1,4 +1,4 @@
-import { PackageSearchIcon } from "lucide-react";
+import { KoviLive } from "@/components/mascot/kovi-live";
 import type { Route } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,7 @@ function EmptyState({ filters, basePath }: { filters: Filters; basePath: string 
   const nothingYet = !filtered && !filters.q;
   return (
     <div className="grid justify-items-center gap-4 rounded-xl border border-dashed bg-card px-6 py-16 text-center">
-      <PackageSearchIcon className="size-10 text-muted-foreground" aria-hidden />
+      <KoviLive mood="thinking" className="w-24" />
       <div className="grid gap-1">
         <h2 className="text-lg font-semibold">
           {nothingYet ? "Aún no hay productos aquí" : "No encontramos productos"}

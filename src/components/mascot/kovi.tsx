@@ -14,7 +14,7 @@ function Eyes({ mood }: { mood: MascotMood }) {
         <rect className="kovi-eye" x="42" y="50" width="11" height="12" rx="5.5" />
         <rect className="kovi-eye" x="67" y="50" width="11" height="12" rx="5.5" />
         <path
-          d="M40 45 L53 48 M80 45 L67 48"
+          d="M40 47 L53 43 M80 47 L67 43"
           stroke="currentColor"
           strokeWidth="3"
           strokeLinecap="round"

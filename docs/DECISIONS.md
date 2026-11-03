@@ -945,3 +945,17 @@ view()`: sin JavaScript, sin soporte o con movimiento reducido se ven de una.
   pide suprimir sus datos. La tienda no envía correos todavía: eso queda para cuando se conecte un
   servicio de envío (cada correo debe llevar cómo darse de baja).
 - Cierra el rediseño de Arma tu PC (D53–D57).
+
+## D58 — Kovi se presenta y panel con vidrio y fondo vivo (2026-11-04)
+
+- **Kovi más visible**: la primera vez en un navegador se presenta («¡Hola! Soy Kovi…», no se
+  cierra solo) con un anillo que invita a tocarlo hasta el primer toque (localStorage
+  `kova-kovi-conocido`). Sección **«Conoce a Kovi»** en el inicio (qué hace, Kovi en grande que da un
+  consejo de cada pieza al tocarlo, botón a Arma tu PC). Aparece con su gesto en el carrito vacío,
+  la búsqueda sin resultados y las páginas no encontradas (`KoviLive`). Mirada y parpadeo en un hook
+  compartido (`useKoviEyes`). Cejas de «preocupado» corregidas (se leían como enojo).
+- **Panel**: `[data-admin-glass]` (`admin-glass.css`) vuelve las tarjetas y el menú un poco
+  transparentes, con filo de luz; cabecera y menú lateral con desenfoque. `AdminBackdrop`: tres
+  luces muy difuminadas que se mueven despacio, una con el acento del admin y dos con el **color del
+  módulo** donde estás (cambian al navegar). Sin desenfoque por tarjeta (no se notaría y crearía
+  problemas con lo que va fijo dentro). Quieto con «reducir movimiento».

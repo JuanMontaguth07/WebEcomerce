@@ -7,9 +7,17 @@ import { mascotStore, type MascotMood } from "@/features/mascot/store";
 import { tipsFor, topicFromPath, type Tip } from "@/features/mascot/tips";
 import { cn } from "@/lib/utils";
 import { Kovi } from "./kovi";
+import { useKoviEyes } from "./use-kovi-eyes";
 
 const HIDDEN_KEY = "kova-kovi";
 const HELLO_KEY = "kova-kovi-hola";
+/** Ya se presentó en este navegador: desde entonces solo saluda con un consejo. */
+const INTRO_KEY = "kova-kovi-conocido";
+
+const INTRO: Tip = {
+  title: "¡Hola! Soy Kovi",
+  text: "El asistente de Kova. Tócame cuando quieras un consejo; en Arma tu PC te digo al momento si las piezas encajan.",
+};
 /** Aparece un momento después de cargar, para no competir con lo principal. */
 const ENTER_MS = 1200;
 const HELLO_MS = 2200;
@@ -50,6 +58,8 @@ export function Mascot() {
   const topic = pageTopic ?? topicFromPath(pathname);
   const [ready, setReady] = useState(false);
   const [hidden, setHidden] = useState(false);
+  // Hasta que lo tocan por primera vez, un anillo invita a conocerlo.
+  const [introduced, setIntroduced] = useState(true);
   const [bubble, setBubble] = useState<Bubble | null>(null);
   const [mood, setMood] = useState<MascotMood>("happy");
   const next = useRef(0);
@@ -96,6 +106,7 @@ export function Mascot() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setHidden(read(() => localStorage, HIDDEN_KEY) === "min");
+      setIntroduced(read(() => localStorage, INTRO_KEY) === "1");
       setReady(true);
     }, ENTER_MS);
     return () => window.clearTimeout(timer);
@@ -104,9 +115,15 @@ export function Mascot() {
   // Saludo: una vez por visita, con el primer consejo de la página (no en el pago).
   useEffect(() => {
     if (!ready || hidden || topic === "checkout" || topic === "order") return;
-    if (read(() => sessionStorage, HELLO_KEY)) return;
+    const firstTime = read(() => localStorage, INTRO_KEY) !== "1";
+    if (!firstTime && read(() => sessionStorage, HELLO_KEY)) return;
     const timer = window.setTimeout(() => {
       write(() => sessionStorage, HELLO_KEY, "1");
+      // La primera vez se presenta y espera a que lo cierren.
+      if (firstTime) {
+        show({ ...INTRO, mood: "happy", auto: false });
+        return;
+      }
       const [first] = tipsFor(topic);
       if (!first) return;
       // «Otro consejo» sigue con el siguiente.
@@ -119,44 +136,18 @@ export function Mascot() {
   }, [ready, hidden]);
 
   // Mirada que sigue al cursor y parpadeo.
-  useEffect(() => {
-    if (!ready || hidden) return;
-    const motion = window.matchMedia("(prefers-reduced-motion: no-preference)");
-    if (!motion.matches) return;
-    let frame = 0;
-    const onMove = (event: PointerEvent) => {
-      if (event.pointerType !== "mouse") return;
-      const { clientX, clientY } = event;
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        const svg = svgBox.current?.querySelector("svg");
-        const eyes = svg?.querySelector<SVGGElement>(".kovi-eyes");
-        if (!svg || !eyes) return;
-        const box = svg.getBoundingClientRect();
-        const dx = clientX - (box.left + box.width / 2);
-        const dy = clientY - (box.top + box.height * 0.4);
-        const distance = Math.hypot(dx, dy) || 1;
-        const reach = Math.min(1, distance / 260);
-        eyes.style.transform = `translate(${((dx / distance) * 6 * reach).toFixed(1)}px, ${((dy / distance) * 4 * reach).toFixed(1)}px)`;
-      });
-    };
-    const blink = window.setInterval(() => {
-      const svg = svgBox.current?.querySelector("svg");
-      if (!svg || Math.random() < 0.4) return;
-      svg.setAttribute("data-blink", "");
-      window.setTimeout(() => svg.removeAttribute("data-blink"), 140);
-    }, 2800);
-    window.addEventListener("pointermove", onMove, { passive: true });
-    return () => {
-      window.removeEventListener("pointermove", onMove);
-      window.clearInterval(blink);
-      cancelAnimationFrame(frame);
-    };
-  }, [ready, hidden]);
+  useKoviEyes(svgBox, ready && !hidden);
 
   if (!ready) return null;
 
+  function meet() {
+    if (introduced) return;
+    setIntroduced(true);
+    write(() => localStorage, INTRO_KEY, "1");
+  }
+
   function giveTip() {
+    meet();
     const tips = tipsFor(topic);
     const tip = tips[next.current % tips.length];
     next.current += 1;
@@ -164,6 +155,7 @@ export function Mascot() {
   }
 
   function hide() {
+    meet();
     setBubble(null);
     setHidden(true);
     write(() => localStorage, HIDDEN_KEY, "min");
@@ -221,7 +213,10 @@ export function Mascot() {
             </div>
             <button
               type="button"
-              onClick={() => setBubble(null)}
+              onClick={() => {
+                meet();
+                setBubble(null);
+              }}
               aria-label="Cerrar el consejo"
               className="absolute top-2 right-2 grid size-6 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
             >
@@ -236,12 +231,22 @@ export function Mascot() {
       </div>
       <button
         type="button"
-        onClick={() => (bubble ? setBubble(null) : giveTip())}
+        onClick={() => {
+          meet();
+          if (bubble) setBubble(null);
+          else giveTip();
+        }}
         aria-label={bubble ? "Cerrar el consejo de Kovi" : "Kovi, la mascota: toca para un consejo"}
         aria-expanded={Boolean(bubble)}
-        className="rounded-2xl outline-none focus-visible:ring-3 focus-visible:ring-ring/40"
+        className="relative rounded-2xl outline-none focus-visible:ring-3 focus-visible:ring-ring/40"
       >
-        <span ref={svgBox} className={cn("block w-16 sm:w-20")}>
+        {!introduced && (
+          <span
+            aria-hidden
+            className="kovi-ring pointer-events-none absolute inset-x-1 bottom-1 aspect-square rounded-full"
+          />
+        )}
+        <span ref={svgBox} className={cn("relative block w-16 sm:w-20")}>
           <Kovi mood={mood} className="w-full" />
         </span>
       </button>

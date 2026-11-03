@@ -1,6 +1,6 @@
 "use client";
 
-import { ShoppingCartIcon } from "lucide-react";
+import { KoviLive } from "@/components/mascot/kovi-live";
 import Link from "next/link";
 import { CartLines } from "@/components/cart/cart-lines";
 import { CartSummary } from "@/components/cart/cart-summary";
@@ -15,7 +15,7 @@ export function CartView() {
   if (!items.length) {
     return (
       <div className="grid justify-items-center gap-4 rounded-xl border border-dashed bg-card px-6 py-16 text-center">
-        <ShoppingCartIcon className="size-10 text-muted-foreground" aria-hidden />
+        <KoviLive mood="thinking" className="w-24" />
         <div className="grid gap-1">
           <h2 className="text-lg font-semibold">Tu carrito está vacío</h2>
           <p className="text-sm text-muted-foreground">
